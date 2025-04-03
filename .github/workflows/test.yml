@@ -48,13 +48,13 @@ jobs:
       - name: Log sys.path
         run: python -c "import sys; print('\n'.join(sys.path))"
 
+      - name: Install pytest Annotation Plugin
+        run: pip install pytest-github-actions-annotate-failures
+
       - name: Run Unit Tests
         run: |
           echo "PYTHONPATH: $PYTHONPATH"
           python -m pytest --cov=src --cov-report=xml --cov-report=html --cov-branch --disable-warnings test/
-
-      - name: Install pytest Annotation Plugin
-        run: pip install pytest-github-actions-annotate-failures
 
       - name: Upload Coverage Reports
         uses: actions/upload-artifact@v4

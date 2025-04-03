@@ -1,23 +1,15 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-Update the `YYYY-MM-DD` placeholders with actual release dates before making a release.
+All notable changes to the project will be documented in this file.
 
 ## [Unreleased]
-- Planned features and bug fixes.
 
-## [1.0.0] - YYYY-MM-DD
-### Initial release of the package:
-- Implemented a Robot Framework test library for XML validation against XSD schemas.
-- Added unit tests using pytest.
-- Added integration tests using Robot Framework.
-- Added user and technical documentation.
+## [1.0.0] - 2025-04-04
+### Added
+- Implement Robot Framework test library for XML validation against XSD schemas.
+- Add unit tests using pytest.
+- Add integration tests using Robot Framework.
+- Add user and technical documentation.
+- Add Makefile for standard development tasks.
+- Add GitHub Actions for CI/CD.
 - Use Poetry for dependency and release management.
-- Using  GitHub Actions for CI/CD.
-- Add Makefile for standard dev tasks.
-- Added support for pre-commit hooks.
-
-## [0.1.0] - YYYY-MM-DD
-### Prototype implementation
-- For early testing on TestPyPI.

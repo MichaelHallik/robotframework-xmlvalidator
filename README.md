@@ -33,6 +33,7 @@
     - [Utilizing error facets](#utilizing-error-facets)
   - [Useful docs](#useful-docs)
   - [Contributing](#contributing)
+    - [Introduction](#introduction-1)
     - [Environment setup](#environment-setup)
       - [Clone the repo and navigate into it:](#clone-the-repo-and-navigate-into-it)
       - [Install using Poetry:](#install-using-poetry-1)
@@ -415,7 +416,13 @@ The table lists the most commonly available attributes, though additional fields
 
 ## Contributing
 
+### Introduction
+
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The overall process:
+
+![Contributing to the project](./docs/images/contributing.JPG)
 
 This project uses Poetry for dependency and packaging management.
 

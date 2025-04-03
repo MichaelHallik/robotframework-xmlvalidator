@@ -7,6 +7,8 @@
         test.yml
     PULL_REQUEST_TEMPLATE.md
 docs
+    images
+        contributing.JPG
     XmlValidator.html
 src
     xmlvalidator
@@ -58,7 +60,6 @@ test
 CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
-github_actions.md
 LICENSE
 Makefile
 poetry.lock
