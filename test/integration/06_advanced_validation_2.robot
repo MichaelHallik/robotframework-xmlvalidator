@@ -206,7 +206,6 @@ Variables    teardown_vars.py
     ...                Finally, there are three XML files that do not 
     ...                match with any of the three schema files and will 
     ...                therefore be reported as such, by the library.
-    [Tags]    git-exclude
     # Validate the schema from the previous test case is (still) loaded.
     IF    not ${RESET_SCHEMA}
         ${cur_schema}=    Get Schema
@@ -227,7 +226,7 @@ Variables    teardown_vars.py
     ${expected_errors_2} =    Create Dictionary    
     ...                        file_name=schema1_malformed_1.xml
     ...                        path=
-    ...                        reason=Premature end of data in tag Employee line 1, line 1, column 11 (file:/${{ $EXECDIR.replace('\\', '/')}}/test/_data/integration/TC_29/schema1_malformed_1.xml, line 1)
+    ...                        reason=Premature end of data in tag Employee line 1, line 1, column 11
     ${expected_errors_3} =    Create Dictionary    
     ...                        reason=No matching XSD found for: unmatched_1.
     # Validate the validation results are as expected.
