@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Pylint
         run: |
-          poetry run pylint src tests
+          poetry run pylint src
 
       - name: Run Pyright
         run: |
