@@ -59,7 +59,6 @@ CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 github_actions.md
-install-xmlvalidator.bat
 LICENSE
 Makefile
 poetry.lock

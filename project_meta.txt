@@ -5,4 +5,4 @@ Total number of methods: 27
 Total number of lines: 2434
 	Code: 600 (ca. 24%)
 	Comments: 205 (ca. 8%)
-	Documentation: 1629 (ca. 66%)
+	Documentation: 1629 (ca. 68%)
