@@ -1,0 +1,11 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://example.com/my_namespace"
+           elementFormDefault="qualified">
+
+    <xs:simpleType name="PhoneNumberType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d{3}-\d{3}-\d{4}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

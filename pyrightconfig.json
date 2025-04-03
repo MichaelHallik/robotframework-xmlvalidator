@@ -1,0 +1,9 @@
+{
+    "include": ["src"],
+    "exclude": [".github", "dist", "test"],
+    "reportMissingImports": false,
+    "reportMissingTypeStubs": false,
+    "reportAttributeAccessIssue": false,
+    "pythonVersion": "3.10",
+    "typeCheckingMode": "basic"
+  }

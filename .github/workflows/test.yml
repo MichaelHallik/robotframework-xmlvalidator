@@ -1,0 +1,79 @@
+name: Run Unit And Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+    strategy:
+      matrix:
+        python-version: ['3.10']
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Poetry Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install Python Packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.create false
+          poetry install
+
+      - name: Show Poetry Configuration
+        run: poetry config --list
+
+      - name: Add Poetry bin Dir To PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+  
+      - name: Log sys.path
+        run: python -c "import sys; print('\n'.join(sys.path))"
+
+      - name: Run Unit Tests
+        run: |
+          echo "PYTHONPATH: $PYTHONPATH"
+          python -m pytest --cov=src --cov-report=xml --cov-report=html --cov-branch --disable-warnings test/
+
+      - name: Install pytest Annotation Plugin
+        run: pip install pytest-github-actions-annotate-failures
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+
+      - name: Ensure results Dir exists
+        run: mkdir -p results
+
+      - name: Run Integration Tests
+        continue-on-error: true
+        run: |
+          python -m robot --outputdir results --exclude git-exclude test/integration
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: results/

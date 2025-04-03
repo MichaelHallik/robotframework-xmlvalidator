@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <value>123</value>
+    <wrongChild>Invalid</wrongChild>  <!-- Invalid: Unexpected element -->
+    <data>
+        <item>validID5</item>
+    </data>
+</root>

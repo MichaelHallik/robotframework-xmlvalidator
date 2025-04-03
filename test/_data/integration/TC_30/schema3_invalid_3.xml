@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <Order xmlns="http://example.com/schema3">
+            <OrderID>890</OrderID>
+            <CustomerName>Mark Smith</CustomerName>
+            <Total>500.00</Total>  <!-- Incorrect element -->
+        </Order>

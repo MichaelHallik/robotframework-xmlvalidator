@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <value>456</value>
+    <child>Another Valid Child</child>
+    <data>
+        <item>validID2</item>
+    </data>
+</root>

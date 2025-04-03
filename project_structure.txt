@@ -1,0 +1,67 @@
+.github
+    ISSUE_TEMPLATE
+        bug_report.md
+        feature_request.md
+    workflows
+        lint.yml
+        test.yml
+    PULL_REQUEST_TEMPLATE.md
+docs
+    XmlValidator.html
+src
+    xmlvalidator
+        __init__.py
+        xml_validator_results.py
+        xml_validator_utils.py
+        XmlValidator.py
+test
+    _data
+        integration
+            TC_02
+                02_test_schema.xsd
+            ...
+            TC_32
+                complex_schema.xsd
+                invalid.xml
+                valid.xml
+        unit
+            test.xml
+            test.xsd
+    _doc
+        integration
+            overview.html
+            README.md
+        unit
+            overview.html
+            README.md
+    integration
+        00_helper_keywords.robot
+        01_library_initialization.robot
+        02_basic_validation.robot
+        03_error_handling.robot
+        04_schema_resolution.robot
+        05_advanced_validation_1.robot
+        06_advanced_validation_2.robot
+        teardown_vars.py
+        validation_keywords.py
+        validation_keywords.resource
+    unit
+        test_xml_validator_results.py
+        test_xml_validator_utils.py
+        test_xmlvalidator.py
+    conftest.py
+.gitignore
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+github_actions.md
+LICENSE
+Makefile
+poetry.lock
+project_meta.txt
+project_structure.txt
+pyproject.toml
+pyrightconfig.json
+README.md
+requirements-dev.txt
+requirements.txt

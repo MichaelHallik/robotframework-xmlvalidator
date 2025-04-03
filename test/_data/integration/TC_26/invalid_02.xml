@@ -1,0 +1,6 @@
+<Person>
+    <Name>Alice Smith</Name>
+    <Phone>InvalidPhoneFormat</Phone>  <!-- Error #1: Invalid format -->
+    <Age>-5</Age>  <!-- Error #2: Out-of-range integer -->
+    <ExtraElement>Unexpected</ExtraElement>  <!-- Error #3: Unrecognized element -->
+</Person>

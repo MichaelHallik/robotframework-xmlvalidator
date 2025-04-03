@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <Employee xmlns="http://example.com/schema1">
+            <ID>ABC</ID>  <!-- Invalid int -->
+            <Name>John Doe</Name>
+            <Age>Twenty Five</Age>  <!-- Invalid int -->
+        </Employee>

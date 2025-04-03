@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Test Overview</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h2 { color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #3498db; color: white; cursor: pointer; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .missing { color: red; font-weight: bold; }
+    </style>
+    <script>
+        function sortTable(tableId, columnIndex) {
+            let table = document.getElementById(tableId);
+            let rows = Array.from(table.getElementsByTagName("tr")).slice(1);
+            let ascending = table.getAttribute("data-sort") !== columnIndex.toString();
+            
+            console.log("Sorting table:", tableId, "Column:", columnIndex, "Ascending:", ascending);
+
+            rows.sort((rowA, rowB) => {
+                let cellA = rowA.cells[columnIndex].innerText.trim();
+                let cellB = rowB.cells[columnIndex].innerText.trim();
+
+                if (!isNaN(cellA) && !isNaN(cellB)) {
+                    return ascending ? cellA - cellB : cellB - cellA;
+                }
+
+                return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            });
+
+            rows.forEach(row => table.appendChild(row));
+            table.setAttribute("data-sort", ascending ? columnIndex.toString() : "");
+        }
+    </script>
+</head>
+<body>
+    <h1>Unit Test Overview</h1>
+    <h4><b>High-Priority Tests (🔴):</b></h4>
+    These cover critical validation processes, including XML schema validation, namespace matching, and schema loading.
+    They also include failure scenarios, such as invalid schemas, missing files, and incorrect namespaces.
+    These tests ensure core functionality doesn't break, making them the most important tests.
+    <br><br>
+    <h4><b>Medium-Priority Tests (🟠):</b></h4>
+    These cover secondary validation processes, including default behaviors of XmlValidator, internal attribute checks, and logging.
+    While important, failures here wouldn't necessarily break the core XML validation logic.
+    <br><br>
+    <h4><b>Low-Priority Tests (🟡):</b></h4>
+    These are edge cases, redundant namespace extractions, and handling of unusual XML declarations.
+    Their failure wouldn't directly impact schema validation but may cause slight variations in expected behaviors.
+<h2>test_xml_validator_utils.py (23 tests)</h2>
+<table id="table_1" data-sort="">
+                <tr>
+                    <th onclick="sortTable('table_1', 0)">Test Name</th>
+                    <th onclick="sortTable('table_1', 1)">Description</th>
+                    <th onclick="sortTable('table_1', 2)">Priority</th>
+                </tr>
+<tr><td>extract_xml_namespaces_default_namespace</td><td>Test that extract_xml_namespaces() correctly extracts a default  namespace. </td><td>🟠</td></tr>
+<tr><td>extract_xml_namespaces_invalid_xml</td><td>Test that extract_xml_namespaces() raises an XMLSyntaxError when  given an invalid XML file. </td><td>🔴</td></tr>
+<tr><td>extract_xml_namespaces_mixed_default_and_prefixed</td><td>Test that extract_xml_namespaces() correctly extracts both a default  namespace and a prefixed namespace. </td><td>🟠</td></tr>
+<tr><td>extract_xml_namespaces_multiple_namespaces</td><td>Test that extract_xml_namespaces() correctly extracts multiple  namespaces. </td><td>🟠</td></tr>
+<tr><td>extract_xml_namespaces_nested_namespaces</td><td>Test that extract_xml_namespaces() correctly extracts namespaces  declared at different nesting levels. </td><td>🟡</td></tr>
+<tr><td>extract_xml_namespaces_no_namespace</td><td>Test that extract_xml_namespaces() correctly returns an empty set  or dictionary when no namespaces are declared. </td><td>🟡</td></tr>
+<tr><td>extract_xml_namespaces_redundant_declarations</td><td>Test that extract_xml_namespaces() correctly extracts unique  namespaces even when they are declared redundantly. </td><td>🟡</td></tr>
+<tr><td>extract_xml_namespaces_single_namespace</td><td>Test that extract_xml_namespaces() correctly extracts a single  namespace. </td><td>🟠</td></tr>
+<tr><td>match_namespace_to_schema_empty_namespaces_in_xml</td><td>Test that match_namespace_to_schema() correctly returns False when  the XML does not declare any namespaces, but the XSD does. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_handles_unexpected_exceptions</td><td>Test that match_namespace_to_schema() raises an exception when an unexpected error occurs (e.g., malformed XSD schema). </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_invalid_target_namespace</td><td>Test that match_namespace_to_schema() returns False when the XSD's target namespace does not match any declared XML namespace. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_match_with_imported_namespace</td><td>Test that match_namespace_to_schema() correctly identifies a match when the XML file's namespace aligns with an imported namespace in the XSD. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_no_matching_namespace</td><td>Test that match_namespace_to_schema() correctly returns False when  no namespace in the XML matches the XSD's target or imported  namespaces. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_no_namespaces_anywhere</td><td>Test that match_namespace_to_schema() correctly returns False when  neither the XML nor the XSD define any namespaces. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_no_target_namespace_and_no_match</td><td>Test that match_namespace_to_schema() correctly returns False when  the XSD has no target namespace and none of the imported namespaces  match the XML's declared namespaces. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_no_target_namespace_but_imported_matches</td><td>Test that match_namespace_to_schema() correctly returns True when  the XSD has no target namespace but an imported namespace matches  the XML's namespace. </td><td>🔴</td></tr>
+<tr><td>match_namespace_to_schema_valid_target_namespace</td><td>Test that match_namespace_to_schema() correctly identifies a valid  namespace match between an XML file and an XSD schema. </td><td>🔴</td></tr>
+<tr><td>sanity_check_files_empty_file</td><td>Test that sanity_check_files() correctly detects an empty XML or XSD  file. </td><td>🟠</td></tr>
+<tr><td>sanity_check_files_invalid_xml</td><td>Test that sanity_check_files() correctly detects a malformed XML  file. </td><td>🔴</td></tr>
+<tr><td>sanity_check_files_invalid_xsd</td><td>Test that sanity_check_files() correctly detects a malformed XSD  file. </td><td>🔴</td></tr>
+<tr><td>sanity_check_files_missing_file</td><td>Test that sanity_check_files() correctly detects and reports a  missing file. </td><td>🔴</td></tr>
+<tr><td>sanity_check_files_unsupported_file_type</td><td>Test that sanity_check_files() correctly detects an unsupported file  type. </td><td>🟠</td></tr>
+<tr><td>sanity_check_files_valid_xml_xsd</td><td>Test that sanity_check_files() returns success when given valid,  well-formed XML and XSD files. </td><td>🔴</td></tr>
+</table>
+<h2>test_xmlvalidator.py (31 tests)</h2>
+<table id="table_2" data-sort="">
+                <tr>
+                    <th onclick="sortTable('table_2', 0)">Test Name</th>
+                    <th onclick="sortTable('table_2', 1)">Description</th>
+                    <th onclick="sortTable('table_2', 2)">Priority</th>
+                </tr>
+<tr><td>determine_validations_filename_matching_failure</td><td>Test that _determine_validations() assigns FileNotFoundError to each  XML file when no XSD file with a matching filename exists.  Simulates a mismatch in filenames between .xml and .xsd files,  resulting in an error for each XML. </td><td>🟠</td></tr>
+<tr><td>determine_validations_filename_matching_success</td><td>Test that _determine_validations() correctly assigns the correct XSD file to each XML file based on filename matching (e.g., test1.xml → test1.xsd). </td><td>🔴</td></tr>
+<tr><td>determine_validations_invalid_strategy</td><td>Test that _determine_validations() raises a ValueError when an invalid  xsd_search_strategy is provided.  This test bypasses schema resolution logic to trigger the validation  for unknown strategies directly. </td><td>🟠</td></tr>
+<tr><td>determine_validations_namespace_matching_failure</td><td>Test that _determine_validations() assigns FileNotFoundError to each  XML file when no XSD file correctly matches the namespaces.  Simulates a failed namespace resolution scenario where no XSD maps to any XML file. </td><td>🔴</td></tr>
+<tr><td>determine_validations_namespace_matching_success</td><td>Test that _determine_validations() correctly assigns the correct XSD  file to each XML file based on namespace matching.  The test simulates a directory with multiple XSD files and uses a namespace-matching strategy to resolve which schema applies to which XML file. </td><td>🔴</td></tr>
+<tr><td>determine_validations_single_xsd_success</td><td>Test that _determine_validations() correctly assigns a single XSD  file to all XML files when only one XSD is provided.  The method should assign `None` as the value for each XML key,  signaling reuse of the already-loaded schema. </td><td>🟠</td></tr>
+<tr><td>ensure_schema_keep_existing</td><td>Test that _ensure_schema() retains an already loaded schema when  no new schema path is provided, ensuring the correct log message  is issued. </td><td>🔴</td></tr>
+<tr><td>ensure_schema_load_failure</td><td>Test that _ensure_schema() returns a failure result when schema  loading fails, ensuring the correct log message is issued. </td><td>🟠</td></tr>
+<tr><td>ensure_schema_load_new_schema</td><td>Test that _ensure_schema() correctly loads a new schema when a  valid XSD path is provided, ensuring the correct log message is  issued. </td><td>🔴</td></tr>
+<tr><td>ensure_schema_no_existing_or_new_schema</td><td>Test that _ensure_schema() raises a ValueError when neither an  existing schema nor a new schema path is available. </td><td>🟠</td></tr>
+<tr><td>ensure_schema_replace_existing_schema</td><td>Test that _ensure_schema() replaces an existing schema when a new  valid XSD path is provided, ensuring the correct log message is  issued. </td><td>🔴</td></tr>
+<tr><td>find_schemas_filename_matching_failure</td><td>Test that _find_schemas() fails to assign an XSD file when no XSD  file has a matching filename. </td><td>🔴</td></tr>
+<tr><td>find_schemas_filename_matching_success</td><td>Test that _find_schemas() correctly assigns an XSD file when the XML  and XSD share the same filename (excluding extension). </td><td>🔴</td></tr>
+<tr><td>find_schemas_invalid_xml</td><td>Test that _find_schemas() logs an error and fails gracefully when  the XML file is malformed or unreadable (e.g., raises XMLSyntaxError). </td><td>🟠</td></tr>
+<tr><td>find_schemas_invalid_xsd</td><td>Test that _find_schemas() logs an error and stores an OSError when  the XML file cannot be read (e.g., due to file system issues). </td><td>🟠</td></tr>
+<tr><td>find_schemas_namespace_matching_failure</td><td>Test that _find_schemas() returns a FileNotFoundError when no XSD  schema matches the XML namespace. </td><td>🔴</td></tr>
+<tr><td>find_schemas_namespace_matching_success</td><td>Test that _find_schemas() correctly assigns an XSD file when the XML  and XSD share the same namespace, using mocks instead of real files. </td><td>🔴</td></tr>
+<tr><td>init_attributes</td><td>Test that XmlValidator initializes its attributes correctly. </td><td>🔴</td></tr>
+<tr><td>init_file_access_error</td><td>Test that the XmlValidator raises an IOError when the XSD file cannot be accessed due to file system restrictions (e.g., permissions).  This test mocks _load_schema to raise an IOError directly. </td><td>🟠</td></tr>
+<tr><td>init_invalid_xsd_path</td><td>Test that the XmlValidator raises a ValueError when an invalid XSD path is provided during initialization.  Simulates an invalid input by making get_file_paths() raise a  ValueError directly. </td><td>🔴</td></tr>
+<tr><td>init_logs_correct_facets</td><td>Test that XmlValidator logs the correct error facets when custom error_facets are passed during initialization. </td><td>🟡</td></tr>
+<tr><td>init_multiple_xsd</td><td>Test that the XmlValidator raises a ValueError when multiple XSD files are found in a directory during initialization.  The helper method get_file_paths() returns a list of multiple .xsd  files, simulating an invalid schema preloading scenario. </td><td>🔴</td></tr>
+<tr><td>init_schema_load_failure</td><td>Test that the XmlValidator raises a SystemError when schema loading fails due to an invalid or unreadable XSD file.  This test mocks get_file_paths to return a valid XSD path, but _load_schema to simulate a failure result. </td><td>🔴</td></tr>
+<tr><td>init_with_xsd</td><td>Test that the XmlValidator initializes correctly when provided with  a valid XSD schema.  This test mocks the file path resolution, the XMLSchema loader, and the logger to ensure correct schema loading behavior and logging. </td><td>🔴</td></tr>
+<tr><td>init_without_xsd</td><td>Test that the XmlValidator initializes correctly when no XSD schema is provided, ensuring a warning is logged. </td><td>🔴</td></tr>
+<tr><td>load_schema_invalid_xsd</td><td>Test that _load_schema() returns a failure result when an invalid  XSD is provided. </td><td>🔴</td></tr>
+<tr><td>load_schema_valid_xsd</td><td>Test that _load_schema() successfully loads a valid XSD schema. </td><td>🔴</td></tr>
+<tr><td>validate_xml_invalid_file</td><td>Test that _validate_xml() returns (False, [errors]) when given an  XML file that does not conform to the schema. </td><td>🔴</td></tr>
+<tr><td>validate_xml_malformed_xml</td><td>Test that _validate_xml() returns (False, [errors]) when given a malformed XML file (e.g., missing a closing tag). </td><td>🟠</td></tr>
+<tr><td>validate_xml_no_schema_provided</td><td>Test that _validate_xml() raises an error when no XSD file is  provided. </td><td>🟠</td></tr>
+<tr><td>validate_xml_valid_file</td><td>Test that _validate_xml() correctly validates a well-formed XML file  against a matching XSD. </td><td>🔴</td></tr>
+</table>
+</body></html>

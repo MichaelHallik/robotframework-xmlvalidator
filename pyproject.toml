@@ -1,0 +1,50 @@
+# General.
+[tool.poetry]
+name = "robotframework-xmlvalidator"
+version = "1.0.0b3"
+description = "A Robot Framework test library for validating XML files against XSD schemas."
+authors = ["Michael Hallik <hallik.michael@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{ include = "xmlvalidator", from = "src" }]
+keywords = ["robotframework", "xml", "xsd", "validation", "test-library", "test", "testing", "test-automation"]
+homepage = "https://github.com/MichaelHallik/robotframework-xmlvalidator"
+repository = "https://github.com/MichaelHallik/robotframework-xmlvalidator"
+documentation = "https://github.com/MichaelHallik/robotframework-xmlvalidator#readme"
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: Apache Software License",
+    "Framework :: Robot Framework",
+    "Topic :: Software Development :: Testing",
+    ]
+
+# Package installation dependencies.
+[tool.poetry.dependencies]
+python = ">=3.10"
+lxml = "^5.1.0"
+pandas = "^2.2.0"
+robotframework = "^7.0.0"
+xmlschema = "^3.4.3"
+
+# Development dependencies (not installed during normal package installation).
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+pylint = "^3.1.0"
+pyright = "^1.1.357"
+pytest = "^8.3.1" # Needed for unit testing.
+pytest-mock = "^3.12.0" # Needed for mocking in tests.
+pytest-cov = "^4.1.0"
+
+# Define the build-system to build the package.
+[build-system]
+requires = ["poetry-core"] # Poetry uses poetry-core instead of setuptools.
+build-backend = "poetry.core.masonry.api" # The Poetry module which handles package building and dependency resolution.
+
+# Configure pytest (replace pytest.ini).
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra --strict-markers"
+testpaths = ["test/unit"]

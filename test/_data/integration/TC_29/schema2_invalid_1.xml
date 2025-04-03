@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <Product xmlns="http://example.com/schema2">
+            <ProductID>123</ProductID>
+            <ProductName>Gadget</ProductName>
+            <Price>99.99USD</Price>  <!-- Invalid decimal -->
+        </Product>

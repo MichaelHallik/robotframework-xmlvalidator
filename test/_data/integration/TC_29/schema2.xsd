@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+               targetNamespace="http://example.com/schema2" 
+               xmlns="http://example.com/schema2"
+               elementFormDefault="qualified">
+        <xs:element name="Product">
+            <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="ProductID" type="xs:string"/>
+                    <xs:element name="ProductName" type="xs:string"/>
+                    <xs:element name="Price" type="xs:decimal"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:element>
+    </xs:schema>
