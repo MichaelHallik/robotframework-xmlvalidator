@@ -20,10 +20,14 @@ test
             TC_02
                 02_test_schema.xsd
             ...
-            TC_32
-                complex_schema.xsd
-                invalid.xml
-                valid.xml
+            TC_31
+                includes
+                    included_schema.xsd
+                xml
+                    invalid_by_include.xml
+                    invalid_by_main.xml
+                    valid.xml
+                main_schema.xsd
         unit
             test.xml
             test.xsd
@@ -55,6 +59,7 @@ CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 github_actions.md
+install-xmlvalidator.bat
 LICENSE
 Makefile
 poetry.lock

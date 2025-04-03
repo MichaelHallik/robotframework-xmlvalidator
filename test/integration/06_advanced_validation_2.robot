@@ -253,7 +253,7 @@ Variables    teardown_vars.py
     ...                The validations errors that are reported/returned 
     ...                in this test case will not be validated. Instead, 
     ...                each error is logged, including the data type of 
-    ...                the error facet (e.g. string or 
+    ...                the error facet (e.g. a string or 
     ...                xml.etree.ElementTree.Element).
     # Specify error facets.
     @{new_error_facets}=    Create List    message    elem    namespaces

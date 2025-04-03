@@ -161,12 +161,6 @@ clean:
 	echo "All removed paths:"; \
 	printf "$$removed_paths\n" | sed '/^$$/d; s/^/  - /'
 
-# Set up project environment: install, pre-commit hook setup, etc.
-setup:
-	@echo "Setting up the project environment..."
-	make install
-	@echo "Setup complete!"
-
 # Create and activate a virt env, install the library and run some checks.
 test-install:
 	cmd /c install-xmlvalidator.bat $(ENV) $(VER)

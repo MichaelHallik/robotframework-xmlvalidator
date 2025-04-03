@@ -1,8 +1,8 @@
-Summary:
-Total number of files: 3
+Summary library source:
+Total number of files: 4
 Total number of methods: 27
 	Robot Framework user keywords: 7 (ca. 25%)
 Total number of lines: 2434
-	Code: 600 (ca. 25%)
+	Code: 600 (ca. 24%)
 	Comments: 205 (ca. 8%)
-	Documentation: 1629 (ca. 67%)
+	Documentation: 1629 (ca. 66%)

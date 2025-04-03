@@ -68,7 +68,6 @@ jobs:
         run: mkdir -p results
 
       - name: Run Integration Tests
-        continue-on-error: true
         run: |
           python -m robot --outputdir results --exclude git-exclude test/integration
 
