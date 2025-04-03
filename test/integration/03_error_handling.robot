@@ -32,6 +32,7 @@ Variables    teardown_vars.py
     ...                Verify that the library catches the errors and 
     ...                constructs and reports an informative error 
     ...                message.
+    [Tags]    git-exclude
     # Set up test variables.
     ${xsd_path_1} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_15/15_non_existing.xsd
     ${xsd_path_2} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_15/empty_folder
@@ -44,7 +45,7 @@ Variables    teardown_vars.py
     Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_15/empty_folder ] failed: ValueError: No files reside in the folder: [].
     ## Path to a non-xsd file.
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_3}    AS    ${TEST_NAME}
-    Should Contain    ${error}    is not an XSD file.
+    Should Contain    ${error}    ValueError: ${EXECDIR}\\test\\_data\\integration\\TC_15\\non_xsd_extension\\15_test_schema.txt is not an XSD file.
 
 16_Validate_Non_Existing_XML
     [Documentation]    Attempt to validate a non-existent XML file and 
@@ -91,6 +92,7 @@ Variables    teardown_vars.py
     ...                Verify that the library catches the errors and 
     ...                constructs and reports an informative error 
     ...                message.
+    [Tags]    git-exclude
     # Set up test variables.
     ${xsd_path_1} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_18/18_non_existing.xsd
     ${xsd_path_2} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_18/empty_folder
@@ -102,10 +104,10 @@ Variables    teardown_vars.py
     ${result}=    Run Keyword And Expect Error    ValueError: The provided path is neither a file nor a folder: *    ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_path_1}
     ## Path to an empty folder (could also contain one or more non-xsd files).
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_2}    AS    ${TEST_NAME}
-    Should Contain    ${error}    ValueError: No files reside in the folder
+    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_18/empty_folder ] failed: ValueError: No files reside in the folder: [].
     ## Path to a non-xsd file.
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_3}    AS    ${TEST_NAME}
-    Should Contain    ${error}    is not an XSD file.
+    Should Contain    ${error}    ValueError: ${EXECDIR}\\test\\_data\\integration\\TC_18\\non_xsd_extension\\18_test_schema.txt is not an XSD file.
     # Teardown (and validate schema attribute is None).
     ${xml_validator} =    Get Library Instance    ${TEST NAME}
     Should Be Equal    ${xml_validator.schema}    ${None}

@@ -91,7 +91,7 @@ Variables    teardown_vars.py
     ...                an invalid XSD file and verify the informative 
     ...                and structured error message that the library 
     ...                constructs and returns.
-    [Tags]    TODO    Not yet implemented
+    [Tags]    TODO    Not yet implemented    NYI
     ${invalid_xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_05/05_invalid_schema.xsd
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${invalid_xsd_path}    AS    ${TEST NAME}
     Should Be Equal    ${status}    FAIL
