@@ -1,5 +1,5 @@
 [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator.svg)](https://pypi.org/project/robotframework-xmlvalidator/)
-[![License](https://img.shields.io/pypi/l/robotframework-xmlvalidator)](LICENSE)
+[![License](https://img.shields.io/pypi/l/robotframework-xmlvalidator?cacheSeconds=600)](LICENSE)
 [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml)
 
 <details>
