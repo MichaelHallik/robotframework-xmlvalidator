@@ -73,7 +73,7 @@ def test_init_with_xsd():
     ) as mock_xmlschema, patch.object(
         xml_validator_module.logger, "info"
     ) as mock_info, patch.object(
-        xml_validator_module.logger, "console"  # Avoid WinError 6 during tests
+        xml_validator_module.logger, "console" # Avoid WinError 6 during tests.
     ):
         # Act: Instantiate with a valid schema path.
         validator = XmlValidator(xsd_path="schema.xsd")
@@ -83,9 +83,15 @@ def test_init_with_xsd():
             Path("schema.xsd"), base_url=None
         )
         assert validator.schema is mock_schema_instance
-        # Assert: Logging behavior (check 'info' calls instead of 'warn')
-        mock_info.assert_any_call("Collecting error facets: ['path', 'reason'].", also_console=True)
-        mock_info.assert_any_call("XML Validator ready for use!", also_console=True)
+        # Assert: Logging behavior (check 'info' calls instead of 'warn').
+        mock_info.assert_any_call(
+            "Collecting error facets: ['path', 'reason'].",
+            also_console=True
+            )
+        mock_info.assert_any_call(
+            "XML Validator ready for use!",
+            also_console=True
+            )
 
 def test_init_without_xsd():
     """
@@ -95,13 +101,11 @@ def test_init_without_xsd():
     Priority: H
     """
     with patch.object(xml_validator_module.logger, "info") as mock_info, \
-         patch.object(xml_validator_module.logger, "console"):  # Avoid console errors
+         patch.object(xml_validator_module.logger, "console"): # Avoid console errors.
         # Instantiate the validator with no schema.
         validator = XmlValidator()
-
         # Assert schema is explicitly set to None.
         assert validator.schema is None
-
         # Check expected logger.info() calls
         mock_info.assert_any_call(
             "No XSD schema set: provide schema(s) during keyword calls.",
@@ -173,8 +177,13 @@ def test_init_logs_correct_facets():
     """
     with patch.object(xml_validator_module.logger, "info") as mock_info:
         _ = XmlValidator(error_facets=["path", "message"])
-        mock_info.assert_any_call("Collecting error facets: ['path', 'message'].", also_console=True)
-        mock_info.assert_any_call("XML Validator ready for use!", also_console=True)
+        mock_info.assert_any_call(
+            "Collecting error facets: ['path', 'message'].",
+            also_console=True
+            )
+        mock_info.assert_any_call(
+            "XML Validator ready for use!", also_console=True
+            )
 
 def test_init_schema_load_failure():
     """
@@ -231,11 +240,12 @@ def test_determine_validations_single_xsd_success():
     xml_files = [Path("test1.xml"), Path("test2.xml"), Path("test3.xml")]
     xsd_file = Path("schema.xsd")
 
-    with patch.object(xml_validator_module.ValidatorUtils, "get_file_paths", return_value=([xsd_file], True)), \
-         patch.object(xml_validator_module.logger, "info"):  # Prevent console I/O
-
+    with patch.object(
+        xml_validator_module.ValidatorUtils, "get_file_paths",
+        return_value=([xsd_file], True)
+        ), \
+         patch.object(xml_validator_module.logger, "info"): # Prevent console I/O.
         validator = XmlValidator()
-
         with patch.object(
             validator, "_ensure_schema",
             return_value=ValidatorResult(success=True, error=None)
@@ -269,18 +279,21 @@ def test_determine_validations_namespace_matching_success():
         xml_files[1]: xsd_files[1],
         xml_files[2]: xsd_files[2],
     }
-
-    with patch.object(xml_validator_module.ValidatorUtils, "get_file_paths", return_value=(xsd_files, False)), \
-         patch.object(XmlValidator, "_find_schemas", return_value=expected_validations) as mock_find_schemas, \
-         patch.object(xml_validator_module.logger, "info"):  # Suppress console logging
-
+    with patch.object(
+        xml_validator_module.ValidatorUtils, "get_file_paths",
+        return_value=(xsd_files, False)
+        ), \
+         patch.object(
+             XmlValidator, "_find_schemas",
+             return_value=expected_validations
+             ) as mock_find_schemas, \
+         patch.object(xml_validator_module.logger, "info"): # Suppress console logging.
         validator = XmlValidator()
         result = validator._determine_validations(
             xml_paths=xml_files,
-            xsd_path="mock_xsd_folder",  # Simulated directory.
+            xsd_path="mock_xsd_folder", # Simulated directory.
             xsd_search_strategy="by_namespace"
         )
-
         # Ensure correct delegation to _find_schemas().
         mock_find_schemas.assert_called_once_with(
             xml_files,
@@ -304,24 +317,28 @@ def test_determine_validations_namespace_matching_failure():
     # Define test XML and XSD files.
     xml_files = [Path("test1.xml"), Path("test2.xml"), Path("test3.xml")]
     xsd_files = [Path("schema1.xsd"), Path("schema2.xsd"), Path("schema3.xsd")]
-
     # Simulate _find_schemas() returning a mapping with errors.
     expected_validations = {
-        xml_file: FileNotFoundError(f"No matching XSD found for: {xml_file.stem}")
+        xml_file: FileNotFoundError(
+            f"No matching XSD found for: {xml_file.stem}"
+            )
         for xml_file in xml_files
     }
-
-    with patch.object(xml_validator_module.ValidatorUtils, "get_file_paths", return_value=(xsd_files, False)), \
-         patch.object(XmlValidator, "_find_schemas", return_value=expected_validations) as mock_find_schemas, \
-         patch.object(xml_validator_module.logger, "info"):  # 👈 this fixes the crash
-
+    with patch.object(
+        xml_validator_module.ValidatorUtils, "get_file_paths",
+        return_value=(xsd_files, False)
+        ), \
+         patch.object(
+             XmlValidator, "_find_schemas",
+             return_value=expected_validations
+             ) as mock_find_schemas, \
+         patch.object(xml_validator_module.logger, "info"):
         validator = XmlValidator()
         result = validator._determine_validations(
             xml_paths=xml_files,
-            xsd_path="mock_xsd_folder",  # Simulated directory.
+            xsd_path="mock_xsd_folder", # Simulated directory.
             xsd_search_strategy="by_namespace"
         )
-
         mock_find_schemas.assert_called_once_with(
             xml_files, xsd_files, "by_namespace", None
         )
@@ -345,14 +362,19 @@ def test_determine_validations_filename_matching_success():
         xml_files[1]: xsd_files[1],
         xml_files[2]: xsd_files[2],
     }
-    with patch.object(xml_validator_module.ValidatorUtils, "get_file_paths", return_value=(xsd_files, False)), \
-         patch.object(XmlValidator, "_find_schemas", return_value=expected_validations) as mock_find_schemas, \
-         patch.object(xml_validator_module.logger, "info"):  # 👈 PATCH FIX
-
+    with patch.object(
+        xml_validator_module.ValidatorUtils, "get_file_paths",
+        return_value=(xsd_files, False)
+        ), \
+         patch.object(
+             XmlValidator, "_find_schemas",
+             return_value=expected_validations
+             ) as mock_find_schemas, \
+         patch.object(xml_validator_module.logger, "info"):
         validator = XmlValidator()
         result = validator._determine_validations(
             xml_paths=xml_files,
-            xsd_path="mock_xsd_folder",  # Simulated directory.
+            xsd_path="mock_xsd_folder", # Simulated directory.
             xsd_search_strategy="by_file_name"
         )
         mock_find_schemas.assert_called_once_with(
@@ -374,13 +396,20 @@ def test_determine_validations_filename_matching_failure():
     xml_files = [Path("file1.xml"), Path("file2.xml"), Path("file3.xml")]
     xsd_files = [Path("schema1.xsd"), Path("schema2.xsd"), Path("schema3.xsd")]
     expected_validations = {
-        xml_file: FileNotFoundError(f"No matching XSD found for: {xml_file.stem}")
+        xml_file: FileNotFoundError(
+            f"No matching XSD found for: {xml_file.stem}"
+            )
         for xml_file in xml_files
     }
-    with patch.object(xml_validator_module.ValidatorUtils, "get_file_paths", return_value=(xsd_files, False)), \
-         patch.object(XmlValidator, "_find_schemas", return_value=expected_validations) as mock_find_schemas, \
-         patch.object(xml_validator_module.logger, "info"):  # 👈 PATCH FIX
-
+    with patch.object(
+        xml_validator_module.ValidatorUtils,
+        "get_file_paths", return_value=(xsd_files, False)
+        ), \
+         patch.object(
+             XmlValidator, "_find_schemas",
+             return_value=expected_validations
+             ) as mock_find_schemas, \
+         patch.object(xml_validator_module.logger, "info"):
         validator = XmlValidator()
         result = validator._determine_validations(
             xml_paths=xml_files,
@@ -395,8 +424,8 @@ def test_determine_validations_filename_matching_failure():
 
 def test_determine_validations_invalid_strategy():
     """
-    Test that _determine_validations() raises a ValueError when an invalid 
-    xsd_search_strategy is provided.
+    Test that _determine_validations() raises a ValueError when an 
+    invalid xsd_search_strategy is provided.
 
     This test bypasses schema resolution logic to trigger the validation 
     for unknown strategies directly.
@@ -407,7 +436,7 @@ def test_determine_validations_invalid_strategy():
     invalid_strategy = "invalid_strategy"
     with patch.object(
         xml_validator_module.ValidatorUtils, "get_file_paths",
-        return_value=([], False)  # Prevent early schema loading errors
+        return_value=([], False) # Prevent early schema loading errors.
     ), patch.object(xml_validator_module.logger, "info"):
         validator = XmlValidator()
         with pytest.raises(
@@ -417,7 +446,7 @@ def test_determine_validations_invalid_strategy():
             validator._determine_validations(
                 xml_paths=xml_files,
                 xsd_path="mock_xsd_folder",
-                xsd_search_strategy=invalid_strategy  # type: ignore
+                xsd_search_strategy=invalid_strategy # type: ignore
             )
 
 # _ensure_schema()
@@ -464,7 +493,9 @@ def test_ensure_schema_load_new_schema():
         mock_load_schema.assert_called_once_with(Path("schema.xsd"), None)
         assert result.success is True
         assert result.value == "new_schema"
-        mock_info.assert_any_call("Setting schema file: schema.xsd.", also_console=True)
+        mock_info.assert_any_call(
+            "Setting schema file: schema.xsd.", also_console=True
+            )
 
 def test_ensure_schema_no_existing_or_new_schema():
     """
@@ -473,7 +504,7 @@ def test_ensure_schema_no_existing_or_new_schema():
 
     Priority: M
     """
-    with patch.object(xml_validator_module.logger, "info"):  # 👈 fix
+    with patch.object(xml_validator_module.logger, "info"):
         validator = XmlValidator()
         with pytest.raises(ValueError, match="No schema: provide an XSD path"):
             validator._ensure_schema()
@@ -499,7 +530,9 @@ def test_ensure_schema_replace_existing_schema():
         mock_load_schema.assert_called_once_with(Path("new_schema.xsd"), None)
         assert result.success is True
         assert result.value == "new_schema"
-        mock_info.assert_any_call("Setting new schema file: new_schema.xsd.", also_console=True)
+        mock_info.assert_any_call(
+            "Setting new schema file: new_schema.xsd.", also_console=True
+            )
 
 def test_ensure_schema_load_failure():
     """
@@ -519,7 +552,9 @@ def test_ensure_schema_load_failure():
         mock_load_schema.assert_called_once_with(Path("invalid.xsd"), None)
         assert result.success is False
         assert result.error == "Schema load error"
-        mock_info.assert_any_call("Setting schema file: invalid.xsd.", also_console=True)
+        mock_info.assert_any_call(
+            "Setting schema file: invalid.xsd.", also_console=True
+            )
 
 # _find_schemas()
 
@@ -532,11 +567,9 @@ def test_find_schemas_namespace_matching_success():
     """
     xml_file = Path("test.xml")
     xsd_file = Path("schema.xsd")
-
     # Simulate the XML root element's namespace.
     mock_xml_root = MagicMock()
     mock_xml_root.nsmap = {"ns": "http://example.com/schema"}
-
     with patch.object(
         xml_validator_module.etree, "parse"
     ) as mock_parse, patch.object(
@@ -545,13 +578,12 @@ def test_find_schemas_namespace_matching_success():
         xml_validator_module.ValidatorUtils, "extract_xml_namespaces",
         return_value={"http://example.com/schema"}
     ), patch.object(
-        xml_validator_module.logger, "info"  # 👈 Patch logger.info only
+        xml_validator_module.logger, "info"
     ):
         # Configure XML parse mock to return the mocked root.
         mock_parse.return_value.getroot.return_value = mock_xml_root
         # Simulate a schema with a matching namespace.
         mock_xsd_schema.return_value.target_namespace = "http://example.com/schema"
-
         validator = XmlValidator()
         result = validator._find_schemas(
             xml_file_paths=[xml_file],
@@ -573,7 +605,6 @@ def test_find_schemas_namespace_matching_failure():
     # XML has a non-matching namespace.
     mock_xml_root = MagicMock()
     mock_xml_root.nsmap = {"ns": "http://example.com/non_matching"}
-
     with patch.object(
         xml_validator_module.etree, "parse"
     ) as mock_parse, patch.object(
@@ -582,12 +613,11 @@ def test_find_schemas_namespace_matching_failure():
         xml_validator_module.ValidatorUtils, "extract_xml_namespaces",
         return_value={"http://example.com/non_matching"}
     ), patch.object(
-        xml_validator_module.logger, "info"  # 👈 Prevent WinError 6
+        xml_validator_module.logger, "info"
     ):
         mock_parse.return_value.getroot.return_value = mock_xml_root
         # XSD schema has a different target namespace.
         mock_xsd_schema.return_value.target_namespace = "http://example.com/schema"
-
         validator = XmlValidator()
         result = validator._find_schemas(
             xml_file_paths=[xml_file],
@@ -607,7 +637,7 @@ def test_find_schemas_filename_matching_success():
     """
     xml_file = TEST_DIR / "test.xml"
     xsd_file = TEST_DIR / "test.xsd"
-    with patch.object(xml_validator_module.logger, "info"):  # 👈 Prevent WinError 6
+    with patch.object(xml_validator_module.logger, "info"):
         validator = XmlValidator()
         result = validator._find_schemas(
             xml_file_paths=[xml_file],
@@ -643,7 +673,6 @@ def test_find_schemas_invalid_xml():
     """
     xml_file = Path("invalid.xml")
     xsd_file = Path("schema.xsd")
-
     with patch.object(
         xml_validator_module.etree, "parse",
         side_effect=etree.XMLSyntaxError(
@@ -674,14 +703,13 @@ def test_find_schemas_invalid_xsd():
     """
     xml_file = Path("valid.xml")
     xsd_file = Path("invalid_schema.xsd")
-
     with patch.object(
         xml_validator_module.etree, "parse",
         side_effect=OSError("Error reading file 'valid.xml'")
     ), patch.object(
         xml_validator_module.logger, "warn"
     ) as mock_warn, patch.object(
-        xml_validator_module.logger, "info"  # 👈 critical for suppressing WinError 6
+        xml_validator_module.logger, "info"
     ):
         validator = XmlValidator()
         result = validator._find_schemas(
@@ -689,9 +717,9 @@ def test_find_schemas_invalid_xsd():
             xsd_file_paths=[xsd_file],
             search_by="by_namespace"
         )
-        # Ensure the XML file is mapped to the OSError
+        # Ensure the XML file is mapped to the OSError.
         assert isinstance(result[xml_file], OSError)
-        # Ensure the correct log message was issued
+        # Ensure the correct log message was issued.
         mock_warn.assert_any_call("Processing XML file failed.")
 
 # _load_schema()
@@ -703,7 +731,7 @@ def test_load_schema_invalid_xsd():
 
     Priority: H
     """
-    # Provide a valid validator to pass into the error
+    # Provide a valid validator to pass into the error.
     mock_validator = XsdValidator("strict")
     with patch.object(
         xml_validator_module, "XMLSchema",
@@ -732,13 +760,15 @@ def test_load_schema_valid_xsd():
     with patch.object(
         xml_validator_module, "XMLSchema"
     ) as mock_xmlschema, patch.object(
-        xml_validator_module.logger, "info"  # 👈 suppress console write
+        xml_validator_module.logger, "info"
     ):
-        # Simulated return from XMLSchema(...)
+        # Simulated return from XMLSchema.
         mock_schema_instance = mock_xmlschema.return_value
         validator = XmlValidator()
         result = validator._load_schema(Path("valid_schema.xsd"))
-        mock_xmlschema.assert_called_once_with(Path("valid_schema.xsd"), base_url=None)
+        mock_xmlschema.assert_called_once_with(
+            Path("valid_schema.xsd"), base_url=None
+            )
         assert result.success is True
         assert result.value is mock_schema_instance
 
@@ -831,7 +861,7 @@ def test_validate_xml_malformed_xml(setup_test_files):
     </xs:schema>"""
     xml_content = """<?xml version="1.0" encoding="UTF-8"?>
     <note>
-        <message>Hello, World!</message>"""  # Missing </note>
+        <message>Hello, World!</message>""" # Missing </note>.
     xml_file, xsd_file = next(setup_test_files(xml_content, xsd_content))
     with patch.object(xml_validator_module.logger, "warn"), \
          patch.object(xml_validator_module.logger, "info"):
