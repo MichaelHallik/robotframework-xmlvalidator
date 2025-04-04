@@ -72,7 +72,7 @@ It provides structured and detailed reporting of XML parse errors (malformed XML
 - Customizable error attributes (`path`, `reason`, `message`, etc.)
 - Batch validation and per-file error tracking
 - Export collected errors to CSV (with optional file name timestamping).
-- And more.
+- And more (see below and the keyword documentation).
 
 ---
 
@@ -204,6 +204,8 @@ That is, when it encounters an error in a file, it does not fail. Rather, it col
 In that fashion the keyword works through the entire set of files.
 
 When having finished checking the last file, it will log a summary of the test run and then proceed to report all collected errors in the console, in the RF log and, optionally, in the form of a CSV file.
+
+However, in case you want your test case to fail when one or more errors have been detected, you can use the ``fail_on_errors`` (bool) argument to make it so. It defaults to False. When setting it to True, then the keyword will still check each XML file (and collect possible errors), but after it has thus processed the batch, it will fail if one or more errors will have been detected.
 
 The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD files, using either a 'by filename' or a 'by namespace' strategy. That means you can simply pass the paths to a folder containing XML files and to a folder containing XSD files and the keyword will determine which XSD schema file to use for each XML file. If the XML and XSD files reside in the same folder, you only have to pass one folder path. When no matching XSD schema could be identified for an XML file, this will be integrated into the mentioned summary and error reporting (the keyword will not fail).
 

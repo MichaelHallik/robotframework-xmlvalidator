@@ -50,7 +50,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 # Third party library imports.
 from lxml import etree
-from robot.api import logger
+from robot.api import Failure, logger
 from robot.api.deco import keyword, library
 from xmlschema import XMLSchema
 # Local application imports.
@@ -243,6 +243,16 @@ class XmlValidator:
     passing ``xsd_path``) and/or when calling ``Validate Xml Files`` 
     with ``xsd_path``.
 
+    ** Optional test case fail **
+
+    The ``Validate Xml Files`` keyword collects one or more errors for 
+    one or more XML files. As mentioned earlier, the keyword is designed 
+    so as to not fail upon encountering errors.
+
+    However, in case you want your test case to fail when one or more 
+    errors have been detected, you can use the ``fail_on_errors`` (bool)
+    argument to make it so. It defaults to ${False}.
+
     **Basic usage examples**
 
     For a comprehensive set of example test cases, please see the 
@@ -298,65 +308,84 @@ class XmlValidator:
 
     .. code:: console
 
-        [ WARN ] Schema 'schema.xsd' set.
-        [ WARN ] Collecting error facets: ['path', 'reason'].
-        [ WARN ] XML Validator ready for use!
+        Schema 'schema.xsd' set.
+        Collecting error facets: ['path', 'reason'].
+        XML Validator ready for use!
         ==============================================================================
         01 Advanced Validation:: Demo XML validation
-        [ WARN ] Mapping XML files to schemata by namespace.
-        [ WARN ] Validating 'valid_1.xml'.
-        [ WARN ]        XML is valid!
-        [ WARN ] Validating 'valid_2.xml'.
-        [ WARN ]        XML is valid!
-        [ WARN ] Validating 'valid_3.xml'.
-        [ WARN ]        XML is valid!
-        [ WARN ] Validating 'xsd_violations_1.xml'.
-        [ WARN ] Setting new schema file: C:\\Projects\\robotframework-xmlvalidator\\test\\_data\\integration\\TC_01\\schema1.xsd. 
-        [ WARN ]        XML is invalid:
-        [ WARN ]                Error #0:
-        [ WARN ]                        path: /Employee
-        [ WARN ]                        reason: Unexpected child with tag '{http://example.com/schema1}FullName' at position 2. Tag '{http://example.com/schema1}Name' expected.
-        [ WARN ]                Error #1:
-        [ WARN ]                        path: /Employee/Age
-        [ WARN ]                        reason: invalid literal for int() with base 10: 'Twenty Five'
-        [ WARN ]                Error #2:
-        [ WARN ]                        path: /Employee/ID
-        [ WARN ]                        reason: invalid literal for int() with base 10: 'ABC'
-        [ WARN ] Validating 'valid_.xml_4'.
-        [ WARN ]        XML is valid!
-        [ WARN ] Validating 'valid_.xml_5'.
-        [ WARN ]        XML is valid!
-        [ WARN ] Validating 'malformed_xml_1.xml'.
-        [ WARN ]        XML is invalid:
-        [ WARN ]                Error #0:
-        [ WARN ]                        reason: Premature end of data in tag Name line 1, line 1, column 37 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)
-        [ WARN ]                Error #1:
-        [ WARN ]                        reason: Opening and ending tag mismatch: ProductID line 1 and Product, line 1, column 31 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)   
-        [ WARN ] Validating 'xsd_violations_2.xml'.
-        [ WARN ] Setting new schema file: C:\\Projects\\robotframework-xmlvalidator\\test\\_data\\integration\\TC_01\\schema2.xsd.
-        [ WARN ]        XML is invalid:
-        [ WARN ]                Error #0:
-        [ WARN ]                        path: /Product/Price
-        [ WARN ]                        reason: invalid value '99.99USD' for xs:decimal
-        [ WARN ]                Error #1:
-        [ WARN ]                        path: /Product
-        [ WARN ]                        reason: The content of element '{http://example.com/schema2}Product' is not complete. Tag '{http://example.com/schema2}Price' expected.
-        [ WARN ] Validating 'valid_.xml_6'.
-        [ WARN ]        XML is valid!
-        [ WARN ] Validating 'no_xsd_match_1.xml'.
-        [ WARN ]        XML is invalid:
-        [ WARN ]                Error #0:
-        [ WARN ]                        reason: No matching XSD found for: no_xsd_match_1.xml.
-        [ WARN ] Validating 'no_xsd_match_2.xml'.
-        [ WARN ]        XML is invalid:
-        [ WARN ]                Error #0:
-        [ WARN ]                        reason: No matching XSD found for: no_xsd_match_2.xml.
-        [ WARN ] Validation errors exported to 'C:\\test\\01_Advanced_Validation\\errors_2025-03-29_13-54-46-552150.csv'.
-        [ WARN ] Total_files validated: 11.
-        [ WARN ] Valid files: 6.
-        [ WARN ] Invalid files: 5
+        Mapping XML files to schemata by namespace.
+        Validating 'valid_1.xml'.
+            XML is valid!
+        Validating 'valid_2.xml'.
+            XML is valid!
+        Validating 'valid_3.xml'.
+            XML is valid!
+        Validating 'xsd_violations_1.xml'.
+        Setting new schema file: C:\\Projects\\robotframework-xmlvalidator\\test\\_data\\integration\\TC_01\\schema1.xsd. 
+        [ WARN ]    XML is invalid:
+        [ WARN ]        Error #0:
+        [ WARN ]            path: /Employee
+        [ WARN ]            reason: Unexpected child with tag '{http://example.com/schema1}FullName' at position 2. Tag '{http://example.com/schema1}Name' expected.
+        [ WARN ]        Error #1:
+        [ WARN ]            path: /Employee/Age
+        [ WARN ]            reason: invalid literal for int() with base 10: 'Twenty Five'
+        [ WARN ]        Error #2:
+        [ WARN ]            path: /Employee/ID
+        [ WARN ]            reason: invalid literal for int() with base 10: 'ABC'
+        Validating 'valid_.xml_4'.
+            XML is valid!
+        Validating 'valid_.xml_5'.
+            XML is valid!
+        Validating 'malformed_xml_1.xml'.
+        [ WARN ]    XML is invalid:
+        [ WARN ]        Error #0:
+        [ WARN ]            reason: Premature end of data in tag Name line 1, line 1, column 37 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)
+        [ WARN ]        Error #1:
+        [ WARN ]            reason: Opening and ending tag mismatch: ProductID line 1 and Product, line 1, column 31 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)
+        Validating 'xsd_violations_2.xml'.
+        Setting new schema file: C:\\Projects\\robotframework-xmlvalidator\\test\\_data\\integration\\TC_01\\schema2.xsd.
+        [ WARN ]    XML is invalid:
+        [ WARN ]        Error #0:
+        [ WARN ]            path: /Product/Price
+        [ WARN ]            reason: invalid value '99.99USD' for xs:decimal
+        [ WARN ]        Error #1:
+        [ WARN ]            path: /Product
+        [ WARN ]            reason: The content of element '{http://example.com/schema2}Product' is not complete. Tag '{http://example.com/schema2}Price' expected.
+        Validating 'valid_.xml_6'.
+            XML is valid!
+        Validating 'no_xsd_match_1.xml'.
+        [ WARN ]    XML is invalid:
+        [ WARN ]        Error #0:
+        [ WARN ]            reason: No matching XSD found for: no_xsd_match_1.xml.
+        Validating 'no_xsd_match_2.xml'.
+        [ WARN ]    XML is invalid:
+        [ WARN ]        Error #0:
+        [ WARN ]            reason: No matching XSD found for: no_xsd_match_2.xml.
+        Validation errors exported to 'C:\\test\\01_Advanced_Validation\\errors_2025-03-29_13-54-46-552150.csv'.
+        Total_files validated: 11.
+        Valid files: 6.
+        Invalid files: 5
+        01 Advanced Validation:: Demo XML validation | PASS |
+        21 errors have been detected.
+        ========================================================
+        01 Advanced Validation:: Demo XML validation | PASS |
+        1 test, 1 passed, 0 failed
 
-    The corresponding CSV output would look like:
+    In case ``fail_on_errors`` is True, the console output will look like this:
+
+    .. code:: console
+
+        Validation errors exported to 'C:\\test\\01_Advanced_Validation\\errors_2025-03-29_13-54-46-552150.csv'.
+        Total_files validated: 11.
+        Valid files: 6.
+        Invalid files: 5.
+        01 Advanced Validation:: Demo XML validation | FAIL |
+        21 errors have been detected.
+        ========================================================
+        01 Advanced Validation:: Demo XML validation | FAIL |
+        1 test, 0 passed, 1 failed
+        
+    The corresponding CSV output would in both cases look like:
 
     .. code:: text
 
@@ -370,6 +399,7 @@ class XmlValidator:
         schema2_invalid_2.xml,/Product,The content of element '{http://example.com/schema2}Product' is not complete. Tag '{http://example.com/schema2}Price' expected.
         no_xsd_match_1.xml,,No matching XSD found for: no_xsd_match_1.xml.
         no_xsd_match_2.xml,,No matching XSD found for: no_xsd_match_2.xml.
+
     """
 
     __version__ = '1.0.0'
@@ -1358,7 +1388,8 @@ class XmlValidator:
         pre_parse: Optional[bool] = True,
         write_to_csv: Optional[bool] = True,
         timestamped: Optional[bool] = True,
-        reset_errors: bool = True
+        reset_errors: bool = True,
+        fail_on_errors: Optional[bool] = False
         ) -> Tuple[
             List[ Dict[str, Any] ],
             str | None
@@ -1483,6 +1514,12 @@ class XmlValidator:
         Clears previously stored validation results before this run.
         Defaults to True.
 
+        ``fail_on_errors``
+
+        Fails a test cases if, after checking the entire batch of one or 
+        XML files, one or more errors have been reported. Error 
+        reporting and exporting will not change.
+
         **Returns**
 
         A tuple, holding:
@@ -1558,6 +1595,10 @@ class XmlValidator:
             csv_path = None
         # Log a summary of the test run.
         self.validator_results.log_summary()
+        if fail_on_errors and self.validator_results.errors_by_file:
+            raise Failure(
+                f"{len(self.validator_results.errors_by_file)} errors have been detected."
+                )
         return (
             self.validator_results.errors_by_file,
             csv_path if csv_path else None
