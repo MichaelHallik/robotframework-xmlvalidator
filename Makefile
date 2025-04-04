@@ -47,7 +47,6 @@ check:
 	@echo "Running full project check..."
 	make lint
 	make type
-	make format
 	make unit
 	make robot
 	@echo "All checks done!"

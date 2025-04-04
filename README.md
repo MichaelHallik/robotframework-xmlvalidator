@@ -41,11 +41,10 @@
     - [Running tests](#running-tests)
       - [Unit tests (pytest)](#unit-tests-pytest)
       - [Integration tests (Robot Framework)](#integration-tests-robot-framework)
-    - [Code quality](#code-quality)
+    - [Code quality checks](#code-quality-checks)
       - [Linting](#linting)
       - [Typing](#typing)
-      - [Formatting](#formatting)
-    - [Running all tests and code quality checks](#running-all-tests-and-code-quality-checks)
+    - [Running all tests and checks](#running-all-tests-and-checks)
     - [Continuous Integration \& GitHub templates](#continuous-integration--github-templates)
   - [Class architecture (Simplified)](#class-architecture-simplified)
   - [Project Structure](#project-structure)
@@ -283,63 +282,63 @@ The test suite files focus on various topics:
 ### Example console output
 
 ```text
-[ WARN ] Schema 'schema.xsd' set.
-[ WARN ] Collecting error facets: ['path', 'reason'].
-[ WARN ] XML Validator ready for use!
+Schema 'schema.xsd' set.
+Collecting error facets: ['path', 'reason'].
+XML Validator ready for use!
 ==============================================================================
 01 Advanced Validation:: Demo XML validation
-[ WARN ] Mapping XML files to schemata by namespace.
-[ WARN ] Validating 'valid_1.xml'.
-[ WARN ]        XML is valid!
-[ WARN ] Validating 'valid_2.xml'.
-[ WARN ]        XML is valid!
-[ WARN ] Validating 'valid_3.xml'.
-[ WARN ]        XML is valid!
-[ WARN ] Validating 'xsd_violations_1.xml'.
-[ WARN ] Setting new schema file: C:\Projects\robotframework-xmlvalidator\test\_data\integration\TC_01\schema1.xsd. 
-[ WARN ]        XML is invalid:
-[ WARN ]                Error #0:
-[ WARN ]                        path: /Employee
-[ WARN ]                        reason: Unexpected child with tag '{http://example.com/schema1}FullName' at position 2. Tag '{http://example.com/schema1}Name' expected.
-[ WARN ]                Error #1:
-[ WARN ]                        path: /Employee/Age
-[ WARN ]                        reason: invalid literal for int() with base 10: 'Twenty Five'
-[ WARN ]                Error #2:
-[ WARN ]                        path: /Employee/ID
-[ WARN ]                        reason: invalid literal for int() with base 10: 'ABC'
-[ WARN ] Validating 'valid_.xml_4'.
-[ WARN ]        XML is valid!
-[ WARN ] Validating 'valid_.xml_5'.
-[ WARN ]        XML is valid!
-[ WARN ] Validating 'malformed_xml_1.xml'.
-[ WARN ]        XML is invalid:
-[ WARN ]                Error #0:
-[ WARN ]                        reason: Premature end of data in tag Name line 1, line 1, column 37 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)
-[ WARN ]                Error #1:
-[ WARN ]                        reason: Opening and ending tag mismatch: ProductID line 1 and Product, line 1, column 31 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)   
-[ WARN ] Validating 'xsd_violations_2.xml'.
-[ WARN ] Setting new schema file: C:\Projects\robotframework-xmlvalidator\test\_data\integration\TC_01\schema2.xsd.
-[ WARN ]        XML is invalid:
-[ WARN ]                Error #0:
-[ WARN ]                        path: /Product/Price
-[ WARN ]                        reason: invalid value '99.99USD' for xs:decimal
-[ WARN ]                Error #1:
-[ WARN ]                        path: /Product
-[ WARN ]                        reason: The content of element '{http://example.com/schema2}Product' is not complete. Tag '{http://example.com/schema2}Price' expected.
-[ WARN ] Validating 'valid_.xml_6'.
-[ WARN ]        XML is valid!
-[ WARN ] Validating 'no_xsd_match_1.xml'.
-[ WARN ]        XML is invalid:
-[ WARN ]                Error #0:
-[ WARN ]                        reason: No matching XSD found for: no_xsd_match_1.xml.
-[ WARN ] Validating 'no_xsd_match_2.xml'.
-[ WARN ]        XML is invalid:
-[ WARN ]                Error #0:
-[ WARN ]                        reason: No matching XSD found for: no_xsd_match_2.xml.
-[ WARN ] Validation errors exported to 'C:\test\01_Advanced_Validation\errors_2025-03-29_13-54-46-552150.csv'.
-[ WARN ] Total_files validated: 11.
-[ WARN ] Valid files: 6.
-[ WARN ] Invalid files: 5
+Mapping XML files to schemata by namespace.
+Validating 'valid_1.xml'.
+    XML is valid!
+Validating 'valid_2.xml'.
+    XML is valid!
+Validating 'valid_3.xml'.
+    XML is valid!
+Validating 'xsd_violations_1.xml'.
+Setting new schema file: C:\Projects\robotframework-xmlvalidator\test\_data\integration\TC_01\schema1.xsd. 
+[ WARN ]    XML is invalid:
+[ WARN ]        Error #0:
+[ WARN ]            path: /Employee
+[ WARN ]            reason: Unexpected child with tag '{http://example.com/schema1}FullName' at position 2. Tag '{http://example.com/schema1}Name' expected.
+[ WARN ]        Error #1:
+[ WARN ]            path: /Employee/Age
+[ WARN ]            reason: invalid literal for int() with base 10: 'Twenty Five'
+[ WARN ]        Error #2:
+[ WARN ]            path: /Employee/ID
+[ WARN ]            reason: invalid literal for int() with base 10: 'ABC'
+Validating 'valid_.xml_4'.
+    XML is valid!
+Validating 'valid_.xml_5'.
+    XML is valid!
+Validating 'malformed_xml_1.xml'.
+[ WARN ]    XML is invalid:
+[ WARN ]        Error #0:
+[ WARN ]            reason: Premature end of data in tag Name line 1, line 1, column 37 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)
+[ WARN ]        Error #1:
+[ WARN ]            reason: Opening and ending tag mismatch: ProductID line 1 and Product, line 1, column 31 (file:/C:/Projects/robotframework-xmlvalidator/test/_data/integration/TC_01/malformed_xml_1.xml, line 1)
+Validating 'xsd_violations_2.xml'.
+Setting new schema file: C:\Projects\robotframework-xmlvalidator\test\_data\integration\TC_01\schema2.xsd.
+[ WARN ]    XML is invalid:
+[ WARN ]        Error #0:
+[ WARN ]            path: /Product/Price
+[ WARN ]            reason: invalid value '99.99USD' for xs:decimal
+[ WARN ]        Error #1:
+[ WARN ]            path: /Product
+[ WARN ]            reason: The content of element '{http://example.com/schema2}Product' is not complete. Tag '{http://example.com/schema2}Price' expected.
+Validating 'valid_.xml_6'.
+    XML is valid!
+Validating 'no_xsd_match_1.xml'.
+[ WARN ]    XML is invalid:
+[ WARN ]        Error #0:
+[ WARN ]            reason: No matching XSD found for: no_xsd_match_1.xml.
+Validating 'no_xsd_match_2.xml'.
+[ WARN ]    XML is invalid:
+[ WARN ]        Error #0:
+[ WARN ]            reason: No matching XSD found for: no_xsd_match_2.xml.
+Validation errors exported to 'C:\test\01_Advanced_Validation\errors_2025-03-29_13-54-46-552150.csv'.
+Total_files validated: 11.
+Valid files: 6.
+Invalid files: 5
 ```
 
 ### Example CSV output
@@ -469,7 +468,7 @@ poetry run robot -d ./Results test/integration
 make robot
 ```
 
-### Code quality
+### Code quality checks
 
 Use standard Python commands, poetry or the provided [Make file](Makefile).
 
@@ -489,15 +488,7 @@ poetry run pyright --project pyrightconfig.json || exit 0
 make type
 ```
 
-#### Formatting
-
-```
-black src/ --check --diff || exit 0
-poetry run black src/ --check --diff || exit 0
-make format
-```
-
-### Running all tests and code quality checks
+### Running all tests and checks
 
 Use the provided [Make file](Makefile).
 ```
@@ -512,9 +503,11 @@ GitHub Actions CI is defined under [github/workflows/](.github/workflows/), in p
 
 - [test.yml](.github/workflows/test.yml): Runs unit and integration tests.
 - [lint.yml](.github/workflows/lint.yml): Enforces coding standards using linting tools (pylint, pyright, black).
-  
-See also [these Mermaid diagrams](github_actions.md).
 
+The test workflow:
+
+![Test workflow diagram](./docs/images/test_workflow.JPG)
+  
 In [.github/](.github/) you’ll also find the various contribution templates:
 
 - [Bug reports](.github/ISSUE_TEMPLATE/bug_report.md)
