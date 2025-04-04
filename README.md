@@ -1,7 +1,6 @@
 [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator.svg)](https://pypi.org/project/robotframework-xmlvalidator/)
 [![License](https://img.shields.io/pypi/l/robotframework-xmlvalidator?cacheSeconds=600)](LICENSE)
 [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml)
-[![Downloads](https://pepy.tech/badge/robotframework-xmlvalidator)](https://pepy.tech/project/robotframework-xmlvalidator)
 
 <details>
 <summary><strong>📚 Table of Contents</strong></summary>
