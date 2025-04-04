@@ -473,7 +473,7 @@ class ValidatorUtils:
                             value = f"Line {value[0]}, Column {value[1]}."
                         error_details[facet] = value
                     logger.warn(
-                        f"Facet '{facet}' not an attribute of '{type(e).__name__}'."
+                        f"Facet '{facet}' is not an attribute of error type'{type(e).__name__}'."
                         )
                 # Add the error type to the error details
                 error_details['Error type'] = type(e).__name__

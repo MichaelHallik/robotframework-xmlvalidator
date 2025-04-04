@@ -264,9 +264,9 @@ Variables    teardown_vars.py
     ...                           error_facets=${new_error_facets}
     # Let's see what's inside the collected errors/violations.
     FOR    ${idx}    ${error}    IN ENUMERATE    @{errors}
-        Log    ==================================== Inspecting error #${idx}    level=WARN
+        Log    ==================================== Inspecting error #${idx}    console=True
         FOR    ${key}    ${value}    IN    &{error}
-            Log    Error facet '${key}': ${value} (${{ type( $value ) }})    level=WARN
+            Log    Error facet '${key}': ${value} (${{ type( $value ) }})    console=True
         END
         IF    ${idx} == 5
             BREAK

@@ -540,14 +540,17 @@ class XmlValidator:
             if result.success:
                 # Set the loaded XSD file as default schema.
                 self.schema = result.value
-                logger.warn(f"Schema '{self.schema.name}' set.") # type: ignore
+                logger.info(
+                    f"Schema '{self.schema.name}' set.", # type: ignore
+                    also_console=True)
             else:
                 # Or report the load error.
                 raise SystemError(f"Loading of schema failed: {result.error}")
         # Or inform the user on what to do.
         else:
-            logger.warn(
-                "No XSD schema set: provide schema(s) during keyword calls."
+            logger.info(
+                "No XSD schema set: provide schema(s) during keyword calls.",
+                also_console=True
                 )
             # And flag the schema attr as None.
             self.schema = None
@@ -555,8 +558,11 @@ class XmlValidator:
         self.error_facets = error_facets if error_facets else [
             'path', 'reason'
             ]
-        logger.warn(f"Collecting error facets: {self.error_facets}.")
-        logger.warn("XML Validator ready for use!")
+        logger.info(
+            f"Collecting error facets: {self.error_facets}.",
+            also_console=True
+            )
+        logger.info("XML Validator ready for use!", also_console=True)
         self.nr_instances += 1
         logger.info(f'Number of library instances: {self.nr_instances}.')
 
@@ -784,9 +790,12 @@ class XmlValidator:
                 )
             return ValidatorResult(success=True, value=self.schema)
         if not self.schema and xsd_path:
-            logger.warn(f'Setting schema file: {xsd_path}.')
+            logger.info(f'Setting schema file: {xsd_path}.', also_console=True)
         if self.schema and xsd_path:
-            logger.warn(f'Setting new schema file: {xsd_path}.')
+            logger.info(
+                f'Setting new schema file: {xsd_path}.',
+                also_console=True
+                )
         return self._load_schema(xsd_path, base_url) # pyright: ignore
 
     def _find_schemas(
@@ -865,8 +874,9 @@ class XmlValidator:
         # Prepare the return dictionary.
         validations = {}
         # For each XML file, try to find a matching XSD file.
-        logger.warn(
-            f"Mapping XML files to schemata {search_by.replace('_', ' ')}."
+        logger.info(
+            f"Mapping XML files to schemata {search_by.replace('_', ' ')}.",
+            also_console=True
             )
         for xml_file_path in xml_file_paths:
             logger.info(f"\tSearching schema for: {xml_file_path.stem}.")
@@ -1152,8 +1162,8 @@ class XmlValidator:
             argument.
         """
         # Log informative.
-        logger.warn(
-            f"Validating '{xml_file_path.stem}'."
+        logger.info(
+            f"Validating '{xml_file_path.stem}'.", also_console=True
             )
         # Check upstream XSD matching led to an err pertaining to the XML.
         if isinstance(xsd_file_path, BaseException):
@@ -1280,8 +1290,14 @@ class XmlValidator:
         - If False, log the full XMLSchema object.
         """
         if self.schema and log_name:
-            logger.warn(f"Schema currently loaded: {self.schema.name}.")
-        logger.warn(f"Schema currently loaded: {self.schema}.")
+            logger.info(
+                f"Schema currently loaded: {self.schema.name}.",
+                also_console=True
+                )
+        logger.info(
+            f"Schema currently loaded: {self.schema}.",
+            also_console=True
+            )
 
     @keyword
     def reset_error_facets(self):
@@ -1296,8 +1312,9 @@ class XmlValidator:
         log.
         """
         self.error_facets = ['path', 'reason']
-        logger.warn(
-            f"Error facets restored to default: {', '.join(self.error_facets)}."
+        logger.info(
+            f"Error facets restored to default: {', '.join(self.error_facets)}.",
+            also_console=True
             )
 
     @keyword
@@ -1312,7 +1329,7 @@ class XmlValidator:
         A confirmation message is logged to the Robot Framework log.
         """
         self.validator_results.reset()
-        logger.warn("Error collector has been reset.")
+        logger.info("Error collector has been reset.", also_console=True)
 
     @keyword
     def reset_schema(self):
@@ -1326,7 +1343,7 @@ class XmlValidator:
         log.
         """
         self.schema = None
-        logger.warn("Schema attribute reset: no schema loaded.")
+        logger.info("Schema attribute reset: no schema loaded.", also_console=True)
 
     @keyword
     def validate_xml_files( # pylint: disable=R0913:too-many-arguments disable=R0914:too-many-locals disable=R0917:too-many-positional-arguments

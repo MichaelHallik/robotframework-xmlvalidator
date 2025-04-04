@@ -10,7 +10,7 @@ Documentation     Contains reusable test functions for XML validation,
 ...               - And others
 Library    Collections
 Library    OperatingSystem
-Library    ${EXECDIR}/test/integration/validation_keywords.py
+Library    validation_keywords.py
 
 
 *** Keywords ***
@@ -44,7 +44,7 @@ Default Test Case Teardown
     ...                  state of the library instance's schema 
     ...                  attribute.
     [Arguments]    ${csv_path}    ${delete_csv}    ${lib_instance}    ${instance_name}    ${reset_schema}=${True}
-    Log    ============== Running test teardown ... ==============    level=WARN
+    Log    ============== Running test teardown ... ==============    console=True
     # Delete the CSV file(s), if required.
     IF    $csv_path
         Delete CSV File    ${csv_path}    ${delete_csv}
@@ -53,11 +53,11 @@ Default Test Case Teardown
     Log Current Schema    ${lib_instance}
     # Set the schema attribute to Python None, if requested.
     IF    ${reset_schema}
-        Log    Resetting schema ...    level=WARN
+        Log    Resetting schema ...    console=True
         Run keyword    ${instance_name}.Reset Schema
         Log Current Schema    ${lib_instance}
     END
-    Log    =======================================================    level=WARN
+    Log    =======================================================    console=True
 
 Default Test Suite Teardown
     [Documentation]    Purpose:
@@ -70,9 +70,9 @@ Default Test Suite Teardown
     ...    
     ...                Calls Log Loaded Library Instances to capture all 
     ...                active library instances.
-    Log    ============== Running suite teardown ... ==============    level=WARN
+    Log    ============== Running suite teardown ... ==============    console=True
     Log Loaded Library Instances
-    Log    ========================================================    level=WARN
+    Log    ========================================================    console=True
 
 Delete CSV File
     [Arguments]    ${csv_path}    ${delete_csv}
@@ -92,13 +92,13 @@ Delete CSV File
     ...                  Deletes all CSV files in the folder
     # Only log if no file removal is to be performed.
     IF    $delete_csv == $False
-        Log    CSV file NOT deleted: ${csv_path}    level=WARN
+        Log    CSV file NOT deleted: ${csv_path}    console=True
     # Delete a specific file or all CSV files (in the target folder).
     ELSE
         # Delete a specific file.
         IF    $delete_csv == $True
             Remove File    ${csv_path}
-            Log    One CSV file deleted: ${csv_path}    level=WARN
+            Log    One CSV file deleted: ${csv_path}    console=True
         ELSE
             # Delete all files.
             IF    $delete_csv == all
@@ -106,7 +106,7 @@ Delete CSV File
                 ${csv_folder}=    Evaluate    str(pathlib.Path(r"${csv_path}").parent)    modules=pathlib
                 # And remove all CSV files found in that folder.
                 Remove File    ${csv_folder}${/}*.csv
-                Log    Removed all CSV files from folder.    level=WARN
+                Log    Removed all CSV files from folder.    console=True
             # Handle incorrect argument.
             ELSE
                 Fail    Arg ``delete_csv`` must be: bool True, bool False or str 'all'.
@@ -131,9 +131,9 @@ Log Current Schema
     ...                Logs the currently loaded schema by accessing 
     ...                lib_instance.schema.name.
     IF    $lib_instance.schema
-        Log    Schema currently loaded: ${lib_instance.schema.name}    level=WARN
+        Log    Schema currently loaded: ${lib_instance.schema.name}    console=True
     ELSE
-        Log    Schema currently loaded: None    level=WARN
+        Log    Schema currently loaded: None    console=True
     END
 
 Log Loaded Library Instances
@@ -153,12 +153,12 @@ Log Loaded Library Instances
     ...                instance with WARN level.
     # Get all library instances loaded.
     &{library_instances}=    Get Library Instance    all=${True}
-    Log    XMLValidator instances loaded in this test suite:    level=WARN
+    Log    XMLValidator instances loaded in this test suite:    console=True
     # Filter out instances that are not of XmlValidator.
     FOR    ${key}    ${value}    IN    &{library_instances}
         ${value_str}=    Convert To String    ${value}
         IF    "XmlValidator" in "${value_str}"
-            Log    - ${key}    level=WARN
+            Log    - ${key}    console=True
             Log    ${value.schema}    level=INFO
         END
     END
@@ -183,10 +183,10 @@ Validate CSV
     ...                test if mismatches are found. Logs a success 
     ...                message if validation passes.
     [Arguments]    ${csv_path}    @{expected_errors}
-    Log    =========== Validating the CSV output file. ===========    level=WARN
+    Log    =========== Validating the CSV output file. ===========    console=True
     ${status}    ${mismatches}=    Validate Csv Output    ${csv_path}    ${expected_errors}
     Should Be True    ${status}    msg=CSV validation failed: ${mismatches}.
-    Log    CSV validation successful.    level=WARN
+    Log    CSV validation successful.    console=True
 
 Validate Xml Validation Result
     [Documentation]    Purpose:

@@ -185,7 +185,7 @@ class ValidatorResultRecorder:
         
         None
         """
-        logger.warn("\tXML is valid!")
+        logger.info("\tXML is valid!", also_console=True)
         self.validation_summary["valid"].append(file_path.name)
 
     def log_file_errors(
@@ -227,7 +227,7 @@ class ValidatorResultRecorder:
         None
         """
         for category, value in self._get_summary().items():
-            logger.warn(f"{category}: {value}.")
+            logger.info(f"{category}: {value}.", also_console=True)
 
     def reset(self) -> None:
         """
@@ -330,8 +330,9 @@ class ValidatorResultRecorder:
         # Write the DataFrame to a CSV file.
         try:
             df.to_csv(output_csv_path, index=False)
-            logger.warn(
-                f"Validation errors exported to '{output_csv_path}'."
+            logger.info(
+                f"Validation errors exported to '{output_csv_path}'.",
+                also_console=True
                 )
         except IOError as e:
             raise IOError(
