@@ -73,7 +73,7 @@ It provides structured and detailed reporting of XML parse errors (malformed XML
 - Customizable error attributes (`path`, `reason`, `message`, etc.)
 - Batch validation and per-file error tracking
 - Export collected errors to CSV (with optional file name timestamping).
-- And more (see below and the keyword documentation).
+- And more.
 
 ---
 
@@ -212,11 +212,11 @@ The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD 
 
 Of course, you may also refer to specific XML/XSD files (instead of to folders). In that case, no matching will be attempted, but the keyword will simply try to validate the specified XML file against the specified XSD file.
 
-See for more details the keyword documentation.
+See for more details the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
 
 ### Keyword documentation
 
-See [keyword documention](docs/XmlValidator.html).
+See the [keyword documention](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
 
 The keyword documentation provides detailed descriptions of all functionalities, features and the various ways in which the library and its keywords can be employed.
 
