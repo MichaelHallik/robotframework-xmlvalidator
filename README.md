@@ -402,7 +402,7 @@ The table lists the most commonly available attributes, though additional fields
 | [CHANGELOG](CHANGELOG.md) | User / Dev | Version history, features |
 | [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Dev | Community guidelines |
 | [CONTRIBUTING](CONTRIBUTING.md) | Dev | Contribute |
-| [Mermaid diagram of GitHub Actions](github_actions.md) | Dev | CI, GitHub Actions |
+| [Mermaid diagram of GitHub Actions](docs/images/github_actions.md) | Dev | CI, GitHub Actions |
 | [License](LICENSE) | All | Legal usage terms |
 | [Make file](Makefile) | Dev | Automation, commands |
 | [Project Structure](project_structure.txt) | Dev | Project layout |
