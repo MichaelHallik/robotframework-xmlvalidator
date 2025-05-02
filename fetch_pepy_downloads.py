@@ -1,7 +1,7 @@
 import os
 import requests
 
-PEPY_API_URL = "https://pepy.tech/api/v2/projects/{package}/downloads"
+PEPY_API_URL = "https://api.pepy.tech/service-api/v1/pro/projects/{package}/downloads"
 PACKAGE_NAME = "robotframework-xmlvalidator"
 API_KEY = os.getenv("PEPY_API_KEY")
 
@@ -25,16 +25,29 @@ SVG_BADGE_TEMPLATE = '''<svg xmlns="http://www.w3.org/2000/svg" width="200" heig
 '''
 
 def fetch_download_count():
+    if not API_KEY:
+        raise EnvironmentError("PEPY_API_KEY not set in environment variables.")
+
     headers = {
-        "Authorization": f"Token {API_KEY}"
+        "X-API-Key": API_KEY
     }
 
-    response = requests.get(PEPY_API_URL.format(package=PACKAGE_NAME), headers=headers)
+    url = PEPY_API_URL.format(package=PACKAGE_NAME)
+    response = requests.get(url, headers=headers)
+    if response.status_code == 404:
+        raise Exception(f"Package '{PACKAGE_NAME}' not found on pepy.tech Pro API.")
+    elif response.status_code == 403:
+        raise Exception("Access denied: Are you sure your account has Pro access?")
+    elif response.status_code == 401:
+        raise Exception("Unauthorized: Check that your API key is valid.")
     response.raise_for_status()
 
     data = response.json()
-    total_downloads = data.get("total_downloads", 0)
-    return f"{total_downloads:,}"  # format with commas
+    total = 0
+    for day, versions in data.get("downloads", {}).items():
+        total += sum(versions.values())
+
+    return f"{total:,}"  # e.g., 12,345
 
 def create_badge_svg(count, output_path="badge_pepy_downloads.svg"):
     svg_content = SVG_BADGE_TEMPLATE.format(count=count)
@@ -43,7 +56,5 @@ def create_badge_svg(count, output_path="badge_pepy_downloads.svg"):
     print(f"Badge written to {output_path}")
 
 if __name__ == "__main__":
-    if not API_KEY:
-        raise EnvironmentError("PEPY_API_KEY not set in environment variables.")
     count = fetch_download_count()
     create_badge_svg(count)
