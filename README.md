@@ -1,8 +1,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator.svg)](https://pypi.org/project/robotframework-xmlvalidator/)
 [![License](https://img.shields.io/pypi/l/robotframework-xmlvalidator?cacheSeconds=600)](LICENSE)
 [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml)
-<!-- [![PyPI Downloads](https://static.pepy.tech/badge/robotframework-xmlvalidator)](https://pepy.tech/projects/robotframework-xmlvalidator) -->
-[![PyPI Downloads](https://pepy.tech/badge/robotframework-xmlvalidator?cacheSeconds=3600)](https://pepy.tech/project/robotframework-xmlvalidator)
+[![Total Downloads](https://github.com/MichaelHallik/robotframework-xmlvalidator/raw/main/badge_pepy_downloads.svg)](https://pepy.tech/project/robotframework-xmlvalidator)
 
 <details>
 <summary><strong>📚 Table of Contents</strong></summary>
@@ -26,6 +25,7 @@
       - [Further examples](#further-examples)
   - [Using the library](#using-the-library)
     - [Keyword overview](#keyword-overview)
+    - [Error collection](#error-collection)
     - [Keyword documentation](#keyword-documentation)
     - [Keyword example usage](#keyword-example-usage)
       - [A few basic examples](#a-few-basic-examples)
@@ -214,6 +214,63 @@ The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD 
 Of course, you may also refer to specific XML/XSD files (instead of to folders). In that case, no matching will be attempted, but the keyword will simply try to validate the specified XML file against the specified XSD file.
 
 See for more details the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
+
+### Error collection
+
+Errors that are collected and returned can be categorized as follows:
+
+1. XSD Schema violations.
+
+The following types of XSD schema violations are detected during validation:
+
+1. Detects missing or extra elements that violate cardinality rules, e.g.:
+   - Verifies that all mandatory elements (minOccurs > 0) are present in the XML.
+   - Ensures that optional elements (minOccurs = 0) do not exceed their maximum allowed occurrences (maxOccurs).
+
+2. Sequence and Order Violations:
+   - Validates the order of child elements within a parent element if the schema specifies a sequence model (`<xsd:sequence>`).
+   - Detects elements that are out of order or missing in a sequence.
+
+3. Datatype Violations:
+   - Ensures that element and attribute values conform to their specified datatypes (e.g., xs:string, xs:integer, xs:dateTime).
+   - Identifies invalid formats, such as incorrect date or time formats for xs:date and xs:dateTime.
+
+4. Pattern and Enumeration Violations:
+   - Checks that values conform to patterns defined using `<xsd:pattern>`.
+   - Ensures that values fall within allowed enumerations specified in the schema.
+
+5. Attribute Validation:
+   - Verifies that required attributes are present.
+   - Ensures that attribute values adhere to their declared datatypes and constraints.
+
+6. Namespace Compliance:
+   - Validates that elements and attributes belong to the correct namespaces as defined in the schema.
+   - Detects namespace mismatches or missing namespace declarations.
+
+7. Group Model Violations:
+   - Validates conformance with `<xsd:choice>` and `<xsd:all>` group models, ensuring correct usage of child elements as per the schema.
+
+8. Referential Constraints:
+   - Checks for violations in `<xsd:key>`, `<xsd:keyref>`, and `<xsd:unique>` constraints.
+
+9. Document Structure and Completeness:
+   - Ensures that the XML document adheres to the hierarchical structure defined by the schema.
+   - Detects incomplete or improperly nested elements.
+
+10. General Schema Violations:
+   - Detects schema-level issues, such as invalid imports or includes, during schema compilation if they affect validation.
+
+2. Errors following from malformed XML and/or XSD files.
+
+    Checks whether handling of the involved XML file (e.g. during dynamic schema matching) resulted in an error. For instance because a file:
+    - does not exist (i.e. could not be found at the spefified location)
+    - is empty
+    - is not of the correct file type (.xml, .xsd)
+    - is not well-formed (syntactycally correct)
+    
+Any such error does not lead to a failing test, but is collected and reported.
+
+However, when, at the end of a test run one or more errors have been collected, the test will be marked as 'FAILED'.
 
 ### Keyword documentation
 
@@ -425,7 +482,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 The overall process:
 
-![Contributing to the project](./docs/images/contributing.JPG)
+![Contributing to robotframework-xmlvalidator](./docs/images/contributing.JPG)
 
 This project uses Poetry for dependency and packaging management.
 
@@ -510,7 +567,7 @@ GitHub Actions CI is defined under [github/workflows/](.github/workflows/), in p
 
 The test workflow:
 
-![Test workflow diagram](./docs/images/test_workflow.JPG)
+![Workflow diagram for the robotframework-xmlvalidator project](./docs/images/test_workflow.JPG)
   
 In [.github/](.github/) you’ll also find the various contribution templates:
 
