@@ -26,6 +26,10 @@
   - [Using the library](#using-the-library)
     - [Keyword overview](#keyword-overview)
     - [Error collection](#error-collection)
+      - [XSD Schema violations.](#xsd-schema-violations)
+      - [Malformed XML](#malformed-xml)
+      - [File-level issues](#file-level-issues)
+      - [Final note on error collection](#final-note-on-error-collection)
     - [Keyword documentation](#keyword-documentation)
     - [Keyword example usage](#keyword-example-usage)
       - [A few basic examples](#a-few-basic-examples)
@@ -205,76 +209,106 @@ That is, when it encounters an error in a file, it does not fail. Rather, it col
 
 In that fashion the keyword works through the entire set of files.
 
-When having finished checking the last file, it will log a summary of the test run and then proceed to report all collected errors in the console, in the RF log and, optionally, in the form of a CSV file.
+Once all files are processed it will log a summary of the test run and then proceed to report all collected errors in the console, in the RF log and, optionally, in the form of a CSV file.
 
-However, in case you want your test case to fail when one or more errors have been detected, you can use the ``fail_on_errors`` (bool) argument to make it so. It defaults to False. When setting it to True, then the keyword will still check each XML file (and collect possible errors), but after it has thus processed the batch, it will fail if one or more errors will have been detected.
+However, in case you want your test case to fail when one or more errors have been detected, you can use the ``fail_on_errors`` (bool) argument to make it so. It defaults to False. When setting it to True, the keyword will still check each XML file (and collect possible errors), but after it has thus processed the batch, it will fail if one or more errors will have been detected.
 
 The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD files, using either a 'by filename' or a 'by namespace' strategy. That means you can simply pass the paths to a folder containing XML files and to a folder containing XSD files and the keyword will determine which XSD schema file to use for each XML file. If the XML and XSD files reside in the same folder, you only have to pass one folder path. When no matching XSD schema could be identified for an XML file, this will be integrated into the mentioned summary and error reporting (the keyword will not fail).
 
 Of course, you may also refer to specific XML/XSD files (instead of to folders). In that case, no matching will be attempted, but the keyword will simply try to validate the specified XML file against the specified XSD file.
 
-See for more details the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
+For more details, please see the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
 
 ### Error collection
 
-Errors that are collected and returned can be categorized as follows:
+Errors that are collected and reported can be categorized as follows:
 
-1. XSD Schema violations.
+#### XSD Schema violations.
 
-The following types of XSD schema violations are detected during validation:
+- Missing or extra elements that violate cardinality rules, e.g.:
+  - Verifies that all mandatory elements (minOccurs > 0) are present in the XML.
+  - Ensures that optional elements (minOccurs = 0) do not exceed their maximum allowed occurrences (maxOccurs).
 
-1. Detects missing or extra elements that violate cardinality rules, e.g.:
-   - Verifies that all mandatory elements (minOccurs > 0) are present in the XML.
-   - Ensures that optional elements (minOccurs = 0) do not exceed their maximum allowed occurrences (maxOccurs).
+- Sequence and order violations:
+  - Validates the order of child elements within a parent element if the schema specifies a sequence model (`<xsd:sequence>`).
+  - Detects elements that are out of order or missing in a sequence.
 
-2. Sequence and Order Violations:
-   - Validates the order of child elements within a parent element if the schema specifies a sequence model (`<xsd:sequence>`).
-   - Detects elements that are out of order or missing in a sequence.
+- Datatype violations:
+  - Ensures that element and attribute values conform to their specified datatypes (e.g., xs:string, xs:integer, xs:dateTime).
+  - Identifies invalid formats, such as incorrect date or time formats for xs:date and xs:dateTime.
 
-3. Datatype Violations:
-   - Ensures that element and attribute values conform to their specified datatypes (e.g., xs:string, xs:integer, xs:dateTime).
-   - Identifies invalid formats, such as incorrect date or time formats for xs:date and xs:dateTime.
+- Pattern and enumeration violations:
+  - Checks that values conform to patterns defined using `<xsd:pattern>`.
+  - Ensures that values fall within allowed enumerations specified in the schema.
 
-4. Pattern and Enumeration Violations:
-   - Checks that values conform to patterns defined using `<xsd:pattern>`.
-   - Ensures that values fall within allowed enumerations specified in the schema.
+- Attribute validation:
+  - Verifies that required attributes are present.
+  - Ensures that attribute values adhere to their declared datatypes and constraints.
 
-5. Attribute Validation:
-   - Verifies that required attributes are present.
-   - Ensures that attribute values adhere to their declared datatypes and constraints.
+- Namespace compliance:
+  - Validates that elements and attributes belong to the correct namespaces as defined in the schema.
+  - Detects namespace mismatches or missing namespace declarations.
 
-6. Namespace Compliance:
-   - Validates that elements and attributes belong to the correct namespaces as defined in the schema.
-   - Detects namespace mismatches or missing namespace declarations.
+- Group model violations:
+  - Validates conformance with `<xsd:choice>` and `<xsd:all>` group models, ensuring correct usage of child elements as per the schema.
 
-7. Group Model Violations:
-   - Validates conformance with `<xsd:choice>` and `<xsd:all>` group models, ensuring correct usage of child elements as per the schema.
+- Referential constraints:
+  - Checks for violations in `<xsd:key>`, `<xsd:keyref>`, and `<xsd:unique>` constraints.
 
-8. Referential Constraints:
-   - Checks for violations in `<xsd:key>`, `<xsd:keyref>`, and `<xsd:unique>` constraints.
+- Document structure and completeness:
+  - Ensures that the XML document adheres to the hierarchical structure defined by the schema.
+  - Detects incomplete or improperly nested elements.
 
-9. Document Structure and Completeness:
-   - Ensures that the XML document adheres to the hierarchical structure defined by the schema.
-   - Detects incomplete or improperly nested elements.
+- General schema violations:
+  - Detects schema-level issues, such as invalid imports or includes, during schema compilation if they affect validation.
 
-10. General Schema Violations:
-   - Detects schema-level issues, such as invalid imports or includes, during schema compilation if they affect validation.
+#### Malformed XML
 
-2. Errors following from malformed XML and/or XSD files.
+Malformed XML errors arise from issues that prevent the XML file from being parsed at all, before schema validation can even occur. These errors typically reflect syntactic problems in the structure or encoding of the XML content.
 
-    Checks whether handling of the involved XML file (e.g. during dynamic schema matching) resulted in an error. For instance because a file:
-    - does not exist (i.e. could not be found at the spefified location)
-    - is empty
-    - is not of the correct file type (.xml, .xsd)
-    - is not well-formed (syntactycally correct)
-    
-Any such error does not lead to a failing test, but is collected and reported.
+Typical cases include:
 
-However, when, at the end of a test run one or more errors have been collected, the test will be marked as 'FAILED'.
+- Mismatched tags
+  - Opening and closing tags do not match.
+  - Example: `<Title>My Book</title>`
+
+- Unclosed elements
+  - Elements are left unclosed or self-closing syntax is incorrect.
+  - Example: `<Price>12.99`
+
+- Premature end-of-file
+  - The file ends abruptly before all tags are closed, often due to truncation or corruption.
+  - Example: `<Product><ID>123`
+
+- Invalid characters or encoding
+  - The XML includes characters that are not valid in the declared encoding or in XML itself.
+  - Example: Control characters or non-UTF-8 bytes.
+
+- Misused namespaces
+  - Prefixes declared but not bound, or invalid namespace URIs used.
+
+- Declaration errors
+  - Malformed or duplicate `<?xml ... ?>` declarations.
+
+#### File-level issues
+
+General errors that do not pertain to syntax or schema issues:
+
+| Error Type   | Description                               |
+|--------------|-------------------------------------------|
+| Missing File | The specified XML file could not be found |
+| Empty File   | The file exists but is completely empty   |
+| Wrong Format | The file is not `.xml` or `.xsd`          |
+
+#### Final note on error collection
+
+On account of the purpose of this library, all encountered errors (regardless the involved types) are collected and reported. The validator analyzes all files, collects encountered errors (if any) and, finally, reports the results of the run in the console and in the Robot Framework log 
+
+If you want the test run to receive a FAIL status when, at the end of test run, one or more errors have been found, then set: `fail_on_errors=True`.
 
 ### Keyword documentation
 
-See the [keyword documention](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
+See the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
 
 The keyword documentation provides detailed descriptions of all functionalities, features and the various ways in which the library and its keywords can be employed.
 
@@ -435,7 +469,7 @@ These are the facets (or attributes) that can be collected and reported for each
 | `severity`    | The severity level of the error (not always present).                      |
 | `args`        | The arguments passed to the error message formatting.        
 
-Use the `error_facets` arg to set which error details to collect.
+Use the `error_facets` argument to set which error details to collect.
 
 For each error that is encountered, the selected error facet(s) will be collected and reported.
 
@@ -445,7 +479,7 @@ You can customize which error facet(s) should be collected, by passing a list of
 
 Error facets passed during library initialization will be overruled by error facets that are passed at the test case level, when calling the `Validate Xml Files` keyword.
 
-The values you can pass through the `error_facets` argument are based on the attributes of the error objects as returned by the XMLSchema.iter_errors() method, that is provided by the xmlschema library and the the xmlvalidator library leverages. Said method yields instances of xmlschema.validators.exceptions.XMLSchemaValidationError (or its subclasses), each representing a specific validation issue encountered in an XML file. These error objects expose various attributes that describe the nature, location, and cause of the problem.
+The values you can pass through the `error_facets` argument are based on the attributes of the error objects as returned by the XMLSchema.iter_errors() method, that is provided by the xmlschema library and the xmlvalidator library leverages. Said method yields instances of xmlschema.validators.exceptions.XMLSchemaValidationError (or its subclasses), each representing a specific validation issue encountered in an XML file. These error objects expose various attributes that describe the nature, location, and cause of the problem.
 
 The table lists the most commonly available attributes, though additional fields may be available depending on the type of validation error.
 
@@ -507,7 +541,7 @@ poetry install
 poetry shell
 ```
 
-Or, if you use a different virt env, activate that.
+Or, if you use a different virt environment, activate that.
 
 ### Running tests
 
