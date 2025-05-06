@@ -178,6 +178,7 @@ Thumbs.db
 
 # Project-specific exclusions.
 *.csv
+badge_pepy_downloads.svg
 log.html
 output.xml
 report.html
