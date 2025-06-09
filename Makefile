@@ -1,7 +1,3 @@
-# Make constants.
-PYTHON_VERSION ?= 3.10
-VENV_HOME := /c/Python-virt-envs
-
 # Declare targets that don't represent actual files.
 .PHONY: help lint type format unit robot check requirements keydoc
 

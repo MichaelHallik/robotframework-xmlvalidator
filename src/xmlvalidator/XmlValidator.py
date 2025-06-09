@@ -40,9 +40,9 @@ or executed as a Python module via a direct call.
 """
 
 
-# pylint: disable=C0103:invalid-name      # On account of the module name, that is not snake-cased (required by Robot Framework).
-# pylint: disable=C0302:too-many-lines    # On account of the extensive docstrings and annotations.
-# pylint: disable=C0301:line-too-long     # On account of tables in docstrings.
+# pylint: disable=C0103:invalid-name   # On account of the module name, that is not snake-cased (required by Robot Framework).
+# pylint: disable=C0302:too-many-lines # On account of the extensive docstrings and annotations.
+# pylint: disable=C0301:line-too-long  # On account of tables in docstrings.
 
 
 # Standard library imports.
@@ -82,9 +82,9 @@ class XmlValidator:
     The other keywords are convenience/helper functions, e.g. ``Reset 
     Error Facets``.
 
-    The ``Validate Xml Files`` validates one or more XML files against one 
-    or more XSD schema files and collects and reports all encountered 
-    errors.
+    The ``Validate Xml Files`` validates one or more XML files against 
+    one or more XSD schema files and collects and reports all 
+    encountered errors.
 
     The type of error that the keyword can detect is not limited to XSD 
     violations, but may also pertain to malformed XML files (e.g. parse 
@@ -92,9 +92,9 @@ class XmlValidator:
     others.
 
     Errors that result from malformed XML files or from XSD violations 
-    support detailed error reporting. Using the ``error_facets`` argument 
-    you may specify the details the keyword should collect and report 
-    about captured errors.
+    support detailed error reporting. Using the ``error_facets`` 
+    argument you may specify the details the keyword should collect and 
+    report about captured errors.
 
     When operating in batch mode, the ``Validate Xml Files`` keyword 
     always validates the entire set of passed XML files. That is, when 
@@ -407,11 +407,11 @@ class XmlValidator:
     nr_instances = 0
 
     def __init__(
-            self,
-            xsd_path: Optional[str | Path] = None,
-            base_url: Optional[str] = None,
-            error_facets: Optional[ List[str] ] = None
-            ) -> None:
+        self,
+        xsd_path: Optional[str|Path] = None,
+        base_url: Optional[str] = None,
+        error_facets: Optional[List[str]] = None
+        ) -> None:
         """
         **Library Scope**
 
@@ -549,41 +549,10 @@ class XmlValidator:
         self.validator_utils = ValidatorUtils()
         self.validator_results = ValidatorResultRecorder()
         # Initialize the xsd schema from the xsd_path, if provided.
-        if xsd_path:
-            # Try to get a single xsd file from the provided xsd_path.
-            xsd_file_path, is_single_xsd_file = (
-                self.validator_utils.get_file_paths(
-                    xsd_path, 'xsd'
-                    )
-                )
-            # We need (a path to) a single xsd file.
-            if not is_single_xsd_file:
-                raise ValueError(f"Got multiple xsd files: {xsd_file_path}.")
-            # Handle incorrect file extension.
-            if xsd_file_path[0].suffix != '.xsd':
-                # Raise a load error.
-                raise SystemError(
-                    f"ValueError: {xsd_file_path[0]} is not an XSD file."
-                    )
-            # Try to load the provided XSD file.
-            result = self._load_schema(xsd_file_path[0], base_url )
-            if result.success:
-                # Set the loaded XSD file as default schema.
-                self.schema = result.value
-                logger.info(
-                    f"Schema '{self.schema.name}' set.", # type: ignore
-                    also_console=True)
-            else:
-                # Or report the load error.
-                raise SystemError(f"Loading of schema failed: {result.error}")
-        # Or inform the user on what to do.
-        else:
-            logger.info(
-                "No XSD schema set: provide schema(s) during keyword calls.",
-                also_console=True
-                )
-            # And flag the schema attr as None.
-            self.schema = None
+        self.schema = self._try_load_initial_schema(
+            xsd_path=xsd_path,
+            base_url=base_url
+            )
         # Set the error facets to collect for failed XML validations.
         self.error_facets = error_facets if error_facets else [
             'path', 'reason'
@@ -597,14 +566,14 @@ class XmlValidator:
         logger.info(f'Number of library instances: {self.nr_instances}.')
 
     def _determine_validations(
-            self,
-            xml_paths: List[Path],
-            xsd_path: Optional[str|Path] = None,
-            xsd_search_strategy: Optional[
+        self,
+        xml_paths: List[Path],
+        xsd_path: Optional[str|Path] = None,
+        xsd_search_strategy: Optional[
                 Literal['by_namespace', 'by_file_name']
                 ] = None,
-            base_url: Optional[str] = None
-            ) -> Dict[Path, Path | None]:
+        base_url: Optional[str] = None
+        ) -> Dict[Path, Path | None]:
         """
         Constructs a mapping between XML files and the XSD schemas to 
         use for their validation.
@@ -744,10 +713,10 @@ class XmlValidator:
         return validations
 
     def _ensure_schema(
-            self,
-            xsd_path: Optional[Path] = None,
-            base_url: Optional[str] = None
-            ) -> ValidatorResult:
+        self,
+        xsd_path: Optional[Path] = None,
+        base_url: Optional[str] = None
+        ) -> ValidatorResult:
         """
         Ensures that a schema is available for validation.
 
@@ -829,15 +798,12 @@ class XmlValidator:
         return self._load_schema(xsd_path, base_url) # pyright: ignore
 
     def _find_schemas(
-            self,
-            xml_file_paths: List[Path],
-            xsd_file_paths: List[Path],
-            search_by: Literal[
-                'by_namespace',
-                'by_file_name'
-                ] = 'by_namespace',
-            base_url: Optional[str] = None
-            ) -> Dict[ Path, Path | None ]:
+        self,
+        xml_file_paths: List[Path],
+        xsd_file_paths: List[Path],
+        search_by: Literal['by_namespace', 'by_file_name'] = 'by_namespace',
+        base_url: Optional[str] = None
+        ) -> Dict[ Path, Path | None ]:
         """
         Finds matching XSD schemas for XML files using the specified 
         search strategy.
@@ -982,10 +948,10 @@ class XmlValidator:
         return validations
 
     def _load_schema(
-            self,
-            xsd_path: Path,
-            base_url: Optional[str] = None
-            ) -> ValidatorResult:
+        self,
+        xsd_path: Path,
+        base_url: Optional[str] = None
+        ) -> ValidatorResult:
         """
         This method is responsible for initializing a schema object, 
         using the `xmlschema` library.
@@ -1036,17 +1002,96 @@ class XmlValidator:
                 success=False, error={"XMLSchemaValidationError": e}
                 )
 
-    def _validate_xml(self, # pylint: disable=R0913:too-many-arguments disable=R0917:too-many-positional-arguments
-                      xml_file_path: Path,
-                      xsd_file_path: Optional[Path] = None,
-                      base_url: Optional[str] = None,
-                      error_facets: Optional[ List[str] ] = None,
-                      pre_parse: Optional[bool] = True
-                      ) -> Tuple[
-                          bool, Optional[
-                              List[ dict[str, Any] ]
-                              ]
-                            ]:
+    def _try_load_initial_schema(
+        self,
+        xsd_path: Optional[str|Path] = None,
+        base_url: Optional[str] = None
+        ) -> None:
+        """
+        Attempts to resolve, validate, and load a single XSD schema from 
+        the provided path.
+
+        This method is invoked during library initialization (i.e., 
+        within `__init__`) when an optional `xsd_path` is provided. If a 
+        path is provided, this method expects the path to resolve to 
+        exactly one valid`.xsd` file. If successful, the compiled schema 
+        is returned and stored in `self.schema`.
+
+        If the path points to a directory, the method searches for a 
+        single `.xsd` file inside it. If multiple matching files are 
+        found, or if the file extension is incorrect, an error is 
+        raised.
+
+        This method is not intended to be used interactively — it is a 
+        one-time helper to support declarative schema configuration 
+        during import of the test library.
+
+        Args:
+        
+        - xsd_path (str):
+          Path to a `.xsd` file or to a directory containing exactly one 
+          `.xsd` file.
+        - base_url (Optional[str]):
+          Optional base URL used when parsing the schema, typically to 
+          resolve includes.
+
+        Raises:
+        
+        - ValueError:
+          If multiple `.xsd` files are found in the provided directory.
+        - SystemError:
+          If the resolved file does not have a `.xsd` extension or the 
+          schema fails to load.
+        """
+        if xsd_path:
+            # Try to get a single xsd file from the provided xsd_path.
+            xsd_file_path, is_single_xsd_file = (
+                self.validator_utils.get_file_paths(
+                    xsd_path, 'xsd'
+                    )
+                )
+            # We need (a path to) a single xsd file.
+            if not is_single_xsd_file:
+                raise ValueError(
+                    f"Got multiple xsd files: {xsd_file_path}."
+                    )
+            # Handle incorrect file extension.
+            if xsd_file_path[0].suffix != '.xsd':
+                # Raise a load error.
+                raise SystemError(
+                    f"ValueError: {xsd_file_path[0]} is not an XSD file."
+                    )
+            # Try to load the provided XSD file.
+            result = self._load_schema(xsd_file_path[0], base_url )
+            if result.success:
+                # Set the loaded XSD file as default schema.
+                logger.info(
+                    f"Schema '{self.schema.name}' set.", # type: ignore
+                    also_console=True)
+                return result.value
+            # Or report the load error.
+            raise SystemError(
+                f"Loading of schema failed: {result.error}"
+                )
+        # Or inform the user on what to do.
+        logger.info(
+            "No XSD schema set: provide schema(s) during keyword calls.",
+            also_console=True
+            )
+        # And explicitly flag the schema attr as None.
+        return None
+
+    def _validate_xml( # pylint: disable=R0913:too-many-arguments disable=R0917:too-many-positional-arguments
+        self,
+        xml_file_path: Path,
+        xsd_file_path: Optional[Path] = None,
+        base_url: Optional[str] = None,
+        error_facets: Optional[ List[str] ] = None,
+        pre_parse: Optional[bool] = True
+        ) -> Tuple[
+            bool,
+            Optional[List[dict[str, Any]]]
+            ]:
         """
         Validates an XML file against the currently loaded or provided 
         XSD schema.
@@ -1259,9 +1304,7 @@ class XmlValidator:
         return self.error_facets
 
     @keyword
-    def get_schema(
-        self,
-        return_schema_name: bool = True
+    def get_schema(self,return_schema_name: bool = True
         ) -> Optional[str|XMLSchema]:
         """
         .. raw:: html
