@@ -1,4 +1,3 @@
-Summary library source:
 Total number of files: 4
 Total number of methods: 27
 	Robot Framework user keywords: 7 (ca. 25%)

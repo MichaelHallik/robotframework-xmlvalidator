@@ -75,7 +75,7 @@ class ValidatorResultRecorder:
     and export validation results.
     """
 
-    __version__ = '1.0.0'
+    __version__ = '1.0.1'
 
     errors_by_file: List[Dict[str, Any]] = field(default_factory=list)
     validation_summary: Dict[str, List[str]] = field(
@@ -364,7 +364,7 @@ class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
         Error information if the operation failed.
     """
 
-    __version__ = '0.0.1'
+    __version__ = '1.0.1'
 
     def __init__(
             self,
