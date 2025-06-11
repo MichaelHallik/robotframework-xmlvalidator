@@ -408,10 +408,10 @@ class XmlValidator:
 
     def __init__(
         self,
-        xsd_path: Optional[str|Path] = None,
-        base_url: Optional[str] = None,
-        error_facets: Optional[List[str]] = None
-        ) -> None:
+        xsd_path: str | Path | None = None,
+        base_url: str | None = None,
+        error_facets: List[str] | None = None,
+    ) -> None:
         """
         **Library Scope**
 
@@ -550,20 +550,21 @@ class XmlValidator:
         self.validator_results = ValidatorResultRecorder()
         # Initialize the xsd schema from the xsd_path, if provided.
         self.schema = self._try_load_initial_schema(
-            xsd_path=xsd_path,
-            base_url=base_url
-            )
+            xsd_path=xsd_path, base_url=base_url
+        )
         # Set the error facets to collect for failed XML validations.
         self.error_facets = error_facets if error_facets else [
             'path', 'reason'
-            ]
+        ]
         logger.info(
             f"Collecting error facets: {self.error_facets}.",
             also_console=True
-            )
+        )
         logger.info("XML Validator ready for use!", also_console=True)
         self.nr_instances += 1
-        logger.info(f'Number of library instances: {self.nr_instances}.')
+        logger.info(
+            f'Number of library instances: {self.nr_instances}.'
+        )
 
     def _determine_validations(
         self,
