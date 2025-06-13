@@ -1,0 +1,7 @@
+<Book>
+    <Title>Multi-author Book</Title>
+    <Pages>250</Pages>
+    <Author>One</Author>
+    <Author>Two</Author>
+    <Author>Three</Author> <!-- ❌ Violates maxOccurs=2 -->
+</Book>

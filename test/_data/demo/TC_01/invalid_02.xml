@@ -1,0 +1,6 @@
+<Person>
+    <Name>Alice Smith</Name>
+    <Phone>InvalidPhoneFormat</Phone>  <!-- Invalid format -->
+    <Age>35</Age>
+    <ExtraElement>Unexpected</ExtraElement>  <!-- Unrecognized element -->
+</Person>

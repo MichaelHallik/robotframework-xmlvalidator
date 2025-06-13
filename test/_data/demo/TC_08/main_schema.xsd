@@ -1,0 +1,19 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://example.com/my_namespace"
+           xmlns="http://example.com/my_namespace"
+           elementFormDefault="qualified">
+
+    <!-- Include the schema file -->
+    <xs:include schemaLocation="includes/included_schema.xsd"/>
+
+    <!-- Root Element -->
+    <xs:element name="Person">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Name" type="xs:string"/>
+                <xs:element name="PhoneNumber" type="PhoneNumberType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

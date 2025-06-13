@@ -411,6 +411,7 @@ class XmlValidator:
         xsd_path: str | Path | None = None,
         base_url: str | None = None,
         error_facets: List[str] | None = None,
+        fail_on_errors: bool = True
     ) -> None:
         """
         **Library Scope**
@@ -560,6 +561,12 @@ class XmlValidator:
             f"Collecting error facets: {self.error_facets}.",
             also_console=True
         )
+        # Set the validation strictness.
+        self.fail_on_errors = fail_on_errors
+        logger.info(
+            f"Fail on errors: {self.fail_on_errors}.", also_console=True
+        )
+        # Report readiness.
         logger.info("XML Validator ready for use!", also_console=True)
         self.nr_instances += 1
         logger.info(
@@ -785,15 +792,15 @@ class XmlValidator:
                 "No schema: provide an XSD path during keyword call(s)."
                 )
         if self.schema and not xsd_path :
-            logger.info(
-                f'No new schema set: keeping existing schema {self.schema}.'
-                )
+            # logger.info(
+            #     f'No new schema set: keeping existing schema {self.schema}.'
+            #     )
             return ValidatorResult(success=True, value=self.schema)
         if not self.schema and xsd_path:
             logger.info(f'Setting schema file: {xsd_path}.', also_console=True)
         if self.schema and xsd_path:
             logger.info(
-                f'Setting new schema file: {xsd_path}.',
+                f'\tUsing schema: {xsd_path}.',
                 also_console=True
                 )
         return self._load_schema(xsd_path, base_url) # pyright: ignore
@@ -896,13 +903,13 @@ class XmlValidator:
                 # Catch and handle any exception.
                 except Exception as err: # pylint: disable=W0718:broad-exception-caught
                     # Inform the user.
-                    logger.warn('Processing XML file failed.')
+                    logger.info('\t\tProcessing XML file failed.')
                     # Collect the error to be mapped to the xml file.
                     validations[xml_file_path] = err
                     continue
                 # Test each XSD file for a matching namespace.
                 for xsd_file_path in xsd_file_paths:
-                    logger.info(f"Testing schema: {xsd_file_path}.")
+                    logger.info(f"\t\tTesting schema: {xsd_file_path}.")
                     # Load the schema.
                     result = self._load_schema(
                         xsd_file_path, base_url=base_url
@@ -930,7 +937,7 @@ class XmlValidator:
                     logger.info(f"\t\t\tTesting file name: {xsd_file_path}.")
                     # Compare the XSD/XML file names.
                     if xsd_file_path.stem == xml_file_path.stem:
-                        logger.info("\t\t\tFound match.")
+                        logger.info("\t\tFound match.")
                         # Assign current XSD path in case of a match & break.
                         validations[xml_file_path] = xsd_file_path
                         break
@@ -942,7 +949,7 @@ class XmlValidator:
                 raise ValueError(f"Unsupported search strategy: {search_by}.")
             # If no match has been found.
             if not validations[xml_file_path]:
-                logger.info(f"No valid XSD found for {xml_file_path}.")
+                logger.info(f"\t\tNo valid XSD found for {xml_file_path}.")
                 validations[xml_file_path] = FileNotFoundError(
                     f'No matching XSD found for: {xml_file_path.stem}.'
                     )
@@ -1239,7 +1246,7 @@ class XmlValidator:
         """
         # Log informative.
         logger.info(
-            f"Validating '{xml_file_path.stem}'.", also_console=True
+            f"Validating '{xml_file_path.name}", also_console=True
             )
         # Check upstream XSD matching led to an err pertaining to the XML.
         if isinstance(xsd_file_path, BaseException):
@@ -1257,7 +1264,7 @@ class XmlValidator:
             )
         if not sanity_check_result.success:
             # Abort validation if one or more sanity checks failed.
-            logger.warn("File(s) failed basic sanity check.")
+            # logger.warn("File(s) failed basic sanity check.")
             return False, sanity_check_result.error
         # Ensure a valid schema is loaded.
         loading_result = self._ensure_schema(
@@ -1433,7 +1440,7 @@ class XmlValidator:
         write_to_csv: Optional[bool] = True,
         timestamped: Optional[bool] = True,
         reset_errors: bool = True,
-        fail_on_errors: Optional[bool] = False
+        fail_on_errors: Optional[bool] = None
         ) -> Tuple[
             List[ Dict[str, Any] ],
             str | None
@@ -1596,6 +1603,12 @@ class XmlValidator:
         # Reset attributes, if requested.
         if reset_errors:
             self.validator_results.reset()
+        # Determine the validation strictness.
+        fail_on_errors = (
+            fail_on_errors \
+                if fail_on_errors is not None \
+                    else self.fail_on_errors
+        )
         # Determine and resolve/normalize the XML file path(s).
         xml_file_paths, is_single_xml_file = (
             self.validator_utils.get_file_paths(

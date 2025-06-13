@@ -33,7 +33,7 @@ Variables    teardown_vars.py
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_19/
     ${xsd_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_19/xsd/
     # Import the library.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files.
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    ${xsd_folder}
     # Define the expected results.
@@ -59,7 +59,7 @@ Variables    teardown_vars.py
     # Set up test variables.
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_20/
     # Import the library.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files, passing xsd_search_strategy, but passing NO xsd_path.
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    xsd_search_strategy=by_namespace
     # Define the expected results.
@@ -80,7 +80,7 @@ Variables    teardown_vars.py
     # Set up test variables.
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_21/
     # Import the library.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files.
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    xsd_search_strategy=by_file_name
     # Define the expected results.
@@ -102,7 +102,7 @@ Variables    teardown_vars.py
     # Set up test variables.
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_22/
     # Import the library.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files.
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    xsd_search_strategy=by_namespace
     # Define the expected results.

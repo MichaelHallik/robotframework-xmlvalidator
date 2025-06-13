@@ -2,7 +2,7 @@
 Documentation    Tests XML validation functionality by demonstrating and 
 ...              validating various approaches and use cases.
 Library    Collections
-Library    xmlvalidator    ${EXECDIR}/test/_data/integration/TC_26/schema.xsd    #    base_url    error_facets
+Library    xmlvalidator    ${EXECDIR}/test/_data/integration/TC_26/schema.xsd    fail_on_errors=${False}    #    base_url    error_facets
 Resource    ${EXECDIR}/test/integration/validation_keywords.resource
 Suite Teardown    Default Test Suite Teardown
 Variables    teardown_vars.py

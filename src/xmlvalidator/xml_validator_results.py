@@ -331,7 +331,7 @@ class ValidatorResultRecorder:
         try:
             df.to_csv(output_csv_path, index=False)
             logger.info(
-                f"Validation errors exported to '{output_csv_path}'.",
+                f"Validation errors exported to: \n\t'{output_csv_path}'.",
                 also_console=True
                 )
         except IOError as e:

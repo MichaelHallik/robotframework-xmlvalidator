@@ -1,0 +1,6 @@
+<Person>
+    <FullName>John Doe</FullName>         <!-- Element name should be "Name" -->
+    <Age>twenty-five</Age>                <!-- Age should be an integer -->
+    <Phone>123-456-7890</Phone>
+    <Email>john.doe@example.com</Email>   <!-- Email is not allowed by schema -->
+</Person>

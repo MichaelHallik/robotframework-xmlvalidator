@@ -24,12 +24,18 @@
     - [Examples](#examples)
       - [Using a preloaded schema](#using-a-preloaded-schema)
       - [Defer schema loading to the test case(s)](#defer-schema-loading-to-the-test-cases)
-      - [Importing with preloaded XSD that requires a base\_url](#importing-with-preloaded-xsd-that-requires-a-base_url)
-      - [Importing with custom error\_facets](#importing-with-custom-error_facets)
+      - [Importing with preloaded XSD that requires a `base_url`](#importing-with-preloaded-xsd-that-requires-a-base_url)
+      - [Importing with custom `error_facets`](#importing-with-custom-error_facets)
+      - [Importing with \`fail\_on\_errors=True](#importing-with-fail_on_errorstrue)
       - [Further examples](#further-examples)
   - [Using the library](#using-the-library)
     - [Keyword overview](#keyword-overview)
-    - [Error collection](#error-collection)
+      - [Error collection](#error-collection)
+      - [Batch mode](#batch-mode)
+      - [Single file mode](#single-file-mode)
+      - [Test case status - fail\_on\_error](#test-case-status---fail_on_error)
+      - [Dyanmic XSD resolution](#dyanmic-xsd-resolution)
+    - [Error collection](#error-collection-1)
       - [XSD Schema violations.](#xsd-schema-violations)
       - [Malformed XML](#malformed-xml)
       - [File-level issues](#file-level-issues)
@@ -37,6 +43,7 @@
     - [Keyword documentation](#keyword-documentation)
     - [Keyword example usage](#keyword-example-usage)
       - [A few basic examples](#a-few-basic-examples)
+      - [Demo test suite file as examples](#demo-test-suite-file-as-examples)
       - [Integration tests as examples](#integration-tests-as-examples)
     - [Example console output](#example-console-output)
     - [Example CSV output](#example-csv-output)
@@ -58,6 +65,8 @@
     - [Continuous Integration \& GitHub templates](#continuous-integration--github-templates)
   - [Class architecture (Simplified)](#class-architecture-simplified)
   - [Project Structure](#project-structure)
+  - [Changelog](#changelog)
+  - [Roadmap](#roadmap)
   - [License](#license)
   - [Author](#author)
 
@@ -130,11 +139,12 @@ See the [Robot Framework Library Scope docs](https://robotframework.org/robotfra
 
 ### Library arguments
 
-| Argument       | Type        | Required? | Description                                                                        |
-|----------------|-------------|-----------|------------------------------------------------------------------------------------|
-| `xsd_path`     | `str`       | No        | Path to an XSD file or folder to preload during initialization. In case of a folder, the folder must hold one file only.                                                                                                             |
-| `base_url`     | `str`       | No        | Base path used to resolve includes/imports within the provided XSD schema.         |
-| `error_facets` | `list[str]` | No        | The attributes of validation errors to collect and report (e.g., `path`, `reason`) |
+| Argument        | Type        | Required? | Description                                                                                                            | Default         |
+|-----------------|-------------|-----------|------------------------------------------------------------------------------------------------------------------------|-----------------|
+| `xsd_path`      | `str`       | No        | Path to an XSD file/folder to preload during initialization. In case of a folder, the folder must hold one file only.  | None            |
+| `base_url`      | `str`       | No        | Base path used to resolve includes/imports within the provided XSD schema.                                             | None            |
+| `error_facets`  | `list[str]` | No        | The attributes of validation errors to collect and report (e.g., `path`, `reason`)                                     | [path, reason]  |
+| `fail_on_error` | `bool`      | No        | Whether to fail the test case if one or more XML validation errors are found. Can be overridden per keyword call.      | True            |
 
 ### Examples
 
@@ -151,7 +161,7 @@ Library    xmlvalidator    xsd_path=path/to/schema.xsd
 Library    xmlvalidator
 ```
 
-#### Importing with preloaded XSD that requires a base_url
+#### Importing with preloaded XSD that requires a `base_url`
 
 ```robotframework
 Library    xmlvalidator    xsd_path=path/to/schema_with_include.xsd
@@ -160,7 +170,7 @@ Library    xmlvalidator    xsd_path=path/to/schema_with_include.xsd
 
 Use `base_url` when your XSD uses `<xs:include>` or `<xs:import>` with relative paths.
 
-#### Importing with custom error_facets
+#### Importing with custom `error_facets`
 
 Use the `error_facets` argument to control which attributes of detected errors will be collected and reported.
 
@@ -179,6 +189,21 @@ Library    xmlvalidator    xsd_path=schemas/schema.xsd
 ...                        error_facets=value, namespaces
 ```
 
+#### Importing with `fail_on_errors=True
+
+The fail_on_errors argument controls whether a test case should fail if XML validation errors are detected.
+
+It defaults to True.
+
+The library's batch validation behavior remains unchanged. That is, `fail_on_errors=True` does *not* short-circuit the validation process in any way.
+
+Set `fail_on_errors=False` to log validation issues without failing the test. This is useful for:
+
+- Non-blocking checks in dashboards or QA reports.
+- Legacy or transitional systems where some invalid files are expected.
+- Schema discovery or diagnostics, where conformance isn’t yet enforced.
+- Soft rollout of stricter validation rules, allowing time to adapt.
+
 #### Further examples
 
 See also the [library initialization Robot test file](test/integration/01_library_initialization.robot).
@@ -189,39 +214,63 @@ See also the [library initialization Robot test file](test/integration/01_librar
 
 ### Keyword overview
 
-| Keyword                  | Description |
-|--------------------------|-------------|
+Thi section merely provides a short summary of the library's capabilities.
+
+For more details, please see the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
+
+| Keyword                  | Description                                                         |
+|--------------------------|---------------------------------------------------------------------|
 | `Validate Xml Files`     | Validate one or more XML files against one or more XSD schema files |
-| `Reset Schema`           | Clear the currently loaded XSD schema |
-| `Reset Errors`           | Clear the set of collected errors |
-| `Get Schema`             | Get the current schema name or object |
-| `Log Schema`             | Log the currently loaded schema |
-| `Get Error Facets`       | Returns a list of the currently active error facets |
-| `Reset Error Facets`     | Reset the error facets to default (`path`, `reason`) |
+| `Reset Schema`           | Clear the currently loaded XSD schema                               |
+| `Reset Errors`           | Clear the set of collected errors                                   |
+| `Get Schema`             | Get the current schema name or object                               |
+| `Log Schema`             | Log the currently loaded schema                                     |
+| `Get Error Facets`       | Returns a list of the currently active error facets                 |
+| `Reset Error Facets`     | Reset the error facets to default (`path`, `reason`)                |
 
 The main keyword is `Validate Xml Files`. The other keywords are convenience/helper functions, e.g. 'Reset Error Facets'.
 
+#### Error collection
+
 The `Validate Xml Files` validates one or more XML files against one or more XSD schema files and collects and reports all encountered errors.
 
-The type of error that the keyword can detect is not limited to XSD violations, but may also pertain to malformed XML files (e.g. parse errors), empty files, unmatched XML files (no XSD match found), etc.
+The type of error that the keyword can detect is not limited to XSD violations, but may also pertain to malformed XML files, empty files, unmatched XML files (no XSD match found), etc.
 
 Errors that result from malformed XML files or from XSD violations support detailed error reporting. Using the `error_facets` argument you may specify the details the keyword should collect and report about captured errors.
 
-When operating in batch mode, the `Validate Xml Files` keyword always validates the entire set of passed XML files.
+#### Batch mode
 
-That is, when it encounters an error in a file, it does not fail. Rather, it collects the error details (as determined by the `error_facets` arg) and then continues validating the current file as well as any subsequent file(s).
+The `Validate Xml Files` keyword always validates the entire set of passed XML files.
+
+That is, when it encounters an error in a file, it does not fail and stop execution. Rather, it collects the error details (as determined by the `error_facets` arg) and then continues validating the current file as well as any subsequent file(s).
 
 In that fashion the keyword works through the entire set of files.
 
-Once all files are processed it will log a summary of the test run and then proceed to report all collected errors in the console, in the RF log and, optionally, in the form of a CSV file.
+Once *all* files are processed it will log a summary of the test run and then proceed to report all collected errors in the console, in the RF log and, optionally, in the form of a CSV file.
 
-However, in case you want your test case to fail when one or more errors have been detected, you can use the ``fail_on_errors`` (bool) argument to make it so. It defaults to False. When setting it to True, the keyword will still check each XML file (and collect possible errors), but after it has thus processed the batch, it will fail if one or more errors will have been detected.
+For example:
+- If you validate fifteen XML files and five of them contain schema violations or other errors, all files will still be processed.
+- Errors are simply collected throughout the run and reported collectively, only after the final file has been (fully) processed.
+- The test case will fail (assuming `fail_on_errors=True`) only after all files have been checked, ensuring comprehensive diagnostics.
 
-The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD files, using either a 'by filename' or a 'by namespace' strategy. That means you can simply pass the paths to a folder containing XML files and to a folder containing XSD files and the keyword will determine which XSD schema file to use for each XML file. If the XML and XSD files reside in the same folder, you only have to pass one folder path. When no matching XSD schema could be identified for an XML file, this will be integrated into the mentioned summary and error reporting (the keyword will not fail).
+#### Single file mode
 
 Of course, you may also refer to specific XML/XSD files (instead of to folders). In that case, no matching will be attempted, but the keyword will simply try to validate the specified XML file against the specified XSD file.
 
-For more details, please see the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
+Actually, almost anything goes:
+
+- one folder with: one or more XML files and one or more XSD files
+- one folder with one or more XML files and another folder with one or more XSD files
+- one folder with one or more XML files and a single XSD file
+- a single XML file and a sigle XSD file
+
+#### Test case status - fail_on_error
+
+A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the ``fail_on_errors`` (bool) argument to change this default behaviour. When set to `False`, the test cases's will always be PASS, regardless whether errors were collected or not.
+
+#### Dyanmic XSD resolution
+
+The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD files, using either a 'by filename' or a 'by namespace' strategy. That means you can simply pass the paths to a folder containing XML files and to a folder containing XSD files and the keyword will determine which XSD schema file to use for each XML file. If the XML and XSD files reside in the same folder, you only have to pass one folder path. When no matching XSD schema could be identified for an XML file, this will be integrated into the mentioned summary and error reporting (the keyword will not fail).
 
 ### Error collection
 
@@ -306,9 +355,9 @@ General errors that do not pertain to syntax or schema issues:
 
 #### Final note on error collection
 
-On account of the purpose of this library, all encountered errors (regardless the involved types) are collected and reported. The validator analyzes all files, collects encountered errors (if any) and, finally, reports the results of the run in the console and in the Robot Framework log 
+On account of the purpose of this library, all encountered errors (regardless the involved types) are collected and reported. The validator analyzes all files, collects encountered errors (if any) and, finally, reports the results of the run in the console and in the Robot Framework log.
 
-If you want the test run to receive a FAIL status when, at the end of test run, one or more errors have been found, then set: `fail_on_errors=True`.
+Every test case in which one or more errors have been collected, will receive status FAIL unless `fail_on_errors=True` (see earlier explanations).
 
 ### Keyword documentation
 
@@ -356,6 +405,10 @@ Validate Folder With Multiple Schemas By File Name
     [Documentation]    Resolves schema based on matching file name patterns (no schema path passed)
     Validate Xml Files    ${FOLDER_MULTIPLE_XML_XSD_FN}    xsd_search_strategy=by_file_name
 ```
+
+#### Demo test suite file as examples
+
+See the [demo test suite](test/demo/demo.robot) for a demo test suite that demonstrates the most important features of the library in a concise fashion.
 
 #### Integration tests as examples
 
@@ -742,6 +795,18 @@ README.md                            # Project overview and instructions
 requirements-dev.txt                 # Requirements file for devs (pip)
 requirements.txt                     # Requirements file for users (pip)
 ```
+
+---
+
+## Changelog
+
+For a list of changes across versions, including recent behavioral changes in validation logic, see the [CHANGELOG](https://github.com/MichaelHallik/robotframework-xmlvalidator/blob/main/CHANGELOG.md).
+
+---
+
+## Roadmap
+
+See the [project roadmap](ROADMAP.md) for upcoming features and ideas.
 
 ---
 

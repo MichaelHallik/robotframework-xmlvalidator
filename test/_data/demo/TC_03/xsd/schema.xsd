@@ -1,0 +1,12 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Book">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Title" type="xs:string"/> <!-- Required -->
+                <xs:element name="Pages" type="xs:integer"/> <!-- Required -->
+                <xs:element name="ISBN" type="xs:string" minOccurs="0" maxOccurs="1"/> <!-- Optional -->
+                <xs:element name="Author" type="xs:string" minOccurs="0" maxOccurs="2"/> <!-- Optional, max 2 -->
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

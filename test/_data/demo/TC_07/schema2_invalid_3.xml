@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <Product xmlns="http://example.com/schema2">
+            <ID>456</ID>  <!-- Unexpected element -->
+            <ProductName>Widget</ProductName>
+            <Price>49.99</Price>
+        </Product>

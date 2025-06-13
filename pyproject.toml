@@ -1,7 +1,7 @@
 # General.
 [tool.poetry]
 name = "robotframework-xmlvalidator"
-version = "1.0.1"
+version = "2.0.0a1"
 description = "A Robot Framework test library for validating XML files against XSD schemas"
 authors = ["Michael Hallik <hallik.michael@gmail.com>"]
 license = "Apache-2.0"

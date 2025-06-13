@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Person xmlns="http://example.com/my_namespace">
+    <PhoneNumber>123-456-7890</PhoneNumber>
+</Person>

@@ -43,7 +43,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Union, TYPE_CHECKING
 # Third party library imports.
 from lxml import etree
-from robot.api import logger
 # Local application imports.
 from .xml_validator_results import ValidatorResult
 if TYPE_CHECKING:
@@ -472,9 +471,9 @@ class ValidatorUtils:
                         if isinstance(value, tuple):
                             value = f"Line {value[0]}, Column {value[1]}."
                         error_details[facet] = value
-                    logger.warn(
-                        f"Facet '{facet}' is not an attribute of error type'{type(e).__name__}'."
-                        )
+                    # logger.warn(
+                    #     f"Facet '{facet}' is not an attribute of error type'{type(e).__name__}'."
+                    #     )
                 # Add the error type to the error details
                 error_details['Error type'] = type(e).__name__
                 # Append the error to the return list.

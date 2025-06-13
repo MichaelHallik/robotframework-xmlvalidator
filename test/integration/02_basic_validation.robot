@@ -58,7 +58,7 @@ Variables    teardown_vars.py
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_08/08_test_schema.xsd
     ${xml_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_08/08_invalid_test.xml
     # Import the library and call the keyword.
-    Import Library    xmlvalidator    ${xsd_path}    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    ${xsd_path}    fail_on_errors=${False}    AS    ${TEST_NAME}
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_path}
     # Define the expected results.
     ${expected_errors} =    Create Dictionary    
@@ -131,7 +131,7 @@ Variables    teardown_vars.py
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_11
     ${xml_valid} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_11
     # Import the library and call the keyword.
-    Import Library    xmlvalidator    ${xsd_path}    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    ${xsd_path}    fail_on_errors=${False}    AS    ${TEST_NAME}
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_valid}
     # Define the expected results.
     ${expected_errors_1} =    Create Dictionary
@@ -166,7 +166,7 @@ Variables    teardown_vars.py
     ${xml_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_12
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_12
     # Import the library and call the keyword.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_path}
     # Define the expected results.
     ${expected_errors_1} =    Create Dictionary    
@@ -227,7 +227,7 @@ Variables    teardown_vars.py
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_14/14_test_schema.xsd
     ${xml_malformed} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_14/14_malformed.xml
     # Import the library and call the keyword.
-    Import Library    xmlvalidator    ${xsd_path}    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    ${xsd_path}    fail_on_errors=${False}    AS    ${TEST_NAME}
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_malformed}
     # Define the expected results.
     ${expected_errors} =    Create Dictionary    

@@ -460,7 +460,7 @@ def test_ensure_schema_keep_existing():
     Priority: H
     """
     with patch.object(XmlValidator, "_load_schema") as mock_load_schema, \
-         patch.object(xml_validator_module.logger, "info") as mock_info:
+         patch.object(xml_validator_module.logger, "info") as mock_info: # pylint: disable=W0612:unused-variable
         # Create a validator instance and simulate a pre-loaded schema.
         validator = XmlValidator()
         validator.schema = "mock_schema"
@@ -469,10 +469,10 @@ def test_ensure_schema_keep_existing():
         mock_load_schema.assert_not_called()
         assert result.success is True
         assert result.value == "mock_schema"
-        # Verify correct log message.
-        mock_info.assert_any_call(
-            "No new schema set: keeping existing schema mock_schema."
-        )
+        # Verify correct log message => Commented out due to changes 2.0.0.
+        # mock_info.assert_any_call(
+        #     "No new schema set: keeping existing schema mock_schema."
+        # )
 
 def test_ensure_schema_load_new_schema():
     """
@@ -531,7 +531,7 @@ def test_ensure_schema_replace_existing_schema():
         assert result.success is True
         assert result.value == "new_schema"
         mock_info.assert_any_call(
-            "Setting new schema file: new_schema.xsd.", also_console=True
+            "\tUsing schema: new_schema.xsd.", also_console=True
             )
 
 def test_ensure_schema_load_failure():
@@ -679,20 +679,16 @@ def test_find_schemas_invalid_xml():
             "Invalid XML", "<string>", 0, 0, filename="invalid.xml"
         )
     ), patch.object(
-        xml_validator_module.logger, "warn"
-    ) as mock_warn, patch.object(
         xml_validator_module.logger, "info"
-    ):
+    ) as mock_info:
         validator = XmlValidator()
         result = validator._find_schemas(
             xml_file_paths=[xml_file],
             xsd_file_paths=[xsd_file],
             search_by="by_namespace"
         )
-        # Ensure an exception was captured for the failing XML file.
         assert isinstance(result[xml_file], Exception)
-        # Ensure an appropriate warning was logged.
-        mock_warn.assert_any_call("Processing XML file failed.")
+        mock_info.assert_any_call('\t\tProcessing XML file failed.')
 
 def test_find_schemas_invalid_xsd():
     """
@@ -707,10 +703,8 @@ def test_find_schemas_invalid_xsd():
         xml_validator_module.etree, "parse",
         side_effect=OSError("Error reading file 'valid.xml'")
     ), patch.object(
-        xml_validator_module.logger, "warn"
-    ) as mock_warn, patch.object(
         xml_validator_module.logger, "info"
-    ):
+    ) as mock_info:
         validator = XmlValidator()
         result = validator._find_schemas(
             xml_file_paths=[xml_file],
@@ -720,7 +714,7 @@ def test_find_schemas_invalid_xsd():
         # Ensure the XML file is mapped to the OSError.
         assert isinstance(result[xml_file], OSError)
         # Ensure the correct log message was issued.
-        mock_warn.assert_any_call("Processing XML file failed.")
+        mock_info.assert_any_call('\t\tProcessing XML file failed.')
 
 # _load_schema()
 

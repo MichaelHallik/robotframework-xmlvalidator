@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Book>
+    <Pages>two hundred</Pages>         <!-- ❌ Violation 1: wrong order -->
+    <Title>Bad Book</Title>            <!-- ❌ Violation 2: wrong order (sequence mismatch) -->
+    <ISBN>1234567890</ISBN>
+    <Publisher>Unknown</Publisher>     <!-- ❌ Violation 3: unexpected element -->
+    <Pages>extra</Pages>               <!-- ❌ Violation 4: duplicate element + invalid type -->
+</Book>

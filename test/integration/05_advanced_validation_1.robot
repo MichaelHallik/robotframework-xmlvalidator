@@ -38,7 +38,7 @@ Variables    teardown_vars.py
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_23/xml/
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_23/xsd/23_schema.xsd
     # Import the library with the XSD path specified.
-    Import Library    xmlvalidator    ${xsd_path}    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    ${xsd_path}    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files.
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}
     # Define the expected results/errors.
@@ -75,7 +75,7 @@ Variables    teardown_vars.py
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_24/xml/
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_24/xsd/24_schema.xsd
     # Import the library.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files.
     ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    ${xsd_path}
     # Define the expected results/errors.
@@ -112,7 +112,7 @@ Variables    teardown_vars.py
     # Set up test variables.
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_25/
     # Import the library.
-    Import Library    xmlvalidator    AS    ${TEST_NAME}
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
     # Validate the XML files, passing an xsd_search_strategy, but not passing an xsd_path.
     ${errors}    ${csv_path} =    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    xsd_search_strategy=by_file_name
     # Define the expected results/errors.

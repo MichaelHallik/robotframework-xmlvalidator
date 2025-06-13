@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <Order xmlns="http://example.com/schema3">
+            <OrderID>XYZ</OrderID>  <!-- Invalid int -->
+            <CustomerName>Jane Doe</CustomerName>
+            <TotalAmount>100.50</TotalAmount>
+        </Order>
