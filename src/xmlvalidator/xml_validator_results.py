@@ -75,7 +75,7 @@ class ValidatorResultRecorder:
     and export validation results.
     """
 
-    __version__ = '1.0.1'
+    __version__ = '2.0.0'
 
     errors_by_file: List[Dict[str, Any]] = field(default_factory=list)
     validation_summary: Dict[str, List[str]] = field(

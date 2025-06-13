@@ -98,10 +98,10 @@ class XmlValidator:
 
     When operating in batch mode, the ``Validate Xml Files`` keyword 
     always validates the entire set of passed XML files. That is, when 
-    it encounters an error in a file, it does not simply fail. Rather, 
-    it collects the error details (as determined by the error_facets 
-    arg) and then continues validating the current file as well as any 
-    subsequent file(s).
+    it encounters an error in a file, it does not simply then fail.
+    Rather, it collects the error details (as determined by the 
+    error_facets arg) and then continues validating the current file as 
+    well as any subsequent file(s).
 
     In that fashion the keyword works through the entire set of files.
 
@@ -158,12 +158,14 @@ class XmlValidator:
      - Namespace errors.
      - Etc.
 
-    - Captures malformed XML.
+    - Captures malformed XML (e.g. missing closing tag, encoding 
+      issues).
     - Handles edge cases like empty files or XML files that could not be 
       matched to an XSD schema file.
-    - Does not fail on errors, but collects encountered errors in all 
-      files and reports them in a structured format in the console and 
-      RF log.
+    - Does not immediately fail on errors, but collects encountered all 
+      errors in all files and reports them in a structured format in the 
+      console and RF log. Only *then* fails (assuming one or more 
+      errors have been collected).
     - Supports specifying the details that should be collected for 
       encountered errors.
     - Optionally exports the error report to a CSV file, providing the 
@@ -236,22 +238,12 @@ class XmlValidator:
     Enables resolution of schema imports/includes via a custom base URL, 
     via the ``base_url`` arg.
 
-    Use ``base_url`` when your XSD uses <xs:include> or <xs:import> with 
-    relative paths.
+    Use ``base_url`` when your XSD uses ``<xs:include>`` or ``<xs:import>``
+    with relative paths.
 
     You can pass ``base_url`` with the library import (together with 
     passing ``xsd_path``) and/or when calling ``Validate Xml Files`` 
     with ``xsd_path``.
-
-    ** Optional test case fail **
-
-    The ``Validate Xml Files`` keyword collects one or more errors for 
-    one or more XML files. As mentioned earlier, the keyword is designed 
-    so as to not fail upon encountering errors.
-
-    However, in case you want your test case to fail when one or more 
-    errors have been detected, you can use the ``fail_on_errors`` (bool)
-    argument to make it so. It defaults to ${False}.
 
     **Basic usage examples**
 
@@ -265,6 +257,18 @@ class XmlValidator:
 
     It further contains a detailed instruction on 
     `how to run Robot Framework tests <https://github.com/MichaelHallik/robotframework-xmlvalidator/blob/main/test/_doc/integration/README.md>`_.
+
+    Finally, the repo also contains a `demo test suite file <https://github.com/MichaelHallik/robotframework-xmlvalidator/blob/main/test/demo/demo.robot>`_ containing 
+    eight self-contained test cases to demonstrates the following features:
+    
+    - Single and batch XML validation
+    - Schema matching by filename and namespace
+    - Custom error facets
+    - Malformed XML handling
+    - XSD includes/imports
+    - CSV export
+
+    A test suite file may look like the following:
 
 	.. code:: robotframework
 
@@ -361,21 +365,8 @@ class XmlValidator:
         [ WARN ]    XML is invalid:
         [ WARN ]        Error #0:
         [ WARN ]            reason: No matching XSD found for: no_xsd_match_2.xml.
-        Validation errors exported to 'C:\\test\\01_Advanced_Validation\\errors_2025-03-29_13-54-46-552150.csv'.
-        Total_files validated: 11.
-        Valid files: 6.
-        Invalid files: 5
-        01 Advanced Validation:: Demo XML validation | PASS |
-        21 errors have been detected.
-        ========================================================
-        01 Advanced Validation:: Demo XML validation | PASS |
-        1 test, 1 passed, 0 failed
-
-    In case ``fail_on_errors`` is True, the console output will look like this:
-
-    .. code:: console
-
-        Validation errors exported to 'C:\\test\\01_Advanced_Validation\\errors_2025-03-29_13-54-46-552150.csv'.
+        Validation errors exported to:
+            'C:\\test\\01_Advanced_Validation\\errors_2025-03-29_13-54-46-552150.csv'.
         Total_files validated: 11.
         Valid files: 6.
         Invalid files: 5.
@@ -384,8 +375,8 @@ class XmlValidator:
         ========================================================
         01 Advanced Validation:: Demo XML validation | FAIL |
         1 test, 0 passed, 1 failed
-        
-    The corresponding CSV output would in both cases look like:
+
+    The corresponding CSV output will look like:
 
     .. code:: text
 
@@ -402,7 +393,7 @@ class XmlValidator:
 
     """
 
-    __version__ = '1.0.1'
+    __version__ = '2.0.0'
     ROBOT_LIBRARY_DOC_FORMAT = 'reST'
     nr_instances = 0
 
@@ -422,16 +413,19 @@ class XmlValidator:
 
         **Library Arguments**
 
-        +--------------+--------------+-----------+---------------------------------------------------------------------------------------------+
-        | Argument     | Type         | Required  | Description                                                                                 |
-        +==============+==============+===========+=============================================================================================+
-        | xsd_path     | str          | No        | Path to an XSD file or folder to preload during initialization.                             |
-        |              |              |           | In case of a folder, the folder must hold one file only.                                    |
-        +--------------+--------------+-----------+---------------------------------------------------------------------------------------------+
-        | base_url     | str          | No        | Base path used to resolve includes/imports within the provided XSD schema.                  |
-        +--------------+--------------+-----------+---------------------------------------------------------------------------------------------+
-        | error_facets | list of str  | No        | The attributes of validation errors to collect and report. E.g. ``path``, ``reason``.       |
-        +--------------+--------------+-----------+---------------------------------------------------------------------------------------------+
+        +---------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
+        | Argument      | Type        | Required | Description                                                                                 | Default        |
+        +===============+=============+==========+=============================================================================================+================+
+        | xsd_path      | str         | No       | Path to an XSD file or folder to preload during initialization.                             | None           |
+        |               |             |          | In case of a folder, the folder must hold one file only.                                    |                |
+        +---------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
+        | base_url      | str         | No       | Base path used to resolve includes/imports within the provided XSD schema.                  | None           |
+        +---------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
+        | error_facets  | list of str | No       | The attributes of validation errors to collect and report. E.g. ``path``, ``reason``.       | [path, reason] |
+        +---------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
+        | fail_on_error | bool        | No       | Whether to fail the test case if one or more XML validation errors are found.               | True           |
+        |               |             |          | Can be overridden per keyword call.                                                         |                |
+        +---------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
 
         All arguments are optional.
 
@@ -486,6 +480,30 @@ class XmlValidator:
         
         See the introduction for more details on the purpose and usage 
         of error facets.
+
+        ``fail_on_error``
+
+        The ``fail_on_errors`` argument controls whether a test case 
+        should fail if one or more XML validation errors are detected. 
+        It defaults to True. A test case that has resulted in the 
+        collection of one or more errors (of whatever type) will then 
+        receive a status of FAIL.
+        
+        You can use the ``fail_on_errors`` argument to change this 
+        default behaviour. When set to False, a test cases's status will 
+        always be PASS, regardless whether errors were collected or not.
+
+        This may be useful for:
+        
+        - Non-blocking checks in dashboards or QA reports.
+        - Legacy or transitional systems where some invalid files are expected.
+        - Schema discovery or diagnostics, where conformance isn’t yet enforced.
+        - Soft rollout of stricter validation rules, allowing time to adapt.
+
+        Note that with ``fail_on_error=True`` the library's batch 
+        validation behavior remains unchanged by the latter. That is, 
+        fail_on_errors=True does not short-circuit the validation 
+        process in any way.
         
         **Examples**
 
@@ -530,6 +548,8 @@ class XmlValidator:
 
         For more examples see the project's 
         `Robot Framework integration test suite <https://github.com/MichaelHallik/robotframework-xmlvalidator/blob/main/test/integration/01_library_initialization.robot>`_.
+
+        And also the `demo test suite file <https://github.com/MichaelHallik/robotframework-xmlvalidator/blob/main/test/demo/demo.robot>`_.
 
         **Raises**
 

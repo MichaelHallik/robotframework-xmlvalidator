@@ -66,7 +66,7 @@ class ValidatorUtils:
     All methods are static and the class maintains no internal state.
     """
 
-    __version__ = '1.0.1'
+    __version__ = '2.0.0'
 
     @staticmethod
     def _resolve_path(path: str | Path) -> Path:

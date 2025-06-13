@@ -266,7 +266,7 @@ Actually, almost anything goes:
 
 #### Test case status - fail_on_error
 
-A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the ``fail_on_errors`` (bool) argument to change this default behaviour. When set to `False`, the test cases's will always be PASS, regardless whether errors were collected or not.
+A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the ``fail_on_errors`` (bool) argument to change this default behaviour. When set to `False`, the test cases's status will always be PASS, regardless whether errors were collected or not.
 
 #### Dyanmic XSD resolution
 

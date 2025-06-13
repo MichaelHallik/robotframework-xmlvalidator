@@ -70,4 +70,5 @@ For example
   - Changed some from level=WARN to level=INFO.
   - Some got commented out.
   - Some indentation changes as well.
+- Fixed unit tests that now failed due to aforementioned changes in the logging.
 - Changed documentation (READEME.md, keyword documentation, etc.) to reflect additions and changes in this version.
