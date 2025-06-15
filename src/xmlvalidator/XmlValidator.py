@@ -402,7 +402,7 @@ class XmlValidator:
         xsd_path: str | Path | None = None,
         base_url: str | None = None,
         error_facets: List[str] | None = None,
-        fail_on_errors: bool = True
+        fail_on_errors: bool = True,
     ) -> None:
         """
         **Library Scope**
@@ -1460,7 +1460,8 @@ class XmlValidator:
         write_to_csv: Optional[bool] = True,
         timestamped: Optional[bool] = True,
         reset_errors: bool = True,
-        fail_on_errors: Optional[bool] = None
+        fail_on_errors: Optional[bool] = None,
+        error_table: Optional[bool] = True
         ) -> Tuple[
             List[ Dict[str, Any] ],
             str | None
@@ -1591,6 +1592,11 @@ class XmlValidator:
         XML files, one or more errors have been reported. Error 
         reporting and exporting will not change.
 
+        ``error_table``
+        
+        If True, writes all collected errors to a filterable table in 
+        the log file. Defaults to True.
+
         **Returns**
 
         A tuple, holding:
@@ -1670,6 +1676,11 @@ class XmlValidator:
                 )
         else:
             csv_path = None
+        # Write errors to the log file as a table if requested.
+        if error_table and self.validator_results.errors_by_file:
+            self.validator_results.write_error_table_to_log(
+                self.validator_results.errors_by_file,
+            )
         # Log a summary of the test run.
         self.validator_results.log_summary()
         if fail_on_errors and self.validator_results.errors_by_file:
