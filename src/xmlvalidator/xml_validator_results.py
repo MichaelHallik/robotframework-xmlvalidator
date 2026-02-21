@@ -81,6 +81,60 @@ class ValidatorResultRecorder:
     validation_summary: Dict[str, List[str]] = field(
         default_factory=lambda: {"valid": [], "invalid": []}
         )
+    # Used to create unique error_tables in the log file if multiple tables are present.
+    error_table_id = 0
+    # Used styling to use the same theme as Robot Framework uses.
+    style_and_filter_script = """
+        <style>
+            #table_block_0 {
+              margin-bottom: -5em;
+            }
+            .dataframe th {
+                background-color: var(--primary-color);
+                padding: 0.2em 0.3em;
+            }
+            .dataframe th, .dataframe td {
+                border-width: 1px;
+                border-style: solid;
+                border-color: var(--secondary-color);
+                padding: 0.1em 0.3em;
+                font-family: Helvetica, sans-serif;
+            }
+            input.filter {
+                width: 25em;
+                background-color: var(--background-color);
+                border-color: var(--secondary-color);
+                border-width: 2px;
+                border-style: solid;
+                border-radius: 2px;
+                color: var(--text-color);
+                margin-left: 0;
+                font-family: Helvetica, sans-serif;
+              }
+        </style>
+        <script>
+            function filterTable(blockId) {
+                const container = document.getElementById("table_block_" + blockId);
+                const input = container.querySelector("input");
+                const table = container.querySelector("table");
+                const filter = input.value.toLowerCase();
+                const trs = table.getElementsByTagName("tr");
+
+                for (let i = 1; i < trs.length; i++) {
+                    const tds = trs[i].getElementsByTagName("td");
+                    let rowVisible = false;
+                    for (let j = 0; j < tds.length; j++) {
+                        const td = tds[j];
+                        if (td && td.textContent.toLowerCase().indexOf(filter) > -1) {
+                            rowVisible = true;
+                            break;
+                        }
+                    }
+                    trs[i].style.display = rowVisible ? "" : "none";
+                }
+            }
+        </script>
+      """
 
     def _get_summary(self) -> Dict[str, int]:
         """
@@ -339,6 +393,52 @@ class ValidatorResultRecorder:
                 f"Failed to write CSV file: {output_csv_path}."
                 ) from e
         return str( output_csv_path.resolve() )
+
+    def write_error_table_to_log(self, errors: List[ Dict[str, Any] ]):
+        """
+        Writes a table of validation errors to the log file.
+
+        This method takes a list of error dictionaries and writes them 
+        to the log file in a table format. It also adds an input that 
+        can be used to filter through the errors and updates in real
+        time.
+
+        Args:
+
+        - errors (List[Dict[str, Any]]):
+          A list of dictionaries, where each dictionary contains details 
+          of a validation error. Each key in the dictionaries 
+          corresponds to a column in the output CSV.
+
+        Notes:
+
+        - If `errors` is an empty list, the method exits early and logs 
+          an informational message without creating a file.
+          the error dictionaries.
+        - The method uses `pandas` for CSV generation.
+        """
+        # Return if no errors were passed.
+        if not errors:
+            logger.info("No errors to write to log file.")
+            return
+        # Convert the errors list to a DataFrame.
+        df = pd.DataFrame(errors)
+        # Convert the dataframe to HTML.
+        df_table = df.to_html(index=False, border=0)
+        # Get the table id and increment for the next one.
+        error_table_id = self.error_table_id
+        self.error_table_id += 1
+        # Add the filter input to the df_table (includes the function call)
+        full_html = f"""<div id="table_block_{error_table_id}">
+            <input class="filter" type="text" onkeyup="filterTable('{error_table_id}')" placeholder="Search validation errors...">
+            {df_table}
+        </div>"""
+        # Add the style and filter script if it is the first table
+        if error_table_id == 0:
+            full_html = f"{full_html}{self.style_and_filter_script}"
+        # Actually print the table to the log file
+        logger.info(full_html, html=True)
+
 
 class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
     """
