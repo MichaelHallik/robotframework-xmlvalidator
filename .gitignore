@@ -183,3 +183,4 @@ output.xml
 report.html
 results
 test/_data/unit/*
+.vscode/
