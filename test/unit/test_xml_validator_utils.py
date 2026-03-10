@@ -41,7 +41,7 @@ from lxml import etree
 import pytest
 from xmlschema import XMLSchema
 # Local application imports.
-from src.xmlvalidator.xml_validator_utils import ValidatorUtils
+from xmlvalidator.xml_validator_utils import ValidatorUtils
 
 
 TEST_DIR = Path("test/_data/unit")
