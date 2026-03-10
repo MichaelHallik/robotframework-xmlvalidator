@@ -1,10 +1,6 @@
-| Version | License | Tests |
-|---------|---------|-------|
-| [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator.svg)](https://pypi.org/project/robotframework-xmlvalidator/) | [![License](https://img.shields.io/pypi/l/robotframework-xmlvalidator?cacheSeconds=600)](LICENSE) | [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml) |
-
-| Downloads | Update Badge |
-|-----------|---------------|
-| [![Total Downloads](https://github.com/MichaelHallik/robotframework-xmlvalidator/raw/main/badge_pepy_downloads.svg)](https://pepy.tech/project/robotframework-xmlvalidator) | [![Run Badge Update](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/update_pepy_badge.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/update_pepy_badge.yml) |
+| Version | License | Tests | Downloads |
+|---------|---------|-------|-----------|
+| [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator)](https://pypi.org/project/robotframework-xmlvalidator/) | [![License](https://img.shields.io/github/license/MichaelHallik/robotframework-xmlvalidator)](LICENSE) | [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions) | [![Downloads](https://img.shields.io/pepy/dt/robotframework-xmlvalidator)](https://pepy.tech/project/robotframework-xmlvalidator) |
 
 
 <details>
