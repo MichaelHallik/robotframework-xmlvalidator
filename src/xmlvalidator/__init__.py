@@ -55,6 +55,6 @@ try:
     __version__ = version("robotframework-xmlvalidator")
 except PackageNotFoundError:
     # Fall back when package not installed (default version for development).
-    __version__ = "2.0.0"
+    __version__ = "2.1.0"
     import warnings
     warnings.warn("Package metadata not found, using fallback version.")

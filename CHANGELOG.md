@@ -72,3 +72,23 @@ For example
   - Some indentation changes as well.
 - Fixed unit tests that now failed due to aforementioned changes in the logging.
 - Changed documentation (READEME.md, keyword documentation, etc.) to reflect additions and changes in this version.
+
+## [2.1.0] - 2026-03-19
+
+### Added
+
+- Error table in Robot Framework log output
+  - Provides a structured overview of validation errors.
+  - Improves readability and analysis of validation results.
+  - Enables easier filtering and inspection of errors within logs.
+
+### Changed
+
+- Updated the keyword documentation accordingly.
+- Integration test setup adjusted
+  - Added required directory placeholders (e.g. `.gitkeep`) to ensure test stability across environments.
+  - Ensures consistent execution of integration tests regardless of filesystem state.
+
+### Notes
+
+- Unit test execution remains unchanged.

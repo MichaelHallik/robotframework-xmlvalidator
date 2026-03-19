@@ -393,7 +393,7 @@ class XmlValidator:
 
     """
 
-    __version__ = '2.0.0'
+    __version__ = '2.1.0'
     ROBOT_LIBRARY_DOC_FORMAT = 'reST'
     nr_instances = 0
 
