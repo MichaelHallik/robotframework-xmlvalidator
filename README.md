@@ -1,7 +1,6 @@
-| Version | License | Tests | Downloads |
-|---------|---------|-------|-----------|
-| [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator)](https://pypi.org/project/robotframework-xmlvalidator/) | [![License](https://img.shields.io/github/license/MichaelHallik/robotframework-xmlvalidator)](LICENSE) | [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions) | [![Downloads](https://img.shields.io/pepy/dt/robotframework-xmlvalidator)](https://pepy.tech/project/robotframework-xmlvalidator) |
-
+| Version | License | Tests | Downloads - total | Downloads - monthly |
+|---------|---------|-------|-------------------|---------------------|
+| [![PyPI version](https://img.shields.io/pypi/v/robotframework-xmlvalidator)](https://pypi.org/project/robotframework-xmlvalidator/) | [![License](https://img.shields.io/github/license/MichaelHallik/robotframework-xmlvalidator)](LICENSE) | [![Tests](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelHallik/robotframework-xmlvalidator/actions) | [![Downloads](https://img.shields.io/pepy/dt/robotframework-xmlvalidator)](https://pepy.tech/project/robotframework-xmlvalidator) | [![PyPI Downloads](https://static.pepy.tech/personalized-badge/robotframework-xmlvalidator?period=monthly&units=ABBREVIATION&left_color=BLACK&right_color=GREEN&left_text=downloads%2Fmonth)](https://pepy.tech/projects/robotframework-xmlvalidator)
 
 <details>
 <summary><strong>📚 Table of Contents</strong></summary>
