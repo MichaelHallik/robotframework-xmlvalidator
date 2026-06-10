@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Michael Hallik
+# Copyright 2024-2026 Michael Hallik
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,18 +19,8 @@
 Provides utility functions to support XML and XSD validation tasks.
 
 This module is used internally by the XmlValidator library to assist 
-with file resolution, namespace extraction, validation sanity checks, 
-and schema matching.
-
-It does not interact with Robot Framework directly, but supports the 
-functionality exposed by the main library class.
-
-Features:
-
-- Extraction of XML namespaces from parsed documents.
-- Resolution and validation of file and directory paths.
-- Well-formedness checks for XML and XSD files.
-- Mapping of XML namespaces to matching XSD schemas.
+with sanity checks, file resolution, namespace extraction and schema
+matching.
 """
 
 
@@ -54,7 +44,7 @@ class ValidatorUtils:
     A stateless utility class for common XML and XSD validation 
     support operations.
 
-    `ValidatorUtils` provides reusable static methods used internally by 
+    `ValidatorUtils` provides static methods used internally by the 
     the `XmlValidator` class and its supporting modules. It handles 
     tasks such as:
 
@@ -63,7 +53,7 @@ class ValidatorUtils:
     - Performing well-formedness and sanity checks on files.
     - Matching XML namespaces to candidate XSD schemas.
 
-    All methods are static and the class maintains no internal state.
+    All methods are static: the class maintains no internal state.
     """
 
     __version__ = '2.1.0'
@@ -77,9 +67,8 @@ class ValidatorUtils:
         instance and returns a resolved absolute path.
 
         Args:
-
-        - path (str or Path):
-            A relative or absolute file or folder path.
+            path (str or Path):
+                A relative or absolute file or folder path.
 
         Returns:
             Path:
@@ -96,22 +85,21 @@ class ValidatorUtils:
     @staticmethod
     def extract_xml_namespaces(
             xml_root: etree.ElementBase,
-            return_dict: Optional[bool] = False,
-            include_nested: Optional[bool] = False
+            include_nested: Optional[bool] = False,
+            return_dict: Optional[bool] = False
             ) -> Union[
-                set[str],
-                dict[str | None, str]
+                set[str], dict[str | None, str]
                 ]:
         """
         Extracts XML namespaces from an XML root element.
 
         This method retrieves namespaces declared in the `xmlns` 
-        attributes of the XML document.
+        attributes of an XML document.
         
         Namespaces can be returned as:
 
         - A *set* of namespace URIs (default).
-        - A *dictionary* mapping prefixes to URIs (`return_dict=True`).
+        - A *dictionary*, mapping prefixes to URIs (`return_dict=True`).
 
         The method can optionally search nested elements for additional 
         namespace declarations (`include_nested=True`).
@@ -120,12 +108,12 @@ class ValidatorUtils:
 
         - xml_root (etree.ElementBase):
           The root element of the parsed XML document.
-        - return_dict (bool, optional):
-          If True, returns a dict mapping namespace prefixes to URIs. 
-          If False, returns a set of URIs. Defaults to False.
         - include_nested (bool, optional):
           If True, also includes namespaces declared in nested elements. 
           Defaults to False.
+        - return_dict (bool, optional):
+          If True, returns a dict mapping namespace prefixes to URIs. 
+          If False, returns a set of URIs. Defaults to False.
 
         Returns:
 
@@ -136,21 +124,22 @@ class ValidatorUtils:
         Raises:
 
         - Exception:
-          Any parsing or extraction error is propagated upstream for 
-          centralized error handling.
+          Any parsing or extraction error is propagated upstream (for 
+          centralized error handling).
 
         Notes:
 
         - If no namespaces are found, an empty set or dict is returned.
-        - The internal helper `_extract_nested_namespaces` performs a 
+        - The nested helper `_extract_nested_namespaces` performs a 
           recursive search of the XML tree when `include_nested` is 
           enabled.
-        - This method does not catch or handle errors — they are 
+        - This method does not catch or handle errors: they are 
           reported as part of the validation error pipeline.
 
         Example Usage:
 
         >>> xml_root = etree.fromstring('<root xmlns:ns1=\"http://example.com/ns1\"/>')
+
         >>> extract_xml_namespaces(xml_root)
         {'http://example.com/ns1'}
 
@@ -159,8 +148,7 @@ class ValidatorUtils:
         """
         def _extract_nested_namespaces(element: etree.ElementBase) -> dict[str | None, str]:
             """
-            Recursively extracts namespaces from all elements in the XML 
-            tree.
+            Recursively extracts namespaces from all elements in the XML tree.
 
             Args:
             - element (etree.ElementBase):
@@ -170,8 +158,10 @@ class ValidatorUtils:
             - dict[str | None, str]:
               A dictionary mapping prefixes to URIs.
             """
+            # Return container.
             all_namespaces = {}
-            for el in element.iter(None): # Explicitly passing `None` to avoid warnings.
+            # Explicitly passing `None` to avoid warnings.
+            for el in element.iter(None):
                 # Merge any new namespaces found.
                 all_namespaces.update(
                     {
@@ -190,8 +180,8 @@ class ValidatorUtils:
                 namespaces = {
                     k.replace("xmlns:", "") if k else None: v
                     # lxml provides namespaces through the nsmap attribute.
-                    for k, v in ( xml_root.nsmap or {} ).items() # Ensure nsmap is a dictionary.
-                    }
+                    for k, v in ( xml_root.nsmap or {} ).items() # Ensure dictionary.
+                }
             # Determine the return type based on `return_dict`.
             return namespaces if return_dict else set(namespaces.values())
         # Catch any exception, propagating it upstream for further handling.
@@ -207,7 +197,7 @@ class ValidatorUtils:
         """
         Resolves files from a given path and filters them by type.
 
-        If the path is a file, it returns a single-item list and a 
+        If the path is a file, it returns a single-item-list and a 
         True flag. If the path is a directory, it returns all files 
         with the matching extension and a boolean indicating whether 
         exactly one file was found.
@@ -218,7 +208,7 @@ class ValidatorUtils:
             Path to a file or directory to validate and inspect.
 
         - file_type (str):
-            Expected file extension (e.g., "xml" or "xsd"). Used when 
+            Expected file extension (e.g. "xml" or "xsd"). Used when 
             scanning a folder.
 
         Returns:
@@ -238,29 +228,29 @@ class ValidatorUtils:
         - The method uses `.glob(f"*.{file_type}")` when inspecting folders.
         - Paths are normalized using `_resolve_path()`.
         """
-        # Delegate resolving the provided path.
+        # Delegate the resolving of the provided path.
         resolved_path = ValidatorUtils._resolve_path(file_path)
         # Path is to a single file.
         if resolved_path.is_file():
             # Then return the file.
             return [resolved_path], True
-        # Path is to a folder, assumed to hold one or more xsd files.
+        # Path is to a folder, assumed to hold one or more files.
         if resolved_path.is_dir():
             # Get and resolve the path(s) to the file(s).
             resolved_paths = list(
                 resolved_path.glob(f"*.{file_type}")
-                )
+            )
             # Fail if there are no files in the folder.
             if not resolved_paths:
                 raise ValueError(
                     f"No files reside in the folder: {resolved_paths}."
-                    )
+                )
             # There are one or more files in the folder.
             return resolved_paths, len(resolved_paths) == 1
         # Fail if the path is neither a file nor a folder.
         raise ValueError(
-            f'The provided path is neither a file nor a folder: {resolved_path}'
-            )
+            f'The provided path is neither a file nor a folder: {resolved_path}.'
+        )
 
     @staticmethod
     def match_namespace_to_schema(
