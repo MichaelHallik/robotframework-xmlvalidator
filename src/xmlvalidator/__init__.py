@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Michael Hallik
+# Copyright 2024-2026 Michael Hallik
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,17 +17,16 @@
 
 
 """
-This module serves as the package entry point, by exposing the 
-XmlValidator class directly at the package level.
+Package entry point, exposing the XmlValidator class directly at
+the package level.
 
-It further provides versioning metadata for use in documentation and 
-automation.
+Provides versioning metadata for use in documentation and automation.
 
 Features:
 
-- Defines the public API (__all__, aliasing).
+- Defines the public API (__all__ + aliasing).
 - Simplifies imports by exposing XmlValidator at the top level.
-- Supports dynamic version retrieval/discovery from installed metadata.
+- Supports dynamic version discovery from installed metadata.
 - Maintains compatibility with Python < 3.8 via fallback imports.
 """
 
@@ -36,17 +35,17 @@ Features:
 
 
 # Import versioning utilities to fetch package metadata dynamically.
-# - `version` retrieves the installed package version from metadata.
-# - `PackageNotFoundError` handles cases where the package is not installed.
+# - `version`: retrieves installed package version from metadata.
+# - `PackageNotFoundError`: handles cases where the package is not installed.
 from importlib.metadata import version, PackageNotFoundError
-# Expose XmlValidator directly for cleaner imports.
+# Expose XmlValidator class directly for cleaner imports.
 from .XmlValidator import XmlValidator
 
 
-# Alias (i.e.: make available) XmlValidator at the package level for RF.
+# Alias (i.e. make available) XmlValidator at the package level.
 xmlvalidator = XmlValidator
 
-# Define package metadata & control what is exposed when importing the package.
+# Define package metadata.
 __all__ = ["XmlValidator"] # Controls what's exposed by: from package import *.
 __author__ = "Michael Hallik"
 # Expose the version (package version or fallback version).
