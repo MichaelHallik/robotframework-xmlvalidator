@@ -22,14 +22,14 @@ Provides result-handling components for XML validation operations.
 This module defines:
 
 - ValidatorResultRecorder:
-  Encapsulates validation results, including valid/invalid files and 
+  Encapsulates validation results, including valid/invalid files and
   associated error details. Supports logging and also exporting to CSV.
 - ValidatorResult:
-  A lightweight result wrapper for encapsulating success/failure states 
+  A lightweight result wrapper for encapsulating success/failure states
   and their corresponding values or errors.
 
-These classes are used internally by the XmlValidator library and 
-associated utilities to manage and report outcomes of validation 
+These classes are used internally by the XmlValidator library and
+associated utilities to manage and report outcomes of validation
 tasks.
 """
 
@@ -38,7 +38,8 @@ tasks.
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 # Third party library imports.
 import pandas as pd
 from robot.api import logger
@@ -51,34 +52,34 @@ class ValidatorResultRecorder:
     """
     Collects and manages results from XML validation runs.
 
-    This class serves as an internal aggregator for storing validation 
+    This class serves as an internal aggregator for storing validation
     outcomes, including:
 
     - A summary of valid and invalid XML files.
     - Detailed validation errors grouped by file.
 
-    It supports logging of individual errors and summary statistics to 
-    the Robot Framework log, as well as exporting all errors to a 
+    It supports logging of individual errors and summary statistics to
+    the Robot Framework log, as well as exporting all errors to a
     CSV file.
 
     Attributes:
 
     - errors_by_file (List[Dict[str, Any]]):
-      A list of validation error dictionaries, each tagged with its 
+      A list of validation error dictionaries, each tagged with its
       corresponding file name.
 
     - validation_summary (Dict[str, List[str]]):
-      A dictionary with two keys: 'valid' and 'invalid'. Each key maps 
+      A dictionary with two keys: 'valid' and 'invalid'. Each key maps
       to a list of file names.
 
-    This class is used internally by XmlValidator to record, summarize, 
+    This class is used internally by XmlValidator to record, summarize,
     and export validation results.
     """
 
     __version__ = '2.1.0'
 
-    errors_by_file: List[Dict[str, Any]] = field(default_factory=list)
-    validation_summary: Dict[str, List[str]] = field(
+    errors_by_file: list[dict[str, Any]] = field(default_factory=list)
+    validation_summary: dict[str, list[str]] = field(
         default_factory=lambda: {"valid": [], "invalid": []}
         )
     # Used to create unique error_tables in the log file if multiple tables are present.
@@ -136,12 +137,12 @@ class ValidatorResultRecorder:
         </script>
       """
 
-    def _get_summary(self) -> Dict[str, int]:
+    def _get_summary(self) -> dict[str, int]:
         """
         Constructs a summary of validation outcomes.
 
-        This internal method returns a dictionary containing the count 
-        of validated, valid, and invalid files. It safely handles cases 
+        This internal method returns a dictionary containing the count
+        of validated, valid, and invalid files. It safely handles cases
         where either category is missing from the summary.
 
         Returns:
@@ -165,13 +166,13 @@ class ValidatorResultRecorder:
     def add_file_errors(
         self,
         file_path: Path,
-        error_details: List[Dict[str, Any]] | Dict[str, Any] | None
+        error_details: list[dict[str, Any]] | dict[str, Any] | None
         ) -> None:
         """
         Adds validation error(s) for a given XML file.
 
-        Accepts either a single error dictionary or a list of error 
-        dictionaries and appends them to the `errors_by_file` attribute. 
+        Accepts either a single error dictionary or a list of error
+        dictionaries and appends them to the `errors_by_file` attribute.
         Each error entry is tagged with the file name.
 
         Args:
@@ -180,7 +181,7 @@ class ValidatorResultRecorder:
           The path of the XML file that caused the error(s).
 
         - error_details (Dict or List[Dict] or None):
-          The validation error(s) to record. If a single dictionary is 
+          The validation error(s) to record. If a single dictionary is
           provided, it is internally converted to a list.
 
         Returns:
@@ -203,8 +204,8 @@ class ValidatorResultRecorder:
         """
         Records a file as invalid and logs the result.
 
-        Adds the file name to the `invalid` list within the 
-        `validation_summary` attribute and emits a warning log 
+        Adds the file name to the `invalid` list within the
+        `validation_summary` attribute and emits a warning log
         to Robot Framework output.
 
         Args:
@@ -226,8 +227,8 @@ class ValidatorResultRecorder:
         """
         Records a file as valid and logs the result.
 
-        Adds the file name to the `valid` list within the 
-        `validation_summary` attribute and emits a confirmation 
+        Adds the file name to the `valid` list within the
+        `validation_summary` attribute and emits a confirmation
         log to the Robot Framework output.
 
         Args:
@@ -236,7 +237,7 @@ class ValidatorResultRecorder:
           The path to the XML file that passed validation.
 
         Returns:
-        
+
         None
         """
         logger.info("\tXML is valid!", also_console=True)
@@ -244,23 +245,23 @@ class ValidatorResultRecorder:
 
     def log_file_errors(
             self,
-            errors: List[Dict[str, Any]]
+            errors: list[dict[str, Any]]
             ) -> None:
         """
         Logs a list of validation errors to the Robot Framework log.
 
-        Each error dictionary is logged under a numbered header 
-        (e.g., "Error #1") followed by its individual key-value 
+        Each error dictionary is logged under a numbered header
+        (e.g., "Error #1") followed by its individual key-value
         pairs.
 
         Args:
 
         - errors (List[Dict[str, Any]]):
-          A list of dictionaries containing validation error details for 
+          A list of dictionaries containing validation error details for
           one or more XML files.
 
         Returns:
-        
+
         None
         """
         for idx, error in enumerate(errors):
@@ -272,8 +273,8 @@ class ValidatorResultRecorder:
         """
         Logs a summary of validation results to the Robot Framework log.
 
-        This method retrieves the number of valid, invalid, and total 
-        files from `_get_summary()` and prints them in a structured 
+        This method retrieves the number of valid, invalid, and total
+        files from `_get_summary()` and prints them in a structured
         format.
 
         Returns:
@@ -287,16 +288,16 @@ class ValidatorResultRecorder:
         """
         Clears all stored validation results.
 
-        This method resets the internal state of the result recorder, 
+        This method resets the internal state of the result recorder,
         including:
 
         - `errors_by_file`:
            cleared
         - `validation_summary`:
-           reset to default structure with empty 'valid' and 'invalid' 
+           reset to default structure with empty 'valid' and 'invalid'
            lists
 
-        Call this method before starting a new validation run if you 
+        Call this method before starting a new validation run if you
         want to discard previous results.
 
         Returns:
@@ -307,38 +308,38 @@ class ValidatorResultRecorder:
         self.validation_summary = {"valid": [], "invalid": []}
 
     def write_errors_to_csv(self,
-                            errors: List[ Dict[str, Any] ],
+                            errors: list[dict[str, Any]],
                             output_path: Path,
-                            include_timestamp: Optional[bool] = False,
-                            file_name_column: Optional[str] = None
+                            include_timestamp: bool | None = False,
+                            file_name_column: str | None = None
                             ) -> str:
         """
         Writes a list of validation errors to a CSV file.
 
-        This method takes a list of error dictionaries and writes them 
-        to a CSV file at the specified output path. Optionally, it 
-        appends a timestamp to the file name and reorders columns to 
+        This method takes a list of error dictionaries and writes them
+        to a CSV file at the specified output path. Optionally, it
+        appends a timestamp to the file name and reorders columns to
         place a specific column (e.g., "file_name") first.
 
         Args:
 
         - errors (List[Dict[str, Any]]):
-          A list of dictionaries, where each dictionary contains details 
-          of a validation error. Each key in the dictionaries 
+          A list of dictionaries, where each dictionary contains details
+          of a validation error. Each key in the dictionaries
           corresponds to a column in the output CSV.
 
         - output_path (Path):
-          The base path for the output CSV file. A timestamp will be 
+          The base path for the output CSV file. A timestamp will be
           appended to the filename if `include_timestamp` is True.
 
         - include_timestamp (bool, optional):
-          If True, appends a timestamp (in the format 
-          `YYYY-MM-DD_HH-MM-SS`) to the output file name. Defaults to 
+          If True, appends a timestamp (in the format
+          `YYYY-MM-DD_HH-MM-SS`) to the output file name. Defaults to
           False.
 
         - file_name_column (str, optional):
-          The name of the column to be placed first in the CSV. If the 
-          specified column is not present, the original column order is 
+          The name of the column to be placed first in the CSV. If the
+          specified column is not present, the original column order is
           preserved.
 
         Raises:
@@ -346,7 +347,7 @@ class ValidatorResultRecorder:
         - ValueError:
           Raised if the `errors` list is empty or improperly formatted.
 
-        - IOError:
+        - OSError:
           Raised if writing the CSV fails due to file system issues.
 
         Returns:
@@ -356,9 +357,9 @@ class ValidatorResultRecorder:
 
         Notes:
 
-        - If `errors` is an empty list, the method exits early and logs 
+        - If `errors` is an empty list, the method exits early and logs
           an informational message without creating a file.
-        - Column reordering occurs only if `file_name_column` exists in 
+        - Column reordering occurs only if `file_name_column` exists in
           the error dictionaries.
         - The method uses `pandas` for CSV generation.
         """
@@ -388,31 +389,31 @@ class ValidatorResultRecorder:
                 f"Validation errors exported to: \n\t'{output_csv_path}'.",
                 also_console=True
                 )
-        except IOError as e:
-            raise IOError(
+        except OSError as e:
+            raise OSError(
                 f"Failed to write CSV file: {output_csv_path}."
                 ) from e
         return str( output_csv_path.resolve() )
 
-    def write_error_table_to_log(self, errors: List[ Dict[str, Any] ]):
+    def write_error_table_to_log(self, errors: list[dict[str, Any]]):
         """
         Writes a table of validation errors to the log file.
 
-        This method takes a list of error dictionaries and writes them 
-        to the log file in a table format. It also adds an input that 
+        This method takes a list of error dictionaries and writes them
+        to the log file in a table format. It also adds an input that
         can be used to filter through the errors and updates in real
         time.
 
         Args:
 
         - errors (List[Dict[str, Any]]):
-          A list of dictionaries, where each dictionary contains details 
-          of a validation error. Each key in the dictionaries 
+          A list of dictionaries, where each dictionary contains details
+          of a validation error. Each key in the dictionaries
           corresponds to a column in the output CSV.
 
         Notes:
 
-        - If `errors` is an empty list, the method exits early and logs 
+        - If `errors` is an empty list, the method exits early and logs
           an informational message without creating a file.
           the error dictionaries.
         - The method uses `pandas` for CSV generation.
@@ -444,12 +445,12 @@ class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
     """
     Encapsulates the result of an operation in a success-or-failure format.
 
-    `ValidatorResult` provides a structured way to handle the outcome of 
-    operations throughout the XML validation library. It captures whether 
-    an operation succeeded and includes either the result (`value`) or 
+    `ValidatorResult` provides a structured way to handle the outcome of
+    operations throughout the XML validation library. It captures whether
+    an operation succeeded and includes either the result (`value`) or
     the error (`error`) — but not both.
 
-    This pattern allows methods to return a single object regardless of 
+    This pattern allows methods to return a single object regardless of
     success or failure, simplifying error handling.
 
     Attributes:
@@ -469,13 +470,13 @@ class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
     def __init__(
             self,
             success: bool,
-            value: Optional[Any] = None,
-            error: Optional[Any] = None
+            value: Any | None = None,
+            error: Any | None = None
             ) -> None:
         """
         Initializes a ValidatorResult instance.
 
-        Used to encapsulate the outcome of an operation, including 
+        Used to encapsulate the outcome of an operation, including
         success state, result value, or error information.
 
         Args:
@@ -500,7 +501,7 @@ class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
         Returns a string representation of the ValidatorResult instance.
 
         If the result is successful, includes the value.
-        
+
         Otherwise, includes the error details.
 
         Returns:
