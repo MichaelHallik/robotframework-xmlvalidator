@@ -16,12 +16,12 @@
 
 
 """
-This module defines the `XmlValidator` class — a Robot Framework test 
-library for validating XML files against XSD schemas using the 
+This module defines the `XmlValidator` class — a Robot Framework test
+library for validating XML files against XSD schemas using the
 `xmlschema` library.
 
-The validator supports both individual and batch validation workflows, 
-with comprehensive error reporting and optional export to structured 
+The validator supports both individual and batch validation workflows,
+with comprehensive error reporting and optional export to structured
 CSV files.
 
 Key Features:
@@ -35,7 +35,7 @@ Key Features:
 - Graceful handling of malformed XML or XSD files.
 - Optional export of all collected errors to a CSV file.
 
-This module is intended to be imported by Robot Framework test suites 
+This module is intended to be imported by Robot Framework test suites
 or executed as a Python module via a direct call.
 """
 
@@ -43,42 +43,46 @@ or executed as a Python module via a direct call.
 # pylint: disable=C0103:invalid-name   # On account of the module name, that is not snake-cased (required by Robot Framework).
 # pylint: disable=C0302:too-many-lines # On account of the extensive docstrings and annotations.
 # pylint: disable=C0301:line-too-long  # On account of tables in docstrings.
-
+# ruff: noqa: W291                     # Temporary: needs to be fixed.
+# ruff: noqa: W293                     # Temporary: needs to be fixed.
+# ruff: noqa: E501                     # Temporary: needs to be fixed.
 
 # Standard library imports.
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
+
 # Third party library imports.
 from lxml import etree
 from robot.api import Failure, logger
 from robot.api.deco import keyword, library
 from xmlschema import XMLSchema
+
 # Local application imports.
-from .xml_validator_results import ValidatorResultRecorder, ValidatorResult
+from .xml_validator_results import ValidatorResult, ValidatorResultRecorder
 from .xml_validator_utils import ValidatorUtils
 
 
 @library(scope='GLOBAL')
 class XmlValidator:
     """
-    XmlValidator is a `Robot Framework <https://robotframework.org/>`_ 
+    XmlValidator is a `Robot Framework <https://robotframework.org/>`_
     test library for validating XML files against XSD schemas.
 
-    The library leverages the power of the 
-    `xmlschema library <https://pypi.org/project/xmlschema/>`_ and is 
+    The library leverages the power of the
+    `xmlschema library <https://pypi.org/project/xmlschema/>`_ and is
     designed for both single-file and batch XML validation workflows.
 
-    It provides structured and detailed reporting of XML parse errors 
-    (malformed XML content) and XSD violations, schema auto-detection 
+    It provides structured and detailed reporting of XML parse errors
+    (malformed XML content) and XSD violations, schema auto-detection
     and CSV exports of collected errors.
 
-    Features are described in detail on the `project repo's landing page. 
+    Features are described in detail on the `project repo's landing page.
     <https://github.com/MichaelHallik/robotframework-xmlvalidator>`_.
 
     **Overview**
-    
+
     The main keyword is ``Validate Xml Files``.
-    
+
     The other keywords are convenience/helper functions, e.g. ``Reset 
     Error Facets``.
 
@@ -401,7 +405,7 @@ class XmlValidator:
         self,
         xsd_path: str | Path | None = None,
         base_url: str | None = None,
-        error_facets: List[str] | None = None,
+        error_facets: list[str] | None = None,
         fail_on_errors: bool = True,
     ) -> None:
         """
@@ -595,13 +599,11 @@ class XmlValidator:
 
     def _determine_validations(
         self,
-        xml_paths: List[Path],
-        xsd_path: Optional[str|Path] = None,
-        xsd_search_strategy: Optional[
-                Literal['by_namespace', 'by_file_name']
-                ] = None,
-        base_url: Optional[str] = None
-        ) -> Dict[Path, Path | None]:
+        xml_paths: list[Path],
+        xsd_path: str | Path | None = None,
+        xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None = None,
+        base_url: str | None = None
+        ) -> dict[Path, Path | None]:
         """
         Constructs a mapping between XML files and the XSD schemas to 
         use for their validation.
@@ -714,10 +716,10 @@ class XmlValidator:
                         f"Loading of schema failed: {result.error}."
                         )
                 # Ensure downstream schema loading will be skipped.
-                xsd_file_paths: List[Path|None] = [None] * len(xml_paths)
+                xsd_file_paths: list[Path | None] = [None] * len(xml_paths)
                 # Create the XML/XSD map.
                 validations = dict(
-                    zip( xml_paths, xsd_file_paths )
+                    zip( xml_paths, xsd_file_paths, strict=True )
                     )
             # We got a set of XSDs, that need to be dynamically mapped to XMLs.
             else:
@@ -733,17 +735,17 @@ class XmlValidator:
             # Ensure default schema is loaded; raises exception otherwise.
             result = self._ensure_schema(None, None)
             # Ensure downstream schema loading will now be skipped.
-            xsd_file_paths: List[Path|None] = [None] * len(xml_paths)
+            xsd_file_paths: list[Path | None] = [None] * len(xml_paths)
             # Create the XML/XSD map.
             validations = dict(
-                zip( xml_paths, xsd_file_paths )
+                zip( xml_paths, xsd_file_paths, strict=True )
                 )
         return validations
 
     def _ensure_schema(
         self,
-        xsd_path: Optional[Path] = None,
-        base_url: Optional[str] = None
+        xsd_path: Path | None = None,
+        base_url: str | None = None
         ) -> ValidatorResult:
         """
         Ensures that a schema is available for validation.
@@ -827,11 +829,11 @@ class XmlValidator:
 
     def _find_schemas(
         self,
-        xml_file_paths: List[Path],
-        xsd_file_paths: List[Path],
+        xml_file_paths: list[Path],
+        xsd_file_paths: list[Path],
         search_by: Literal['by_namespace', 'by_file_name'] = 'by_namespace',
-        base_url: Optional[str] = None
-        ) -> Dict[ Path, Path | None ]:
+        base_url: str | None = None
+        ) -> dict[Path, Path | None]:
         """
         Finds matching XSD schemas for XML files using the specified 
         search strategy.
@@ -886,7 +888,7 @@ class XmlValidator:
             to loading or parsing errors.
         
         Notes:
-        										 
+
         - This method does not perform validation — it only establishes 
           schema associations, which are later consumed by 
           `_validate_xml()`.
@@ -978,7 +980,7 @@ class XmlValidator:
     def _load_schema(
         self,
         xsd_path: Path,
-        base_url: Optional[str] = None
+        base_url: str | None = None
         ) -> ValidatorResult:
         """
         This method is responsible for initializing a schema object, 
@@ -1032,8 +1034,8 @@ class XmlValidator:
 
     def _try_load_initial_schema(
         self,
-        xsd_path: Optional[str|Path] = None,
-        base_url: Optional[str] = None
+        xsd_path: str | Path | None = None,
+        base_url: str | None = None
         ) -> None:
         """
         Attempts to resolve, validate, and load a single XSD schema from 
@@ -1112,13 +1114,13 @@ class XmlValidator:
     def _validate_xml( # pylint: disable=R0913:too-many-arguments disable=R0917:too-many-positional-arguments
         self,
         xml_file_path: Path,
-        xsd_file_path: Optional[Path] = None,
-        base_url: Optional[str] = None,
-        error_facets: Optional[ List[str] ] = None,
-        pre_parse: Optional[bool] = True
-        ) -> Tuple[
+        xsd_file_path: Path | None = None,
+        base_url: str | None = None,
+        error_facets: list[str] | None = None,
+        pre_parse: bool = True
+        ) -> tuple[
             bool,
-            Optional[List[dict[str, Any]]]
+            list[dict[str, Any]] | None
             ]:
         """
         Validates an XML file against the currently loaded or provided 
@@ -1309,7 +1311,7 @@ class XmlValidator:
         return (True, None) if len(errors) == 0 else (False, errors)
 
     @keyword
-    def get_error_facets(self) -> List[str]:
+    def get_error_facets(self) -> list[str]:
         """
         .. raw:: html
 
@@ -1333,7 +1335,7 @@ class XmlValidator:
 
     @keyword
     def get_schema(self,return_schema_name: bool = True
-        ) -> Optional[str|XMLSchema]:
+        ) -> str | XMLSchema | None:
         """
         .. raw:: html
 
@@ -1450,20 +1452,18 @@ class XmlValidator:
     def validate_xml_files( # pylint: disable=R0913:too-many-arguments disable=R0914:too-many-locals disable=R0917:too-many-positional-arguments
         self,
         xml_path: str | Path,
-        xsd_path: Optional[str | Path] = None,
-        xsd_search_strategy: Optional[
-            Literal['by_namespace', 'by_file_name']
-            ] = None,
-        base_url: Optional[str] = None,
-        error_facets: Optional[ List[str] ] = None,
-        pre_parse: Optional[bool] = True,
-        write_to_csv: Optional[bool] = True,
-        timestamped: Optional[bool] = True,
+        xsd_path: str | Path | None = None,
+        xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None = None,
+        base_url: str | None = None,
+        error_facets: list[str] | None = None,
+        pre_parse: bool = True,
+        write_to_csv: bool | None = True,
+        timestamped: bool | None = True,
         reset_errors: bool = True,
-        fail_on_errors: Optional[bool] = None,
-        error_table: Optional[bool] = True
-        ) -> Tuple[
-            List[ Dict[str, Any] ],
+        fail_on_errors: bool | None = None,
+        error_table: bool | None = True
+        ) -> tuple[
+            list[dict[str, Any]],
             str | None
             ]:
         """
