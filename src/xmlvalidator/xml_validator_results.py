@@ -431,7 +431,9 @@ class ValidatorResultRecorder:
         self.error_table_id += 1
         # Add the filter input to the df_table (includes the function call)
         full_html = f"""<div id="table_block_{error_table_id}">
-            <input class="filter" type="text" onkeyup="filterTable('{error_table_id}')" placeholder="Search validation errors...">
+            <input class="filter" type="text"
+                   onkeyup="filterTable('{error_table_id}')"
+                   placeholder="Search validation errors...">
             {df_table}
         </div>"""
         # Add the style and filter script if it is the first table

@@ -2,6 +2,16 @@
 
 All notable changes to the project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Modernized type hints across XML validator modules.
+
+### Security
+
+- Updated `lxml`, `black`, and `pytest` to address Dependabot security alerts.
+
 ## [1.0.0] - 2025-04-04
 - Implement Robot Framework test library for XML validation against XSD schemas.
 - Add unit tests using pytest.
