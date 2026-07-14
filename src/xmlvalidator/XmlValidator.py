@@ -58,11 +58,12 @@ from robot.api.deco import keyword, library
 from xmlschema import XMLSchema
 
 # Local application imports.
+from ._version import __version__
 from .xml_validator_results import ValidatorResult, ValidatorResultRecorder
 from .xml_validator_utils import ValidatorUtils
 
 
-@library(scope='GLOBAL')
+@library(scope='GLOBAL', version=__version__, doc_format="REST")
 class XmlValidator:
     """
     XmlValidator is a `Robot Framework <https://robotframework.org/>`_
@@ -397,8 +398,6 @@ class XmlValidator:
 
     """
 
-    __version__ = '2.1.0'
-    ROBOT_LIBRARY_DOC_FORMAT = 'reST'
     nr_instances = 0
 
     def __init__(
