@@ -8,12 +8,17 @@
 - [robotframework-xmlvalidator](#robotframework-xmlvalidator)
   - [Introduction](#introduction)
   - [Features](#features)
-  - [Installing the library](#installing-the-library)
+  - [When this library is useful](#when-this-library-is-useful)
+    - [Why XSD validation matters in testing](#why-xsd-validation-matters-in-testing)
+    - [Why automating XSD validation matters in testing](#why-automating-xsd-validation-matters-in-testing)
+    - [When it may not be useful](#when-it-may-not-be-useful)
+    - [Summary](#summary)
+  - [Installing](#installing)
     - [Install from PyPI](#install-from-pypi)
     - [Install from GitHub](#install-from-github)
     - [Install using poetry](#install-using-poetry)
     - [Dependencies](#dependencies)
-  - [Importing the library](#importing-the-library)
+  - [Importing](#importing)
     - [Library scope](#library-scope)
     - [Library arguments](#library-arguments)
     - [Examples](#examples)
@@ -21,15 +26,15 @@
       - [Defer schema loading to the test case(s)](#defer-schema-loading-to-the-test-cases)
       - [Importing with preloaded XSD that requires a `base_url`](#importing-with-preloaded-xsd-that-requires-a-base_url)
       - [Importing with custom `error_facets`](#importing-with-custom-error_facets)
-      - [Importing with \`fail\_on\_errors=True](#importing-with-fail_on_errorstrue)
+      - [Importing with `fail_on_errors=True`](#importing-with-fail_on_errorstrue)
       - [Further examples](#further-examples)
-  - [Using the library](#using-the-library)
+  - [Usage](#usage)
     - [Keyword overview](#keyword-overview)
       - [Error collection](#error-collection)
       - [Batch mode](#batch-mode)
       - [Single file mode](#single-file-mode)
       - [Test case status - fail\_on\_error](#test-case-status---fail_on_error)
-      - [Dyanmic XSD resolution](#dyanmic-xsd-resolution)
+      - [Dynamic XSD resolution](#dynamic-xsd-resolution)
     - [Error collection](#error-collection-1)
       - [XSD Schema violations.](#xsd-schema-violations)
       - [Malformed XML](#malformed-xml)
@@ -43,7 +48,7 @@
     - [Example console output](#example-console-output)
     - [Example CSV output](#example-csv-output)
     - [Utilizing error facets](#utilizing-error-facets)
-  - [Useful docs](#useful-docs)
+  - [Documentation](#documentation)
   - [Contributing](#contributing)
     - [Introduction](#introduction-1)
     - [Environment setup](#environment-setup)
@@ -58,7 +63,7 @@
       - [Typing](#typing)
     - [Running all tests and checks](#running-all-tests-and-checks)
     - [Continuous Integration \& GitHub templates](#continuous-integration--github-templates)
-  - [Class architecture (Simplified)](#class-architecture-simplified)
+  - [Design (simplified)](#design-simplified)
   - [Project Structure](#project-structure)
   - [Changelog](#changelog)
   - [Roadmap](#roadmap)
@@ -77,20 +82,83 @@ This library leverages the power of the [`xmlschema`](https://pypi.org/project/x
 
 It provides structured and detailed reporting of XML parse errors (malformed XML content) and XSD violations, schema auto-detection and CSV exports of collected errors.
 
+Rather than reimplementing XML parsing or schema validation logic, the library acts as a lightweight wrapper around `xmlschema`, exposing common validation workflows as easy-to-use Robot Framework keywords.
+
 ---
 
 ## Features
 
 - Validate one or more XML files against one or more XSD schemas.
-- Dynamic schema resolution (matching strategies: `by_namespace`, `by_file_name`).
-- Customizable error attributes (`path`, `reason`, `message`, etc.)
-- Batch validation and per-file error tracking
+- Dynamic schema resolution: match XML files to XSD schemas by namespace or file name.
+- Customizable error attributes (`path`, `reason`, `message`, etc.).
+- Batch validation and per-file error tracking.
+- Detailed error reporting for XML syntax errors, schema violations and file-level issues.
 - Export collected errors to CSV (with optional file name timestamping).
 - And more.
 
 ---
 
-## Installing the library
+## When this library is useful
+
+This library is useful when a system under test relies heavily on XML for data exchange.
+
+In such a context, an XML Schema Definition (XSD) often acts as a formal contract: it defines which elements are allowed, how they are nested, which data types are expected and which fields are mandatory.
+
+Therefore, when XML is part of the integration landscape, automated schema validation can provide fast and reliable feedback.
+
+### Why XSD validation matters in testing
+
+1. Enforcing the data contract.
+   
+   XSD describes the rules of XML exchange, including allowed elements, data types, structure, cardinality and field lengths. Validation helps confirm that different systems are speaking the same language.
+
+2. Catching structural issues early.
+   
+   By validating XML payloads close to the point where they are produced or received, malformed or incompatible data can be detected before it enters deeper application layers.
+
+3. Separating format checks from business logic.
+   
+   Schema validation can confirm basic structural expectations, such as whether a date uses the expected format or whether a value is a number rather than text. Application tests can then focus more clearly on business behavior.
+
+### Why automating XSD validation matters in testing
+
+1. Supporting fail-fast feedback.
+  
+   A missing required field or invalid data type can be detected before a longer end-to-end flow continues. This can save time in local test runs and CI/CD pipelines.
+
+2. Reducing the number of manual assertions.
+  
+   Without dedicated XSD automation, many individual assertions may be needed to check elements, types, formats and required fields. A single `Validate Xml Files` keyword can verify many structural rules at once.
+
+3. Increasing repeatability, decreasing workload and human error.
+   
+   In domains such as banking, healthcare, energy, logistics and public sector integrations, XML messages can be large, strict and externally defined. Automated XSD validation helps make these checks repeatable and less error-prone.
+
+### When it may not be useful
+
+- JSON-only or JSON-first systems.
+  
+  If a system uses JSON exclusively, XSD validation is not relevant. JSON Schema or contract-testing tools are usually a better fit.
+
+- Dynamic internal interfaces.
+  
+  Fast-changing internal systems typically (and deliberately) avoid strict XML schemas. In such environments, XSD validation may create more maintenance work than value.
+
+- Pure business-rule validation.
+  
+  XSD is excellent for structural validation, but it does not replace tests for business rules, workflows, permissions or domain-specific behavior.
+
+- XML manipulation or XPath-focused testing.
+  
+  This library focuses on XSD validation. If you need to edit XML, inspect arbitrary XPath values or build XML payloads dynamically, pair it with Robot Framework's built-in XML library or another XML-processing tool.
+
+### Summary
+
+This library is not necessary for every test project. However, where XML is used as a formal data exchange format, it can turn complex and repetitive structural checks into a single, efficient automated step.
+
+---
+
+## Installing
 
 Requires Python 3.10+.
 
@@ -124,7 +192,7 @@ See [pyproject.toml](pyproject.toml) for full dependency declarations and build 
 
 ---
 
-## Importing the library
+## Importing
 
 ### Library scope
 
@@ -184,7 +252,7 @@ Library    xmlvalidator    xsd_path=schemas/schema.xsd
 ...                        error_facets=value, namespaces
 ```
 
-#### Importing with `fail_on_errors=True
+#### Importing with `fail_on_errors=True`
 
 The fail_on_errors argument controls whether a test case should fail if XML validation errors are detected.
 
@@ -205,7 +273,7 @@ See also the [library initialization Robot test file](test/integration/01_librar
 
 ---
 
-##  Using the library
+## Usage
 
 ### Keyword overview
 
@@ -263,7 +331,7 @@ Actually, almost anything goes:
 
 A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the ``fail_on_errors`` (bool) argument to change this default behaviour. When set to `False`, the test cases's status will always be PASS, regardless whether errors were collected or not.
 
-#### Dyanmic XSD resolution
+#### Dynamic XSD resolution
 
 The keyword further supports the dynamic matching (i.e. pairing) of XML and XSD files, using either a 'by filename' or a 'by namespace' strategy. That means you can simply pass the paths to a folder containing XML files and to a folder containing XSD files and the keyword will determine which XSD schema file to use for each XML file. If the XML and XSD files reside in the same folder, you only have to pass one folder path. When no matching XSD schema could be identified for an XML file, this will be integrated into the mentioned summary and error reporting (the keyword will not fail).
 
@@ -301,7 +369,7 @@ Errors that are collected and reported can be categorized as follows:
   - Validates conformance with `<xsd:choice>` and `<xsd:all>` group models, ensuring correct usage of child elements as per the schema.
 
 - Referential constraints:
-  - Checks for violations in `<xsd:key>`, `<xsd:keyref>`, and `<xsd:unique>` constraints.
+  - Checks for violations in `<xsd:key>`, `<xsd:keyref>` and `<xsd:unique>` constraints.
 
 - Document structure and completeness:
   - Ensures that the XML document adheres to the hierarchical structure defined by the schema.
@@ -352,7 +420,7 @@ General errors that do not pertain to syntax or schema issues:
 
 On account of the purpose of this library, all encountered errors (regardless the involved types) are collected and reported. The validator analyzes all files, collects encountered errors (if any) and, finally, reports the results of the run in the console and in the Robot Framework log.
 
-Every test case in which one or more errors have been collected, will receive status FAIL unless `fail_on_errors=True` (see earlier explanations).
+Every test case in which one or more errors have been collected, will receive status FAIL unless `fail_on_errors=False` (see earlier explanations).
 
 ### Keyword documentation
 
@@ -531,13 +599,13 @@ You can customize which error facet(s) should be collected, by passing a list of
 
 Error facets passed during library initialization will be overruled by error facets that are passed at the test case level, when calling the `Validate Xml Files` keyword.
 
-The values you can pass through the `error_facets` argument are based on the attributes of the error objects as returned by the XMLSchema.iter_errors() method, that is provided by the xmlschema library and the xmlvalidator library leverages. Said method yields instances of xmlschema.validators.exceptions.XMLSchemaValidationError (or its subclasses), each representing a specific validation issue encountered in an XML file. These error objects expose various attributes that describe the nature, location, and cause of the problem.
+The values you can pass through the `error_facets` argument are based on the attributes of the error objects as returned by the XMLSchema.iter_errors() method, that is provided by the xmlschema library and the xmlvalidator library leverages. Said method yields instances of xmlschema.validators.exceptions.XMLSchemaValidationError (or its subclasses), each representing a specific validation issue encountered in an XML file. These error objects expose various attributes that describe the nature, location and cause of the problem.
 
 The table lists the most commonly available attributes, though additional fields may be available depending on the type of validation error.
 
 ---
 
-## Useful docs
+## Documentation
 
 | Document Link | Audience | Topics |
 |---------------|----------|--------|
@@ -663,7 +731,7 @@ In [.github/](.github/) you’ll also find the various contribution templates:
 
 ---
 
-## Class architecture (Simplified)
+## Design (simplified)
 
 ```mermaid
 classDiagram
