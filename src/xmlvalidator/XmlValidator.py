@@ -601,7 +601,8 @@ class XmlValidator:
         xml_paths: list[Path],
         xsd_path: str | Path | None = None,
         xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None = None,
-        base_url: str | None = None
+        base_url: str | None = None,
+        allow_declared_namespace_match: bool = False
         ) -> dict[Path, Path | None]:
         """
         Constructs a mapping between XML files and the XSD schemas to 
@@ -666,6 +667,9 @@ class XmlValidator:
         - base_url (str, optional):
           An optional base path or URL used when resolving `import` or 
           `include` statements within XSD files.
+        - allow_declared_namespace_match (bool, optional):
+          If True, dynamic namespace matching may fall back to schema
+          namespaces that are merely declared, not targeted or imported.
 
         Returns:
 
@@ -727,7 +731,8 @@ class XmlValidator:
                     xml_paths,
                     xsd_paths,
                     xsd_search_strategy if xsd_search_strategy else 'by_namespace',
-                    base_url
+                    base_url,
+                    allow_declared_namespace_match
                     )
         # No XSD path or search strategy given: assume schema set during init.
         else:
@@ -831,7 +836,8 @@ class XmlValidator:
         xml_file_paths: list[Path],
         xsd_file_paths: list[Path],
         search_by: Literal['by_namespace', 'by_file_name'] = 'by_namespace',
-        base_url: str | None = None
+        base_url: str | None = None,
+        allow_declared_namespace_match: bool = False
         ) -> dict[Path, Path | None]:
         """
         Finds matching XSD schemas for XML files using the specified 
@@ -876,6 +882,9 @@ class XmlValidator:
         - base_url (str, optional):
           An optional base URL used to resolve imports and includes 
           during namespace-based schema parsing.
+        - allow_declared_namespace_match (bool, optional):
+          If True, namespace-based schema matching may fall back to
+          non-infrastructure namespaces declared by the schema.
         
         Returns:
 
@@ -917,7 +926,7 @@ class XmlValidator:
                         parser=etree.XMLParser() # pylint: disable=I1101:c-extension-no-member
                         ).getroot()
                     # Get the namespaces from the root element.
-                    xml_namespaces = ValidatorUtils.extract_xml_namespaces(
+                    xml_namespaces = ValidatorUtils.extract_namespaces(
                             xml_root,
                             include_nested=False
                             )
@@ -941,10 +950,11 @@ class XmlValidator:
                             f"Matching attempt failed due to exception: {result.error}."
                             )
                         continue
-                    # Use match_namespace_to_schema for matching logic.
-                    match = self.validator_utils.match_namespace_to_schema(
+                    # Delegate to matching logic.
+                    match = self.validator_utils.schema_matches_xml_namespaces(
                         result.value, # type: ignore
                         xml_namespaces, # type: ignore
+                        allow_declared_namespace_match
                         )
                     # If succesful, flag the xsd file as match & end loop.
                     if match:
@@ -1460,7 +1470,8 @@ class XmlValidator:
         timestamped: bool | None = True,
         reset_errors: bool = True,
         fail_on_errors: bool | None = None,
-        error_table: bool | None = True
+        error_table: bool | None = True,
+        allow_declared_namespace_match: bool = False
         ) -> tuple[
             list[dict[str, Any]],
             str | None
@@ -1596,6 +1607,13 @@ class XmlValidator:
         If True, writes all collected errors to a filterable table in 
         the log file. Defaults to True.
 
+        ``allow_declared_namespace_match``
+
+        If True, dynamic namespace matching may fall back to
+        non-infrastructure namespaces that are declared in an XSD, even
+        if they are not the schema's target namespace or an explicitly
+        imported namespace. Defaults to False.
+
         **Returns**
 
         A tuple, holding:
@@ -1645,7 +1663,8 @@ class XmlValidator:
             xml_file_paths,
             xsd_path=xsd_path,
             xsd_search_strategy=xsd_search_strategy,
-            base_url=base_url
+            base_url=base_url,
+            allow_declared_namespace_match=allow_declared_namespace_match
             )
         # Validate each XML file with the corresponding schema.
         for xml_file_path, xsd_file_path in validations.items():

@@ -299,7 +299,8 @@ def test_determine_validations_namespace_matching_success():
             xml_files,
             xsd_files,
             "by_namespace",
-            None
+            None,
+            False
         )
         # Ensure returned result matches the expected mapping.
         assert result == expected_validations
@@ -340,7 +341,7 @@ def test_determine_validations_namespace_matching_failure():
             xsd_search_strategy="by_namespace"
         )
         mock_find_schemas.assert_called_once_with(
-            xml_files, xsd_files, "by_namespace", None
+            xml_files, xsd_files, "by_namespace", None, False
         )
         # Each result should be a FileNotFoundError instance.
         for xml_file in xml_files:
@@ -378,7 +379,7 @@ def test_determine_validations_filename_matching_success():
             xsd_search_strategy="by_file_name"
         )
         mock_find_schemas.assert_called_once_with(
-            xml_files, xsd_files, "by_file_name", None
+            xml_files, xsd_files, "by_file_name", None, False
         )
         assert result == expected_validations
 
@@ -417,7 +418,7 @@ def test_determine_validations_filename_matching_failure():
             xsd_search_strategy="by_file_name"
         )
         mock_find_schemas.assert_called_once_with(
-            xml_files, xsd_files, "by_file_name", None
+            xml_files, xsd_files, "by_file_name", None, False
         )
         for xml_file in xml_files:
             assert isinstance(result[xml_file], FileNotFoundError)
@@ -575,7 +576,7 @@ def test_find_schemas_namespace_matching_success():
     ) as mock_parse, patch.object(
         xml_validator_module, "XMLSchema"
     ) as mock_xsd_schema, patch.object(
-        xml_validator_module.ValidatorUtils, "extract_xml_namespaces",
+        xml_validator_module.ValidatorUtils, "extract_namespaces",
         return_value={"http://example.com/schema"}
     ), patch.object(
         xml_validator_module.logger, "info"
@@ -610,7 +611,7 @@ def test_find_schemas_namespace_matching_failure():
     ) as mock_parse, patch.object(
         xml_validator_module, "XMLSchema"
     ) as mock_xsd_schema, patch.object(
-        xml_validator_module.ValidatorUtils, "extract_xml_namespaces",
+        xml_validator_module.ValidatorUtils, "extract_namespaces",
         return_value={"http://example.com/non_matching"}
     ), patch.object(
         xml_validator_module.logger, "info"

@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 """
 Provides utility functions to support XML and XSD validation tasks.
 
@@ -23,9 +22,7 @@ with sanity checks, file resolution, namespace extraction and schema
 matching.
 """
 
-
 # pylint: disable=I1101:c-extension-no-member
-
 
 # Standard library imports.
 from pathlib import Path
@@ -33,6 +30,7 @@ from typing import TYPE_CHECKING
 
 # Third party library imports.
 from lxml import etree
+from robot.api import logger
 
 # Local application imports.
 from .xml_validator_results import ValidatorResult
@@ -59,29 +57,17 @@ class ValidatorUtils:
     All methods are static: the class maintains no internal state.
     """
 
-    @staticmethod
-    def _resolve_path(path: str | Path) -> Path:
-        """
-        Accepts either a string or a `Path` instance and returns a
-        resolved absolute path to a file or directory.
+    INFRASTRUCTURE_SCHEMA_NAMESPACES = {
+        "",
+        "http://www.w3.org/2000/xmlns/",
+        "http://www.w3.org/2001/XMLSchema",
+        "http://www.w3.org/XML/1998/namespace",
+    }
 
-        Args:
-            path (str or Path):
-                A relative or absolute file or folder path.
-
-        Returns:
-            Path:
-                The resolved absolute path.
-
-        Notes:
-
-        - This method does not check for file existence or permissions.
-        - Used internally to normalize paths in validation workflows.
-        """
-        return Path(path).resolve() if isinstance(path, str) else path.resolve()
+    # Namespace handling.
 
     @staticmethod
-    def extract_xml_namespaces(
+    def extract_namespaces(
         xml_root: etree.ElementBase,
         include_nested: bool | None = False,
         return_dict: bool | None = False
@@ -108,14 +94,15 @@ class ValidatorUtils:
           If True, also includes namespaces declared in nested elements.
           Defaults to False.
         - return_dict (bool, optional):
-          If True, returns a dict mapping namespace prefixes to URIs.
-          If False, returns a set of URIs. Defaults to False.
+          If True, returns a dict, mapping namespace prefixes to URIs.
+          If False, returns a set of URIs.
+          Defaults to False.
 
         Returns:
 
         - set[str] | dict[str | None, str]:
           A set of namespace URIs or a dict mapping prefixes to URIs.
-          The default namespace (no prefix) is represented as `None`.
+          Any default namespace (no prefix) are represented as `None`.
 
         Raises:
 
@@ -136,67 +123,14 @@ class ValidatorUtils:
         Example Usage:
 
         >>> xml_root = etree.fromstring('<root xmlns:ns1=\"http://example.com/ns1\"/>')
-
-        >>> extract_xml_namespaces(xml_root)
+        >>> extract_namespaces(xml_root)
         {'http://example.com/ns1'}
-
-        >>> extract_xml_namespaces(xml_root, return_dict=True)
+        >>> extract_namespaces(xml_root, return_dict=True)
         {'ns1': 'http://example.com/ns1'}
         """
-        def _extract_nested_namespaces(
-            element: etree.ElementBase
-        ) -> dict[str | None, str]:
-            """
-            Recursively extracts namespaces from all elements in the XML
-            tree.
-
-            Each lxml element can expose a namespace map through its
-            `nsmap` attribute. That map contains namespace prefixes as
-            keys and namespace URIs as values. For example, a prefixed
-            namespace may look like:
-
-            `{"abc": "https://example.com/abc"}`
-
-            The XML default namespace has no prefix. lxml represents
-            that case with `None` as the key, so this helper keeps that
-            convention in the returned dictionary.
-
-            The method walks over the provided element and every nested
-            child element by using `element.iter(None)`. For each
-            element, it reads the element's `nsmap`, safely treats a
-            missing map as an empty dictionary, normalizes any namespace
-            prefix text, and merges the discovered namespaces into one
-            result dictionary.
-
-            Args:
-            - element (etree.ElementBase):
-              The starting element for extraction.
-
-            Returns:
-            - dict[str | None, str]:
-              A dictionary mapping prefixes to URIs.
-            """
-            # Return container.
-            all_namespaces = {}
-            # Explicitly passing `None` to avoid warnings.
-            for el in element.iter(None):
-                # Merge any new namespaces found.
-                all_namespaces.update(
-                    {
-                        # Strip a defensive 'xmlns:' prefix if present;
-                        # use None for default namespaces.
-                        k.replace("xmlns:", "") if k else None: v
-                        # lxml provides namespaces through the nsmap attr.
-                        # Iterate over declared namespaces,
-                        # falling back to an empty mapping.
-                        for k, v in ( el.nsmap or {} ).items() # Ensure dict.
-                    }
-                )
-            return all_namespaces
-
         # Collect all namespaces, including root.
         if include_nested:
-            namespaces = _extract_nested_namespaces(xml_root)
+            namespaces = ValidatorUtils._extract_nested_namespaces(xml_root)
         # Extract namespaces explicitly from the root element.
         else:
             namespaces = {
@@ -210,73 +144,64 @@ class ValidatorUtils:
         return namespaces if return_dict else set(namespaces.values())
 
     @staticmethod
-    def get_file_paths(
-        file_path: str | Path,
-        file_extension: str
-    ) -> tuple[list[Path], bool]:
+    def _extract_nested_namespaces(
+        element: etree.ElementBase
+    ) -> dict[str | None, str]:
         """
-        Resolves files from the given path and filters them by
-        the provided extension.
+        Recursively extracts namespaces from all elements in the XML
+        tree.
 
-        If the path is a file, it returns a single-item-list and a
-        True flag. If the path is a directory, it returns all files
-        with the matching extension and a boolean indicating whether
-        exactly one file was found.
+        Each lxml element can expose a namespace map through its
+        `nsmap` attribute. That map contains namespace prefixes as
+        keys and namespace URIs as values. For example, a prefixed
+        namespace may look like:
+
+        `{"abc": "https://example.com/abc"}`
+
+        The XML default namespace has no prefix. lxml represents
+        that case with `None` as the key, so this helper keeps that
+        convention in the returned dictionary.
+
+        The method walks over the provided element and every nested
+        child element by using `element.iter(None)`. For each
+        element, it reads the element's `nsmap`, safely treats a
+        missing map as an empty dictionary, (defensively) normalizes any
+        namespace prefix text, and merges the discovered namespaces into
+        one result dictionary.
 
         Args:
-
-        - file_path (str or Path):
-            Path to a file or directory to validate and inspect.
-
-        - file_extension (str):
-            Expected file extension (e.g. "xml" or "xsd"). Used when
-            scanning a folder.
+        - element (etree.ElementBase):
+          The starting element for extraction.
 
         Returns:
-
-        - tuple[list[Path], bool]:
-            - A list of resolved `Path` objects that match the file type.
-            - A boolean indicating whether exactly one file was found.
-
-        Raises:
-
-        - ValueError:
-            - If the path is neither a file nor a folder.
-            - If no files with the expected extension are found in a folder.
-
-        Notes:
-
-        - The method uses `.glob(f"*.{file_type}")` when inspecting folders.
-        - Paths are normalized using `_resolve_path()`.
+        - dict[str | None, str]:
+          A dictionary mapping prefixes to URIs.
         """
-        # Delegate path resolution.
-        resolved_path = ValidatorUtils._resolve_path(file_path)
-        # Path is to a single file.
-        if resolved_path.is_file():
-            # Then return the file.
-            return [resolved_path], True
-        # Path is to a folder, assumed to hold one or more files.
-        if resolved_path.is_dir():
-            # Get and resolve the path(s) to the file(s).
-            resolved_paths = list(
-                resolved_path.glob(f"*.{file_extension}")
+        # Return container.
+        all_namespaces = {}
+        # Explicitly passing `None` to avoid warnings.
+        for el in element.iter(None):
+            # Merge any new namespaces found.
+            all_namespaces.update(
+                {
+                    # Strip a defensive 'xmlns:' prefix if present;
+                    # use None for default namespaces.
+                    k.replace("xmlns:", "") if k else None: v
+                    # lxml provides namespaces through the nsmap attr.
+                    # Iterate over declared namespaces,
+                    # falling back to an empty mapping.
+                    for k, v in ( el.nsmap or {} ).items() # Ensure dict.
+                }
             )
-            # Fail if there are no files in the folder.
-            if not resolved_paths:
-                raise ValueError(
-                    f"No files in folder: {resolved_paths}."
-                )
-            # There are one or more files in the folder.
-            return resolved_paths, len(resolved_paths) == 1
-        # Fail if the path is neither a file nor a folder.
-        raise ValueError(
-            f'The provided path is neither a file nor a folder: {resolved_path}.'
-        )
+        return all_namespaces
+
+    # Schema matching.
 
     @staticmethod
-    def match_namespace_to_schema(
+    def schema_matches_xml_namespaces(
         xsd_schema: "XMLSchema",
-        xml_namespaces: set[str]
+        xml_namespaces: set[str],
+        allow_declared_namespace_match: bool = False
     ) -> bool:
         """
         Matches an XSD schema to an XML document based on namespace
@@ -286,13 +211,18 @@ class ValidatorUtils:
         an XML document by checking for namespace compatibility. The
         matching logic follows these rules:
 
-        1. If the XSD schema defines a `target_namespace`, it must be
-           present in the XML document's declared namespaces.
+        1. If the XSD schema defines a `target_namespace`, that
+           namespace must be present in the XML document's declared
+           namespaces.
         2. If no match is found via `target_namespace`, the method
-           checks whether any of the schema's declared namespaces
-           (`xsd_schema.namespaces.values()`) are present in the XML.
-        3. If neither check passes, the schema is considered not to
-           match.
+           checks whether any explicitly imported schema namespace is
+           present in the XML document's declared namespaces.
+        3. If `allow_declared_namespace_match` is True, the method also
+           checks whether any non-infrastructure namespace declared by
+           the schema is present in the XML document's declared
+           namespaces.
+        4. If none of these checks pass, the schema is considered not
+           to match.
 
         Args:
 
@@ -301,6 +231,10 @@ class ValidatorUtils:
 
         - xml_namespaces (set[str]):
           A set of namespace URIs declared in the XML document.
+
+        - allow_declared_namespace_match (bool):
+          If True, permits fallback matching against non-infrastructure
+          namespaces declared by the schema. Defaults to False.
 
         Returns:
 
@@ -313,24 +247,183 @@ class ValidatorUtils:
         - Exception:
           Any unexpected error while reading schema namespace attributes
           is propagated unchanged to the caller.
+        """
+        # Collect target schema namespace.
+        target_namespace = xsd_schema.target_namespace
+        # Collect imported schema namespaces.
+        imports = (
+            getattr(
+                xsd_schema,
+                "imports",
+                None
+            ) or {}
+        )
+        imported_namespaces = set(imports.keys())
+        # Collect declared schema namespaces.
+        declared_namespaces = {
+            ns
+            for ns in getattr(xsd_schema, "namespaces", {}).values()
+            if ns
+        }
+        declared_match_namespaces = (
+            # Optionally elevate these namespaces to candidate status.
+            declared_namespaces if allow_declared_namespace_match else set()
+        )
+        # Identify infrastructure schema namespaces.
+        all_candidate_namespaces = (
+            ({target_namespace} if target_namespace else set())
+            | imported_namespaces
+            | declared_match_namespaces
+        )
+        infrastructure_namespaces = (
+            all_candidate_namespaces
+            & ValidatorUtils.INFRASTRUCTURE_SCHEMA_NAMESPACES
+        )
+        # Remove infrastructure namespaces from the matching candidates.
+        target_namespace = (
+            target_namespace
+            if target_namespace not in ValidatorUtils.INFRASTRUCTURE_SCHEMA_NAMESPACES
+            else None
+        )
+        imported_namespaces -= ValidatorUtils.INFRASTRUCTURE_SCHEMA_NAMESPACES
+        declared_match_namespaces -= ValidatorUtils.INFRASTRUCTURE_SCHEMA_NAMESPACES
+        # Register ignored namespaces for logging/reporting purposes.
+        ignored_namespaces = (
+            declared_namespaces
+            - (
+                ({target_namespace} if target_namespace else set())
+                | imported_namespaces
+                | declared_match_namespaces
+            )
+        ) | infrastructure_namespaces
+        for namespace in sorted(ignored_namespaces):
+            logger.info(
+                f"Schema namespace ignored during matching: '{namespace}'.",
+                also_console=False
+                )
+        # Primary check: if target namespace is present in XML.
+        if target_namespace and target_namespace in xml_namespaces:
+            logger.info(
+                f"Schema matched by target namespace: '{target_namespace}'.",
+                also_console=True
+            )
+            return True
+        # Secondary check: if any explicitly imported schema namespace matches.
+        matching_imported_namespaces = imported_namespaces & xml_namespaces
+        if matching_imported_namespaces:
+            namespace = next(iter(matching_imported_namespaces))
+            logger.info(
+                f"Schema matched by imported namespace: '{namespace}'.",
+                also_console=True
+                )
+            return True
+        # Optional check: if any declared schema namespace matches.
+        matching_declared_namespaces = declared_match_namespaces & xml_namespaces
+        if matching_declared_namespaces:
+            namespace = next(iter(matching_declared_namespaces))
+            logger.info(
+                f"Schema matched by declared namespace: '{namespace}'.",
+                also_console=True
+                )
+            return True
+        # No supported namespace match.
+        return False
+
+    # File path handling.
+
+    @staticmethod
+    def get_file_paths(
+        file_path: str | Path,
+        file_extension: str
+    ) -> tuple[list[Path], bool]:
+        """
+        Resolves files from the given path and filters them by
+        the provided extension.
+
+        If the path is a file, it returns a single-item-list and a
+        True flag. If the path is a directory (and it contains at least
+        one file), it returns all files with the matching extension and
+        a boolean indicating whether exactly one file was found or not.
+
+        Args:
+
+        - file_path (str or Path):
+            Path to a file or directory to validate and inspect.
+
+        - file_extension (str):
+            Expected file extension (e.g. "xml", ".xml", "xsd" or
+            ".xsd"). Used when scanning a folder.
+
+        Returns:
+
+        - tuple[list[Path], bool]:
+            - A list of resolved `Path` objects that match the file
+              type.
+            - A boolean indicating whether exactly one file was found.
+
+        Raises:
+
+        - ValueError:
+            - If the path is neither a file nor a folder.
+            - If no files with the expected extension are found in a
+              folder.
 
         Notes:
 
-        - This function does not validate the XML against the schema, as
-          it only performs a namespace-level compatibility check.
-        - Used internally to assist with schema selection during
-          multi-schema validation.
+        - Directory results are sorted to keep validation order
+          deterministic.
+        - The provided file extension is normalized, so callers may pass
+          "xml", ".xml", "XML" or ".XML".
         """
-        # Primary check: if target namespace is explicitly present in XML.
-        if (
-            xsd_schema.target_namespace is not None
-            and xsd_schema.target_namespace in xml_namespaces
-        ):
-            return True
-        # Check if any other defined namespaces match.
-        return any(
-            ns in xml_namespaces for ns in xsd_schema.namespaces.values()
+        # Normalize the extension, accepting both "xml" and ".xml".
+        file_extension = file_extension.lower().removeprefix(".")
+        # Delegate path resolution.
+        resolved_path = ValidatorUtils._resolve_path(file_path)
+        # Path is to a single file.
+        if resolved_path.is_file():
+            # Then return the file.
+            return [resolved_path], True
+        # Path is to a folder, assumed to hold one or more files.
+        if resolved_path.is_dir():
+            # Get and resolve the path(s) to the file(s).
+            resolved_paths = sorted(
+                resolved_path.glob(f"*.{file_extension}")
+            )
+            # Fail if there are no files in the folder.
+            if not resolved_paths:
+                raise ValueError(
+                    f"No .{file_extension} files found in folder: "
+                    f"{resolved_path}."
+                )
+            # There are one or more files in the folder.
+            return resolved_paths, len(resolved_paths) == 1
+        # Fail if the path is neither a file nor a folder.
+        raise ValueError(
+            f'The provided path is neither a file nor a folder: {resolved_path}.'
         )
+
+    @staticmethod
+    def _resolve_path(path: str | Path) -> Path:
+        """
+        Accepts either a string or a `Path` instance and returns a
+        resolved absolute path to a file or directory.
+
+        Args:
+            path (str or Path):
+                A relative or absolute file or folder path.
+
+        Returns:
+            Path:
+                The resolved absolute path.
+
+        Notes:
+
+        - This method does not check for file existence or permissions.
+        - Used internally to normalize paths in validation workflows.
+        """
+        return Path(path).resolve() if isinstance(path, str) else path.resolve()
+
+    # File sanity checks.
 
     @staticmethod
     def sanity_check_files( # pylint: disable=R0914:too-many-locals
@@ -393,70 +486,23 @@ class ValidatorUtils:
             etree.XMLSchemaParseError: ["msg", "position"],
             etree.XMLSyntaxError: ["msg", "position"]
             }
-
-        # Helper function to process errors into a data structure.
-        def append_error(
-            file_path: Path,
-            reason: str,
-            additional_details: dict[str, str | None] | None = None
-        ) -> None:
-            """
-            Helper function to append an error dictionary to the errors
-            list.
-            """
-            # Always add the file path and the general reason.
-            error: dict[str, str | None] = {
-                "file": str(file_path),
-                "reason": reason
-                }
-            # Optionally, add more error details (if provided).
-            if additional_details:
-                error.update(additional_details)
-            # Add the error to the container list (of errors).
-            errors.append(error)
-
         for file_path in file_paths:
             # Establish the file type/extension for the current file.
             file_type = file_path.suffix.lower()
             # General validations.
-            if file_type not in {".xml", ".xsd"}:
-                # Incorrect file exstension.
-                append_error(
-                    file_path,
-                    f"Unsupported file type: {file_type}.",
-                    {"Error type": "ValueError"}
-                )
-                continue
-            if not file_path.exists():
-                # File does not exist.
-                append_error(
-                    file_path,
-                    f"The {file_type.removeprefix('.')} file does not exist.",
-                    {"Error type": "OSError"}
-                )
-                continue
-            if file_path.stat().st_size == 0:
-                # File is empty.
-                append_error(
-                    file_path,
-                    "File is empty.",
-                    {"Error type": "ValueError"}
-                )
+            file_error = ValidatorUtils._check_file_path(file_path, file_type)
+            if file_error:
+                errors.append(file_error)
                 continue
             # XML/XSD specific validations.
             try:
-                # Read the file.
-                with file_path.open("rb") as file:
-                    # Validate well-formedness (xml or xsd).
-                    if parse_files:
-                        tree = etree.parse(
-                            file,
-                            parser=etree.XMLParser(),
-                            base_url=base_url # type:ignore
-                            )
-                        # Validate the XSD schema as such.
-                        if file_type == '.xsd':
-                            _ = etree.XMLSchema(tree)
+                # Validate XML/XSD parsing when requested.
+                ValidatorUtils._parse_file_for_sanity_check(
+                    file_path,
+                    file_type,
+                    base_url,
+                    parse_files
+                )
             # Handle validation failures.
             except (
                 OSError,
@@ -464,27 +510,199 @@ class ValidatorUtils:
                 etree.XMLSchemaParseError,
                 etree.XMLSyntaxError
                 ) as e:
-                # Determine error facets based on error type or provided facets.
-                facets_to_include = error_facets or default_facets.get(
-                    type(e), []
-                    )
-                # Initialize the error details dict.
-                error_details: dict[str, str | None] = {}
-                # Add aspects/details of the caught error.
-                for facet in facets_to_include:
-                    if hasattr(e, facet):
-                        value = getattr(e, facet, None)
-                        # Handle tuple values like (line, column).
-                        if isinstance(value, tuple):
-                            value = f"Line {value[0]}, Column {value[1]}."
-                        error_details[facet] = value
-                    # logger.warn(
-                    #     f"'{facet}' isn't an attr of error type'{type(e).__name__}'"
-                    #     )
-                # Add the error type to the error details
-                error_details['Error type'] = type(e).__name__
+                # Collect configured error details from the caught exception.
+                error_details = ValidatorUtils._extract_error_details(
+                    e,
+                    error_facets,
+                    default_facets
+                )
                 # Append the error to the return list.
-                append_error(file_path, "File parsing failed.", error_details)
+                ValidatorUtils._append_file_error(
+                    errors,
+                    file_path,
+                    "File parsing failed.",
+                    error_details
+                )
         # Determine success based on whether there are errors.
         success = len(errors) == 0
         return ValidatorResult(success=success, error=errors)
+
+    @staticmethod
+    def _check_file_path(
+        file_path: Path,
+        file_type: str
+    ) -> dict[str, str | None] | None:
+        """
+        Checks whether a file path can be processed by sanity checks.
+
+        Args:
+
+        - file_path (Path):
+          The file path to check.
+
+        - file_type (str):
+          The lowercase file extension, including the leading dot.
+
+        Returns:
+
+        - dict[str, str | None] | None:
+          A structured error dictionary if the file path fails a basic
+          check; otherwise, None.
+        """
+        # Check whether the file extension is supported.
+        if file_type not in {".xml", ".xsd"}:
+            return {
+                "file": str(file_path),
+                "reason": f"Unsupported file type: {file_type}.",
+                "Error type": "ValueError"
+            }
+        # Check whether the file exists.
+        if not file_path.exists():
+            return {
+                "file": str(file_path),
+                "reason": (
+                    f"The {file_type.removeprefix('.')} file does not exist."
+                ),
+                "Error type": "OSError"
+            }
+        # Check whether the file has content.
+        if file_path.stat().st_size == 0:
+            return {
+                "file": str(file_path),
+                "reason": "File is empty.",
+                "Error type": "ValueError"
+            }
+        # The file path passed all basic checks.
+        return None
+
+    @staticmethod
+    def _parse_file_for_sanity_check(
+        file_path: Path,
+        file_type: str,
+        base_url: str | None,
+        parse_files: bool
+    ) -> None:
+        """
+        Parses a file when sanity checks include XML/XSD parsing.
+
+        Args:
+
+        - file_path (Path):
+          The file path to parse.
+
+        - file_type (str):
+          The lowercase file extension, including the leading dot.
+
+        - base_url (str | None):
+          Optional base URL used by lxml to resolve includes or imports.
+
+        - parse_files (bool):
+          If True, parses XML/XSD files and compiles XSD schemas.
+
+        Raises:
+
+        - OSError:
+          If the file cannot be opened.
+        - etree.ParseError | etree.XMLSyntaxError:
+          If XML/XSD parsing fails.
+        - etree.XMLSchemaParseError:
+          If XSD schema compilation fails.
+        """
+        # No parsing requested.
+        if not parse_files:
+            return
+        # Read the file.
+        with file_path.open("rb") as file:
+            # Validate well-formedness (xml or xsd).
+            tree = etree.parse(
+                file,
+                parser=etree.XMLParser(),
+                base_url=base_url # type:ignore
+                )
+            # Validate the XSD schema as such.
+            if file_type == ".xsd":
+                _ = etree.XMLSchema(tree)
+
+    @staticmethod
+    def _extract_error_details(
+        error: Exception,
+        error_facets: list[str] | None,
+        default_facets: dict[type, list[str]]
+    ) -> dict[str, str | None]:
+        """
+        Extracts selected details from an exception into a dictionary.
+
+        Args:
+
+        - error (Exception):
+          The caught exception to inspect.
+
+        - error_facets (list[str] | None):
+          Optional exception attribute names to include. If not
+          provided, defaults are selected based on the exception type.
+
+        - default_facets (dict[type, list[str]]):
+          Default exception attribute names per exception type.
+
+        Returns:
+
+        - dict[str, str | None]:
+          A dictionary containing selected exception details and the
+          exception type name.
+        """
+        # Determine error facets based on provided facets or error type.
+        facets_to_include = error_facets or default_facets.get(
+            type(error),
+            []
+        )
+        # Initialize the error details dict.
+        error_details: dict[str, str | None] = {}
+        # Add aspects/details of the caught error.
+        for facet in facets_to_include:
+            if hasattr(error, facet):
+                value = getattr(error, facet, None)
+                # Handle tuple values like (line, column).
+                if isinstance(value, tuple):
+                    value = f"Line {value[0]}, Column {value[1]}."
+                error_details[facet] = value
+            # logger.warn(
+            #     f"'{facet}' isn't an attr of error type'{type(error).__name__}'"
+            #     )
+        # Add the error type to the error details.
+        error_details["Error type"] = type(error).__name__
+        return error_details
+
+    @staticmethod
+    def _append_file_error(
+        errors: list[dict[str, str | None]],
+        file_path: Path,
+        reason: str,
+        additional_details: dict[str, str | None] | None = None
+    ) -> None:
+        """
+        Appends a structured file validation error to the error list.
+
+        Args:
+
+        - errors (list[dict[str, str | None]]):
+          The mutable list that collects validation errors.
+
+        - file_path (Path):
+          The file path associated with the error.
+
+        - reason (str):
+          A short, human-readable reason for the error.
+
+        - additional_details (dict[str, str | None] | None):
+          Optional additional error details.
+        """
+        # Always add the file path and the general reason.
+        error: dict[str, str | None] = {
+            "file": str(file_path),
+            "reason": reason
+        }
+        # Optionally, add more error details (if provided).
+        if additional_details:
+            error.update(additional_details)
+        # Add the error to the container list (of errors).
+        errors.append(error)
