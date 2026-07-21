@@ -64,7 +64,14 @@ class ValidatorUtils:
         "http://www.w3.org/XML/1998/namespace",
     }
 
-    # Namespace handling.
+    DEFAULT_ERROR_FACETS: dict[type, list[str]] = {
+        OSError: ["strerror"],
+        etree.ParseError: ["msg", "position"],
+        etree.XMLSchemaParseError: ["msg", "position"],
+        etree.XMLSyntaxError: ["msg", "position"]
+    }
+
+    # Namespace handling
 
     @staticmethod
     def extract_namespaces(
@@ -195,7 +202,7 @@ class ValidatorUtils:
             )
         return all_namespaces
 
-    # Schema matching.
+    # Schema matching
 
     @staticmethod
     def schema_matches_xml_namespaces(
@@ -247,6 +254,66 @@ class ValidatorUtils:
         - Exception:
           Any unexpected error while reading schema namespace attributes
           is propagated unchanged to the caller.
+        """
+        # Collect and prepare schema namespaces for matching.
+        (
+            target_namespace,
+            imported_namespaces,
+            declared_match_namespaces
+        ) = ValidatorUtils._prepare_schema_namespace_matches(
+            xsd_schema,
+            allow_declared_namespace_match
+        )
+        # Primary check: if target namespace is present in XML.
+        if target_namespace and target_namespace in xml_namespaces:
+            logger.info(
+                f"Schema matched by target namespace: '{target_namespace}'.",
+                also_console=True
+            )
+            return True
+        # Secondary check: if any explicitly imported schema namespace matches.
+        matching_imported_namespaces = imported_namespaces & xml_namespaces
+        if matching_imported_namespaces:
+            namespace = next(iter(matching_imported_namespaces))
+            logger.info(
+                f"Schema matched by imported namespace: '{namespace}'.",
+                also_console=True
+                )
+            return True
+        # Optional check: if any declared schema namespace matches.
+        matching_declared_namespaces = declared_match_namespaces & xml_namespaces
+        if matching_declared_namespaces:
+            namespace = next(iter(matching_declared_namespaces))
+            logger.info(
+                f"Schema matched by declared namespace: '{namespace}'.",
+                also_console=True
+                )
+            return True
+        # No supported namespace match.
+        return False
+
+    @staticmethod
+    def _prepare_schema_namespace_matches(
+        xsd_schema: "XMLSchema",
+        allow_declared_namespace_match: bool
+    ) -> tuple[str | None, set[str], set[str]]:
+        """
+        Collects and filters schema namespaces used for XML matching.
+
+        Args:
+
+        - xsd_schema (XMLSchema):
+          The compiled XSD schema object to inspect.
+
+        - allow_declared_namespace_match (bool):
+          If True, includes non-infrastructure declared schema
+          namespaces as fallback matching candidates.
+
+        Returns:
+
+        - tuple[str | None, set[str], set[str]]:
+          The target namespace, imported namespaces and optionally
+          declared namespaces that may participate in XML/XSD matching.
         """
         # Collect target schema namespace.
         target_namespace = xsd_schema.target_namespace
@@ -301,35 +368,9 @@ class ValidatorUtils:
                 f"Schema namespace ignored during matching: '{namespace}'.",
                 also_console=False
                 )
-        # Primary check: if target namespace is present in XML.
-        if target_namespace and target_namespace in xml_namespaces:
-            logger.info(
-                f"Schema matched by target namespace: '{target_namespace}'.",
-                also_console=True
-            )
-            return True
-        # Secondary check: if any explicitly imported schema namespace matches.
-        matching_imported_namespaces = imported_namespaces & xml_namespaces
-        if matching_imported_namespaces:
-            namespace = next(iter(matching_imported_namespaces))
-            logger.info(
-                f"Schema matched by imported namespace: '{namespace}'.",
-                also_console=True
-                )
-            return True
-        # Optional check: if any declared schema namespace matches.
-        matching_declared_namespaces = declared_match_namespaces & xml_namespaces
-        if matching_declared_namespaces:
-            namespace = next(iter(matching_declared_namespaces))
-            logger.info(
-                f"Schema matched by declared namespace: '{namespace}'.",
-                also_console=True
-                )
-            return True
-        # No supported namespace match.
-        return False
+        return target_namespace, imported_namespaces, declared_match_namespaces
 
-    # File path handling.
+    # File path handling
 
     @staticmethod
     def get_file_paths(
@@ -423,14 +464,15 @@ class ValidatorUtils:
         """
         return Path(path).resolve() if isinstance(path, str) else path.resolve()
 
-    # File sanity checks.
+    # File sanity checks
 
     @staticmethod
     def sanity_check_files( # pylint: disable=R0914:too-many-locals
         file_paths: list[Path],
         base_url: str | None = None,
         error_facets: list[str] | None = None,
-        parse_files: bool = False
+        parse_files: bool = False,
+        skip_none_error_facets: bool = True
     ) -> ValidatorResult:
         """
         Performs sanity checks on XML or XSD files and returns a
@@ -464,6 +506,10 @@ class ValidatorUtils:
           If True, performs well-formedness checks and XSD schema
           validation. Defaults to False.
 
+        - skip_none_error_facets (bool, optional):
+          If True, omits requested error facets whose value is None.
+          Defaults to True.
+
         Returns:
 
         - ValidatorResult:
@@ -474,18 +520,12 @@ class ValidatorUtils:
         - This method catches `OSError`, `etree.XMLSyntaxError`,
           `etree.ParseError`, and related schema exceptions.
         - If no errors are found, `ValidatorResult.success` is True and
-          `error` is None.
+          the returned error collection is empty.
         - Used during initial file intake to catch structural issues before
           full validation begins.
         """
-        # Explicitly type errors and default_facets for clarity.
+        # Explicitly type errors for clarity.
         errors: list[dict[str, str | None]] = []
-        default_facets: dict[type, list[str]] = {
-            OSError: ["strerror"],
-            etree.ParseError: ["msg", "position"],
-            etree.XMLSchemaParseError: ["msg", "position"],
-            etree.XMLSyntaxError: ["msg", "position"]
-            }
         for file_path in file_paths:
             # Establish the file type/extension for the current file.
             file_type = file_path.suffix.lower()
@@ -514,7 +554,8 @@ class ValidatorUtils:
                 error_details = ValidatorUtils._extract_error_details(
                     e,
                     error_facets,
-                    default_facets
+                    ValidatorUtils.DEFAULT_ERROR_FACETS,
+                    skip_none_error_facets
                 )
                 # Append the error to the return list.
                 ValidatorUtils._append_file_error(
@@ -627,7 +668,8 @@ class ValidatorUtils:
     def _extract_error_details(
         error: Exception,
         error_facets: list[str] | None,
-        default_facets: dict[type, list[str]]
+        default_facets: dict[type, list[str]],
+        skip_none_error_facets: bool = True
     ) -> dict[str, str | None]:
         """
         Extracts selected details from an exception into a dictionary.
@@ -643,6 +685,10 @@ class ValidatorUtils:
 
         - default_facets (dict[type, list[str]]):
           Default exception attribute names per exception type.
+
+        - skip_none_error_facets (bool, optional):
+          If True, omits requested error facets whose value is None.
+          Defaults to True.
 
         Returns:
 
@@ -661,6 +707,9 @@ class ValidatorUtils:
         for facet in facets_to_include:
             if hasattr(error, facet):
                 value = getattr(error, facet, None)
+                # Optionally skip empty exception details.
+                if value is None and skip_none_error_facets:
+                    continue
                 # Handle tuple values like (line, column).
                 if isinstance(value, tuple):
                     value = f"Line {value[0]}, Column {value[1]}."

@@ -279,7 +279,39 @@ Variables    teardown_vars.py
     ${xml_validator} =    Get Library Instance    xmlvalidator
     [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    xmlvalidator    reset_schema=${RESET_SCHEMA}
 
-31_Validation_Passing_XSD_Path_With_Include
+31_Skip_None_Error_Facets
+    [Documentation]    Validates that the public
+    ...                ``skip_none_error_facets`` keyword argument controls
+    ...                whether requested error facets whose value is None
+    ...                are omitted or preserved.
+    # Set up test variables.
+    ${xml_file} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_31/xml/invalid_by_main.xml
+    ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_31/main_schema.xsd
+    ${base_url} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_31
+    @{error_facets}=    Create List    path    reason    non_existing_facet
+    # Validate default behavior: None-valued facets are omitted.
+    ${errors}    ${csv_path} =    Validate Xml Files
+    ...                           ${xml_file}
+    ...                           xsd_path=${xsd_path}
+    ...                           base_url=${base_url}
+    ...                           error_facets=${error_facets}
+    ...                           write_to_csv=${False}
+    Dictionary Should Not Contain Key    ${errors}[0]    non_existing_facet
+    # Validate opt-in behavior: None-valued facets are preserved.
+    ${errors}    ${csv_path} =    Validate Xml Files
+    ...                           ${xml_file}
+    ...                           xsd_path=${xsd_path}
+    ...                           base_url=${base_url}
+    ...                           error_facets=${error_facets}
+    ...                           skip_none_error_facets=${False}
+    ...                           write_to_csv=${False}
+    Dictionary Should Contain Key    ${errors}[0]    non_existing_facet
+    Should Be Equal    ${errors}[0][non_existing_facet]    ${None}
+    # Teardown.
+    ${xml_validator} =    Get Library Instance    xmlvalidator
+    [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    xmlvalidator    reset_schema=${RESET_SCHEMA}
+
+32_Validation_Passing_XSD_Path_With_Include
     [Documentation]    Validate multiple XML files against an XSD with 
     ...                an included XSD.
     ...    

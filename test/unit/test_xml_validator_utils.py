@@ -862,6 +862,126 @@ def test_schema_matches_xml_namespaces_handles_missing_or_none_imports():
     assert result_with_none_imports is False
     assert result_with_missing_imports is False
 
+
+# _prepare_schema_namespace_matches()
+
+def test_prepare_schema_namespace_matches_excludes_declared_by_default():
+    """
+    Test that _prepare_schema_namespace_matches() does not include
+    declared namespaces as matching candidates by default.
+
+    Priority: H
+    """
+    # Define a schema-like object with target, imported and declared namespaces.
+    xsd_schema = SchemaNamespaceStub(
+        target_namespace="http://example.com/target",
+        imports={"http://example.com/imported": None},
+        namespaces={"declared": "http://example.com/declared"}
+        )
+    # Call the helper with declared fallback disabled.
+    target_namespace, imported_namespaces, declared_match_namespaces = (
+        ValidatorUtils._prepare_schema_namespace_matches(
+            xsd_schema, # type: ignore
+            allow_declared_namespace_match=False
+        )
+    )
+    # Expected outcome: target/imported namespaces are candidates.
+    assert target_namespace == "http://example.com/target"
+    assert imported_namespaces == {"http://example.com/imported"}
+    # Expected outcome: declared namespaces are not candidates by default.
+    assert declared_match_namespaces == set()
+
+
+def test_prepare_schema_namespace_matches_includes_declared_when_enabled():
+    """
+    Test that _prepare_schema_namespace_matches() includes declared
+    namespaces when declared namespace matching is enabled.
+
+    Priority: H
+    """
+    # Define a schema-like object with a declared namespace.
+    xsd_schema = SchemaNamespaceStub(
+        namespaces={"declared": "http://example.com/declared"}
+        )
+    # Call the helper with declared fallback enabled.
+    target_namespace, imported_namespaces, declared_match_namespaces = (
+        ValidatorUtils._prepare_schema_namespace_matches(
+            xsd_schema, # type: ignore
+            allow_declared_namespace_match=True
+        )
+    )
+    # Expected outcome: there is no target or imported namespace.
+    assert target_namespace is None
+    assert imported_namespaces == set()
+    # Expected outcome: declared namespace is elevated to candidate status.
+    assert declared_match_namespaces == {"http://example.com/declared"}
+
+
+def test_prepare_schema_namespace_matches_filters_infrastructure_namespaces():
+    """
+    Test that _prepare_schema_namespace_matches() removes
+    infrastructure namespaces from all matching candidate groups.
+
+    Priority: H
+    """
+    # Define a schema-like object with infrastructure namespaces in all groups.
+    xsd_schema = SchemaNamespaceStub(
+        target_namespace="http://www.w3.org/2001/XMLSchema",
+        imports={"http://www.w3.org/XML/1998/namespace": None},
+        namespaces={"xs": "http://www.w3.org/2001/XMLSchema"}
+        )
+    # Call the helper with declared fallback enabled.
+    target_namespace, imported_namespaces, declared_match_namespaces = (
+        ValidatorUtils._prepare_schema_namespace_matches(
+            xsd_schema, # type: ignore
+            allow_declared_namespace_match=True
+        )
+    )
+    # Expected outcome: infrastructure namespaces are not match candidates.
+    assert target_namespace is None
+    assert imported_namespaces == set()
+    assert declared_match_namespaces == set()
+
+
+def test_prepare_schema_namespace_matches_handles_missing_or_none_imports():
+    """
+    Test that _prepare_schema_namespace_matches() handles missing or
+    None imports defensively.
+
+    Priority: H
+    """
+    # Define a schema-like object where `imports` exists but is None.
+    schema_with_none_imports = SchemaNamespaceStub(
+        target_namespace="http://example.com/target"
+        )
+    schema_with_none_imports.imports = None # type: ignore
+    # Define a schema-like object where `imports` is missing entirely.
+    schema_with_missing_imports = SchemaNamespaceStub(
+        target_namespace="http://example.com/target"
+        )
+    del schema_with_missing_imports.imports
+    # Call the helper for both edge cases.
+    none_result = ValidatorUtils._prepare_schema_namespace_matches(
+        schema_with_none_imports, # type: ignore
+        allow_declared_namespace_match=False
+    )
+    missing_result = ValidatorUtils._prepare_schema_namespace_matches(
+        schema_with_missing_imports, # type: ignore
+        allow_declared_namespace_match=False
+    )
+    # Expected outcome: missing/None imports behave as an empty import mapping.
+    assert none_result == (
+        "http://example.com/target",
+        set(),
+        set()
+    )
+    assert missing_result == (
+        "http://example.com/target",
+        set(),
+        set()
+    )
+
+
 def test_schema_matches_xml_namespaces_no_target_namespace_but_imported_matches(
         setup_test_files
         ):
@@ -1827,6 +1947,66 @@ def test_extract_error_details_formats_tuple_values():
         f"Unexpected position: {error_details['position']}."
     )
     # Ensure the error type is always included.
+    assert error_details["Error type"] == "Exception", (
+        f"Expected 'Exception'; got '{error_details['Error type']}'."
+    )
+
+
+def test_extract_error_details_skips_none_values_by_default():
+    """
+    Test that _extract_error_details() omits facets whose value is None
+    by default.
+    """
+    # Create an exception with a None-valued custom attribute.
+    error = Exception("Parsing failed.")
+    error.filename = None # type: ignore
+    # Define the default facets for the error type.
+    default_facets = {
+        Exception: ["filename"]
+    }
+    # Call the helper without overriding the default skip behavior.
+    error_details = ValidatorUtils._extract_error_details(
+        error,
+        None,
+        default_facets
+    )
+    # Ensure the None-valued facet was omitted.
+    assert "filename" not in error_details, (
+        f"Unexpected None-valued facet in error details: {error_details}."
+    )
+    # Ensure the error type is still included.
+    assert error_details["Error type"] == "Exception", (
+        f"Expected 'Exception'; got '{error_details['Error type']}'."
+    )
+
+
+def test_extract_error_details_can_keep_none_values():
+    """
+    Test that _extract_error_details() can preserve facets whose value
+    is None when explicitly requested.
+    """
+    # Create an exception with a None-valued custom attribute.
+    error = Exception("Parsing failed.")
+    error.filename = None # type: ignore
+    # Define the default facets for the error type.
+    default_facets = {
+        Exception: ["filename"]
+    }
+    # Call the helper and explicitly preserve None-valued facets.
+    error_details = ValidatorUtils._extract_error_details(
+        error,
+        None,
+        default_facets,
+        skip_none_error_facets=False
+    )
+    # Ensure the None-valued facet was preserved.
+    assert "filename" in error_details, (
+        f"Expected filename facet in error details: {error_details}."
+    )
+    assert error_details["filename"] is None, (
+        f"Expected filename to be None; got {error_details['filename']}."
+    )
+    # Ensure the error type is still included.
     assert error_details["Error type"] == "Exception", (
         f"Expected 'Exception'; got '{error_details['Error type']}'."
     )

@@ -99,7 +99,8 @@ class XmlValidator:
     Errors that result from malformed XML files or from XSD violations 
     support detailed error reporting. Using the ``error_facets`` 
     argument you may specify the details the keyword should collect and 
-    report about captured errors.
+    report about captured errors. By default, requested error facets
+    whose value is ``None`` are omitted from the reported error details.
 
     When operating in batch mode, the ``Validate Xml Files`` keyword 
     always validates the entire set of passed XML files. That is, when 
@@ -218,6 +219,12 @@ class XmlValidator:
 
     For each error that is encountered, the selected error facet(s) will 
     be collected and reported.
+
+    By default, facets whose value is ``None`` are omitted from the
+    collected error dictionaries. This keeps logs, tables and CSV output
+    focused on details that actually have a value. If you prefer every
+    requested facet to be present in each error dictionary, pass
+    ``skip_none_error_facets=False`` to ``Validate Xml Files``.
 
     Error facets passed during library initialization will be overruled 
     by error facets that are passed at the test case level, when calling 
@@ -1126,7 +1133,8 @@ class XmlValidator:
         xsd_file_path: Path | None = None,
         base_url: str | None = None,
         error_facets: list[str] | None = None,
-        pre_parse: bool = True
+        pre_parse: bool = True,
+        skip_none_error_facets: bool = True
         ) -> tuple[
             bool,
             list[dict[str, Any]] | None
@@ -1136,7 +1144,7 @@ class XmlValidator:
         XSD schema.
 
         This method performs the core XML validation logic and is 
-        invoked by the public `validate_xml_file` method. It checks an 
+        invoked by the public `validate_xml_files` method. It checks an 
         XML file for conformance with the structural and datatype rules 
         defined in the XSD schema.
 
@@ -1214,19 +1222,19 @@ class XmlValidator:
           XML file (e.g. during dynamic schema matching) resulted in an 
           error. For instance a FileNotFound error or a ParseError.
           
-          The method does this by checking whether the coresponding 
+          The method does this by checking whether the corresponding 
           xsd_file_path is an instance of BaseException. In that case, 
           the method returns early, propagating the error to the 
           downstream error collection & reporting.
 
-          The method tself performs a additonal sanity check on the 
+          The method itself performs an additional sanity check on the 
           involved XML/XSD files, calling the sanity_check_files() 
           utility method on both. The latter checks each file whether:
 
           - it exists
           - is not empty
           - is of the correct file type
-          - is well-formed (syntactycally correct)
+          - is well-formed (syntactically correct)
           
           In case of a failing check, the method returns early, 
           propagating the involved error to downstream error collection 
@@ -1264,6 +1272,10 @@ class XmlValidator:
 
           Defaults to ['path', 'reason'].
 
+        - skip_none_error_facets (bool, optional):
+          If True, omits requested error facets whose value is None.
+          Defaults to True.
+
         Returns:
 
         - tuple (is_valid, errors):
@@ -1291,7 +1303,8 @@ class XmlValidator:
                 xml_file_path, xsd_file_path
                 ] if isinstance(file_path, Path) and file_path],
             base_url=base_url,
-            parse_files=pre_parse
+            parse_files=pre_parse,
+            skip_none_error_facets=skip_none_error_facets
             )
         if not sanity_check_result.success:
             # Abort validation if one or more sanity checks failed.
@@ -1312,6 +1325,10 @@ class XmlValidator:
                 facet: getattr(err, facet, None)
                 # Error facets to collect determined by arg or instance.
                 for facet in (error_facets or self.error_facets)
+                if (
+                    not skip_none_error_facets
+                    or getattr(err, facet, None) is not None
+                )
             }
             # Generate an err obj (with err details) per encountered violation.
             for err in loading_result.value.iter_errors(xml_file_path) # pyright: ignore
@@ -1471,7 +1488,8 @@ class XmlValidator:
         reset_errors: bool = True,
         fail_on_errors: bool | None = None,
         error_table: bool | None = True,
-        allow_declared_namespace_match: bool = False
+        allow_declared_namespace_match: bool = False,
+        skip_none_error_facets: bool = True
         ) -> tuple[
             list[dict[str, Any]],
             str | None
@@ -1534,7 +1552,7 @@ class XmlValidator:
 
         - File-level issues:        
          
-         - Detects empty, non-existent, or .
+         - Detects empty, non-existent or unsupported files.
          - Uses sanity checks to validate syntax and type before XSD validation.
         
         - Schema issues:
@@ -1575,6 +1593,13 @@ class XmlValidator:
         and reporting of errors.
 
         Defaults to ['path', 'reason'].
+
+        ``skip_none_error_facets``
+
+        If True, omits requested error details whose value is None.
+        Defaults to True. Set to False if you want every requested facet
+        to appear in the collected error dictionaries, even when a facet
+        has no value for a specific error.
 
         ``pre_parse``
         
@@ -1674,7 +1699,8 @@ class XmlValidator:
                 xsd_file_path=xsd_file_path,
                 base_url=base_url,
                 error_facets=error_facets,
-                pre_parse=pre_parse
+                pre_parse=pre_parse,
+                skip_none_error_facets=skip_none_error_facets
                 )
             # Process the validation results.
             if is_valid:

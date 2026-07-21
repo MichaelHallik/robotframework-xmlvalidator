@@ -819,6 +819,71 @@ def test_validate_xml_invalid_file(setup_test_files):
         errors_str = " ".join(str(e) for e in errors)
         assert "message" in errors_str
 
+
+def test_validate_xml_skips_none_error_facets_by_default(setup_test_files):
+    """
+    Test that _validate_xml() omits requested error facets whose value
+    is None by default.
+    """
+    xsd_content = """<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="note">
+            <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="message" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:element>
+    </xs:schema>"""
+    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
+    <note></note>"""
+    xml_file, xsd_file = next(setup_test_files(xml_content, xsd_content))
+    with patch.object(xml_validator_module.logger, "warn"), \
+         patch.object(xml_validator_module.logger, "info"):
+        validator = XmlValidator()
+        is_valid, errors = validator._validate_xml(
+            xml_file,
+            xsd_file,
+            error_facets=["path", "reason", "non_existing_facet"]
+        )
+        assert is_valid is False
+        assert errors is not None and len(errors) > 0
+        assert "non_existing_facet" not in errors[0]
+
+
+def test_validate_xml_can_keep_none_error_facets(setup_test_files):
+    """
+    Test that _validate_xml() can preserve requested error facets whose
+    value is None.
+    """
+    xsd_content = """<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="note">
+            <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="message" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:element>
+    </xs:schema>"""
+    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
+    <note></note>"""
+    xml_file, xsd_file = next(setup_test_files(xml_content, xsd_content))
+    with patch.object(xml_validator_module.logger, "warn"), \
+         patch.object(xml_validator_module.logger, "info"):
+        validator = XmlValidator()
+        is_valid, errors = validator._validate_xml(
+            xml_file,
+            xsd_file,
+            error_facets=["path", "reason", "non_existing_facet"],
+            skip_none_error_facets=False
+        )
+        assert is_valid is False
+        assert errors is not None and len(errors) > 0
+        assert "non_existing_facet" in errors[0]
+        assert errors[0]["non_existing_facet"] is None
+
+
 def test_validate_xml_no_schema_provided(setup_test_files):
     """
     Test that _validate_xml() raises an error when no XSD file is 

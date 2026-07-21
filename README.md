@@ -12,7 +12,6 @@
     - [Why XSD validation matters in testing](#why-xsd-validation-matters-in-testing)
     - [Why automating XSD validation matters in testing](#why-automating-xsd-validation-matters-in-testing)
     - [When it may not be useful](#when-it-may-not-be-useful)
-    - [Summary](#summary)
   - [Installing](#installing)
     - [Install from PyPI](#install-from-pypi)
     - [Install from GitHub](#install-from-github)
@@ -100,11 +99,11 @@ Rather than reimplementing XML parsing or schema validation logic, the library a
 
 ## When this library is useful
 
-This library is useful when a system under test relies heavily on XML for data exchange.
+Automated schema validation can provide fast and reliable feedback, whenever XML is a crucial part of the integration landscape
 
-In such a context, an XML Schema Definition (XSD) often acts as a formal contract: it defines which elements are allowed, how they are nested, which data types are expected and which fields are mandatory.
+When a system under test relies heavily on XML for formal data exchange, an XML Schema Definition (XSD) often acts as a formal contract: it defines which elements are allowed, how they are nested, which data types are expected and which fields are mandatory.
 
-Therefore, when XML is part of the integration landscape, automated schema validation can provide fast and reliable feedback.
+This library can turn complex, repetitive, structural XSD checks into a single, efficient automated step.
 
 ### Why XSD validation matters in testing
 
@@ -151,10 +150,6 @@ Therefore, when XML is part of the integration landscape, automated schema valid
 - XML manipulation or XPath-focused testing.
   
   This library focuses on XSD validation. If you need to edit XML, inspect arbitrary XPath values or build XML payloads dynamically, pair it with Robot Framework's built-in XML library or another XML-processing tool.
-
-### Summary
-
-This library is not necessary for every test project. However, where XML is used as a formal data exchange format, it can turn complex and repetitive structural checks into a single, efficient automated step.
 
 ---
 
@@ -736,19 +731,19 @@ In [.github/](.github/) you’ll also find the various contribution templates:
 ```mermaid
 classDiagram
     class XmlValidator {
-        +__init__(xsd_path: Optional[str|Path]=None, base_url: Optional[str]=None, error_facets: Optional[List[str]]=None)
+        +__init__(xsd_path: str | Path | None=None, base_url: str | None=None, error_facets: list[str] | None=None, fail_on_errors: bool=True)
         +get_error_facets() List[str]
         +get_schema(return_name: bool=True) Optional[str|XMLSchema]
         +log_schema(log_name: bool=True)
         +reset_error_facets()
         +reset_errors()
         +reset_schema()
-        +validate_xml_files(xml_path: str|Path, xsd_path: Optional[str|Path]=None, xsd_search_strategy: Optional[Literal['by_namespace', 'by_file_name']]=None, base_url: Optional[str]=None, error_facets: Optional[List[str]]=None, pre_parse: Optional[bool]=True, write_to_csv: Optional[bool]=True, timestamped: Optional[bool]=True, reset_errors: bool=True) Tuple[List[Dict[str, Any]], str | None]
-        -_determine_validations(xml_paths: List[Path], xsd_path: Optional[str | Path]=None, xsd_search_strategy: Optional[Literal['by_namespace', 'by_file_name']]=None, base_url: Optional[str]=None) Dict[Path, Path | None]
-        -_ensure_schema(xsd_path: Optional[Path]=None, base_url: Optional[str]=None) ValidatorResult
-        -_find_schemas(xml_file_paths: List[Path], xsd_file_paths: List[Path], search_by: Literal['by_namespace', 'by_file_name']='by_namespace', base_url: Optional[str]=None) Dict[Path, Path | None]
+        +validate_xml_files(xml_path: str | Path, xsd_path: str | Path | None=None, xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None=None, base_url: str | None=None, error_facets: list[str] | None=None, pre_parse: bool=True, write_to_csv: bool | None=True, timestamped: bool | None=True, reset_errors: bool=True, fail_on_errors: bool | None=None, error_table: bool | None=True, allow_declared_namespace_match: bool=False, skip_none_error_facets: bool=True) tuple[list[dict[str, Any]], str | None]
+        -_determine_validations(xml_paths: list[Path], xsd_path: str | Path | None=None, xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None=None, base_url: str | None=None, allow_declared_namespace_match: bool=False) dict[Path, Path | None]
+        -_ensure_schema(xsd_path: Path | None=None, base_url: str | None=None) ValidatorResult
+        -_find_schemas(xml_file_paths: list[Path], xsd_file_paths: list[Path], search_by: Literal['by_namespace', 'by_file_name']='by_namespace', base_url: str | None=None, allow_declared_namespace_match: bool=False) dict[Path, Path | None]
         -_load_schema(xsd_path: Path, base_url: Optional[str]=None) ValidatorResult
-        -_validate_xml(xml_file_path: Path, xsd_file_path: Optional[Path]=None, base_url: Optional[str]=None, error_facets: Optional[List[str]]=None, pre_parse: Optional[bool]=True) Tuple[bool, Optional[List[Dict[str, Any]]]]
+        -_validate_xml(xml_file_path: Path, xsd_file_path: Path | None=None, base_url: str | None=None, error_facets: list[str] | None=None, pre_parse: bool=True, skip_none_error_facets: bool=True) tuple[bool, list[dict[str, Any]] | None]
     }
 
     class ValidatorResultRecorder {
@@ -768,10 +763,10 @@ classDiagram
     }
 
     class ValidatorUtils {
-        +extract_xml_namespaces(xml_root: etree.ElementBase, return_dict: Optional[bool]=False, include_nested: Optional[bool]=False) Union[set[str], dict[str | None, str]]
-        +get_file_paths(file_path: str | Path, file_type: str) Tuple[List[Path], bool]
-        +match_namespace_to_schema(xsd_schema: XMLSchema, xml_namespaces: set[str]) bool
-        +sanity_check_files(file_paths: List[Path], base_url: Optional[str]=None, error_facets: Optional[List[str]]=None, parse_files: Optional[bool]=False) ValidatorResult
+        +extract_namespaces(xml_root: etree.ElementBase, include_nested: bool=False, return_dict: bool=False) set[str] | dict[str | None, str]
+        +get_file_paths(file_path: str | Path, file_extension: str) tuple[list[Path], bool]
+        +schema_matches_xml_namespaces(xsd_schema: XMLSchema, xml_namespaces: set[str], allow_declared_namespace_match: bool=False) bool
+        +sanity_check_files(file_paths: list[Path], base_url: str | None=None, error_facets: list[str] | None=None, parse_files: bool=False, skip_none_error_facets: bool=True) ValidatorResult
     }
 
     XmlValidator --> ValidatorResult
