@@ -418,7 +418,10 @@ def test_extract_namespaces_redundant_declarations(setup_test_files):
 
 # schema_matches_xml_namespaces()
 
-def test_schema_matches_xml_namespaces_valid_target_namespace(setup_test_files):
+def test_schema_matches_xml_namespaces_valid_target_namespace(
+        setup_test_files,
+        monkeypatch
+        ):
     """
     Test that schema_matches_xml_namespaces() correctly identifies a valid
     namespace match between an XML file and an XSD schema.
@@ -447,6 +450,8 @@ def test_schema_matches_xml_namespaces_valid_target_namespace(setup_test_files):
     xml_file, xsd_file = next(setup_test_files(xml_content, xsd_content))
     # Load the schema using XMLSchema.
     xsd_schema = XMLSchema(str(xsd_file))
+    # Suppress Robot's console logger during direct unit testing.
+    monkeypatch.setattr(validator_utils_module.logger, "info", lambda *_, **__: None)
     # Extract namespaces from XML.
     parsed_tree = etree.parse(str(xml_file), parser=etree.XMLParser())
     xml_root = parsed_tree.getroot()
@@ -510,7 +515,8 @@ def test_schema_matches_xml_namespaces_invalid_target_namespace(setup_test_files
     assert result is False, (f"Expected False, but got {result}.")
 
 def test_schema_matches_xml_namespaces_match_with_imported_namespace(
-        setup_test_files
+        setup_test_files,
+        monkeypatch
         ):
     """
     Test that schema_matches_xml_namespaces() correctly identifies a match
@@ -539,6 +545,8 @@ def test_schema_matches_xml_namespaces_match_with_imported_namespace(
     xml_root = parsed_tree.getroot()
     schema_tree = etree.parse(str(xsd_file), parser=etree.XMLParser())
     xsd_schema = XMLSchema(schema_tree)  # Load schema object
+    # Suppress Robot's console logger during direct unit testing.
+    monkeypatch.setattr(validator_utils_module.logger, "info", lambda *_, **__: None)
     # Extract namespaces from XML.
     extracted_namespaces = ValidatorUtils.extract_namespaces(xml_root)
     # Call the method under test.
@@ -646,7 +654,8 @@ def test_schema_matches_xml_namespaces_ignores_declared_only_namespace(
         )
 
 def test_schema_matches_xml_namespaces_allows_declared_namespace_match(
-        setup_test_files
+        setup_test_files,
+        monkeypatch
         ):
     """
     Test that schema_matches_xml_namespaces() can optionally match against
@@ -680,6 +689,8 @@ def test_schema_matches_xml_namespaces_allows_declared_namespace_match(
     schema_tree = etree.parse(str(xsd_file), parser=etree.XMLParser())
     # Load XSD schema.
     xsd_schema = XMLSchema(schema_tree)
+    # Suppress Robot's console logger during direct unit testing.
+    monkeypatch.setattr(validator_utils_module.logger, "info", lambda *_, **__: None)
     # Extract namespaces from the XML.
     extracted_namespaces = ValidatorUtils.extract_namespaces(xml_root)
     # Call the method under test with declared namespace fallback enabled.
@@ -983,7 +994,8 @@ def test_prepare_schema_namespace_matches_handles_missing_or_none_imports():
 
 
 def test_schema_matches_xml_namespaces_no_target_namespace_but_imported_matches(
-        setup_test_files
+        setup_test_files,
+        monkeypatch
         ):
     """
     Test that schema_matches_xml_namespaces() correctly returns True when
@@ -1026,6 +1038,8 @@ def test_schema_matches_xml_namespaces_no_target_namespace_but_imported_matches(
     xml_root = parsed_tree.getroot()
     # Load XSD schema (now with a real import)
     xsd_schema = XMLSchema(str(xsd_main_file))
+    # Suppress Robot's console logger during direct unit testing.
+    monkeypatch.setattr(validator_utils_module.logger, "info", lambda *_, **__: None)
     # Extract namespaces from the XML.
     extracted_namespaces = ValidatorUtils.extract_namespaces(xml_root)
     # Call the method under test.
