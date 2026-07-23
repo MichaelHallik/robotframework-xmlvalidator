@@ -733,25 +733,26 @@ In [.github/](.github/) you’ll also find the various contribution templates:
 ```mermaid
 classDiagram
     class XmlValidator {
-        +__init__(xsd_path: str | Path | None=None, base_url: str | None=None, error_facets: list[str] | None=None, fail_on_errors: bool=True)
+        +__init__(...)
         +get_error_facets() list[str]
-        +get_schema(return_name: bool=True) str | XMLSchema | None
+        +get_schema(return_schema_name: bool=True) str | XMLSchema | None
         +log_schema(log_name: bool=True)
         +reset_error_facets()
         +reset_errors()
         +reset_schema()
-        +validate_xml_files(xml_path: str | Path, xsd_path: str | Path | None=None, xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None=None, base_url: str | None=None, error_facets: list[str] | None=None, pre_parse: bool=True, write_to_csv: bool | None=True, timestamped: bool | None=True, reset_errors: bool=True, fail_on_errors: bool | None=None, error_table: bool | None=True, allow_declared_namespace_match: bool=False, skip_none_error_facets: bool=False) tuple[list[dict[str, Any]], str | None]
+        +validate_xml_files(...) tuple[list[dict], str | None]
     }
 
     class ValidatorResultRecorder {
         +__init__()
-        +add_file_errors(file_path: Path, error_details: list[dict[str, Any]] | dict[str, Any] | None)
-        +add_invalid_file(file_path: Path)
         +add_valid_file(file_path: Path)
+        +add_invalid_file(file_path: Path)
+        +add_file_errors(file_path: Path, error_details: ...)
         +log_file_errors(errors: list[dict[str, Any]])
         +log_summary()
+        +write_error_table_to_log(errors: list[dict[str, Any]])
+        +write_errors_to_csv(...) str
         +reset()
-        +write_errors_to_csv(errors: list[dict[str, Any]], output_path: Path, include_timestamp: bool=False, file_name_column: str | None=None) str
     }
 
     class ValidatorResult {
@@ -766,12 +767,12 @@ classDiagram
     }
 
     class ValidatorSchemaResolver {
-        +build_validation_plan(xml_paths: list[Path], xsd_path: str | Path | None=None, xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None=None, base_url: str | None=None, allow_declared_namespace_match: bool=False) dict[Path, Path | BaseException | None]
-        +match_xml_files_to_schemas(xml_file_paths: list[Path], xsd_file_paths: list[Path], search_by: Literal['by_namespace', 'by_file_name']='by_namespace', base_url: str | None=None, allow_declared_namespace_match: bool=False) dict[Path, Path | BaseException | None]
+        +build_validation_plan(...) dict[Path, Path | BaseException | None]
+        +match_xml_files_to_schemas(...) dict[Path, Path | BaseException | None]
     }
 
     class XmlValidationRunner {
-        +validate_xml(xml_file_path: Path, xsd_file_path: Path | BaseException | None=None, base_url: str | None=None, error_facets: list[str] | None=None, default_error_facets: list[str] | None=None, pre_parse: bool=True, skip_none_error_facets: bool=False) tuple[bool, list[dict[str, Any]] | None]
+        +validate_xml(...) tuple[bool, list[dict[str, Any]] | None]
     }
 
     class paths {
@@ -781,24 +782,32 @@ classDiagram
 
     class files {
         <<module>>
-        +sanity_check_files(file_paths: list[Path], base_url: str | None=None, error_facets: list[str] | None=None, parse_files: bool=False, skip_none_error_facets: bool=False) ValidatorResult
+        +sanity_check_files(...) ValidatorResult
     }
 
     class namespaces {
         <<module>>
-        +extract_namespaces(xml_root: etree.ElementBase, include_nested: bool=False, return_dict: bool=False) set[str] | dict[str | None, str]
-        +schema_matches_xml_namespaces(xsd_schema: XMLSchema, xml_namespaces: set[str], allow_declared_namespace_match: bool=False) bool
+        +extract_namespaces(...) set[str] | dict[str | None, str]
+        +schema_matches_xml_namespaces(...) bool
     }
 
-    XmlValidator --> ValidatorResult
     XmlValidator --> ValidatorResultRecorder
     XmlValidator --> ValidatorSchemaManager
     XmlValidator --> ValidatorSchemaResolver
     XmlValidator --> XmlValidationRunner
     XmlValidator --> paths
-    XmlValidator --> files
-    XmlValidationRunner --> files
+
+    ValidatorSchemaManager --> paths
+    ValidatorSchemaManager --> ValidatorResult
+
+    ValidatorSchemaResolver --> ValidatorSchemaManager
+    ValidatorSchemaResolver --> paths
     ValidatorSchemaResolver --> namespaces
+
+    XmlValidationRunner --> ValidatorSchemaManager
+    XmlValidationRunner --> files
+
+    files --> ValidatorResult
 ```
 
 ---
@@ -806,6 +815,20 @@ classDiagram
 ---
 
 ## Project Structure
+
+The source modules are organized around the main responsibilities in
+the validation workflow:
+
+| Module | Responsibility |
+| --- | --- |
+| `XmlValidator` | Robot Framework facade and workflow coordinator |
+| `schema.manager` | Schema loading and schema state |
+| `schema.resolver` | XML-to-XSD planning and matching |
+| `validation` | Single XML validation execution |
+| `results` | Recording, reporting and CSV export |
+| `files` | File sanity checks |
+| `paths` | Path resolution and file discovery |
+| `namespaces` | Namespace extraction and matching |
 
 ```
 .github/                             # GitHub config and workflow automation
