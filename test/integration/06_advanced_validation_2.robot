@@ -65,7 +65,7 @@ Variables    teardown_vars.py
     ...    
     ...                Subsequently validates various XML files (located 
     ...                in a folder), passing a new schema file (located 
-    ...                in a seperate/different folder) directly to the 
+    ...                in a separate/different folder) directly to the 
     ...                keyword (replacing the previously active schema).
     ...                Since all XML files are actually valid, the only 
     ...                validation applied to the result of the action 
@@ -86,7 +86,7 @@ Variables    teardown_vars.py
         ${cur_schema}=    Get Schema
         Should be equal    ${cur_schema}    schema.xsd
     END
-    # Pass an XSD file (path) to the keyword and validate XMLs in a seperate folder.
+    # Pass an XSD file (path) to the keyword and validate XMLs in a separate folder.
     ${errors}    ${csv_path} =    Validate Xml Files    
     ...                           ${EXECDIR}/test/_data/integration/TC_27
     ...                           xsd_path=${EXECDIR}/test/_data/integration/TC_27/xsd/schema_01.xsd
@@ -111,13 +111,13 @@ Variables    teardown_vars.py
     ...                correctly loaded.
     ...    
     ...                Subsequently validates various XML files (located 
-    ...                in a folder), without expicitly passing an 
+    ...                in a folder), without explicitly passing an 
     ...                xsd_path. Rather, the XML files are 
     ...                mapped to their respective XSD files (located in 
     ...                the same folder) dynamically, by file name 
     ...                matching. The latter is triggered by passing the 
     ...                ``xsd_search_strategy`` argument as 
-    ...                'by_filename' to the keyword, next to the XML 
+    ...                'by_file_name' to the keyword, next to the XML 
     ...                folder path.
     ...                The results of the validation are subsequently 
     ...                thoroughly validated in terms of completeness and 
@@ -139,7 +139,7 @@ Variables    teardown_vars.py
     # Pass no XSD file path, but provide a matching strategy (XSDs assumed to be in XML folder).
     ${errors}    ${csv_path} =    Validate Xml Files    
     ...                           ${EXECDIR}/test/_data/integration/TC_28
-    ...                           xsd_search_strategy=by_filename
+    ...                           xsd_search_strategy=by_file_name
     # Validate the new schema is loaded.
     ${cur_schema}=    Get Schema
     Should be equal    ${cur_schema}    file_4.xsd
@@ -158,11 +158,11 @@ Variables    teardown_vars.py
     Validate Xml Validation Results    ${errors}    ${expected_errors_1}    ${expected_errors_2}    ${expected_errors_3}
     # Validate the CSV output.
     Validate CSV    ${csv_path}    ${expected_errors_1}    ${expected_errors_2}    ${expected_errors_3}
-    # Pass a seperate XSD folder path, but also a search strategy.
+    # Pass a separate XSD folder path, but also a search strategy.
     ${errors}    ${csv_path} =    Validate Xml Files    
     ...                           ${EXECDIR}/test/_data/integration/TC_28/xml
     ...                           xsd_path=${EXECDIR}/test/_data/integration/TC_28/xsd
-    ...                           xsd_search_strategy=by_filename
+    ...                           xsd_search_strategy=by_file_name
     # Validate the new schema is loaded.
     ${cur_schema}=    Get Schema
     Should be equal    ${cur_schema}    file_9.xsd
@@ -176,13 +176,13 @@ Variables    teardown_vars.py
     ...                correctly loaded.
     ...    
     ...                Subsequently validates various XML files (located 
-    ...                in a folder), without expicitly passing an 
+    ...                in a folder), without explicitly passing an 
     ...                xsd_path. Rather, the XML files are 
     ...                mapped to their respective XSD files (located in 
     ...                the same folder) dynamically, by namespace 
     ...                matching. The latter is triggered by passing the 
     ...                ``xsd_search_strategy`` argument as 
-    ...                'by_name_space' to the keyword, next to the XML 
+    ...                'by_namespace' to the keyword, next to the XML 
     ...                folder path.
     ...    
     ...                In total, 21 invalid files will be reported as 
@@ -198,11 +198,11 @@ Variables    teardown_vars.py
     ...                see the various XSD violations and other types of 
     ...                errors that the library reports.
     ...    
-    ...                Bascially, there are three XSD files and for each 
+    ...                Basically, there are three XSD files and for each 
     ...                XSD file there are three XML files that violate 
     ...                the XSD and three XML files that do not violate 
     ...                the schema, but are malformed. The latter will be 
-    ...                catched and reported by the library as well!
+    ...                caught and reported by the library as well!
     ...                Finally, there are three XML files that do not 
     ...                match with any of the three schema files and will 
     ...                therefore be reported as such, by the library.
@@ -215,7 +215,7 @@ Variables    teardown_vars.py
     # Pass no XSD file path, but provide a matching strategy: XSDs assumed to be in XML folder.
     ${errors}    ${csv_path} =    Validate Xml Files    
     ...                           ${EXECDIR}/test/_data/integration/TC_29
-    ...                           xsd_search_strategy=by_name_space
+    ...                           xsd_search_strategy=by_namespace
     # Validate the expected schema is loaded.
     ${cur_schema}=    Get Schema
     Should Be Equal    ${cur_schema}    schema3.xsd
@@ -238,7 +238,7 @@ Variables    teardown_vars.py
 
 30_Error_Facets
     [Documentation]    This test case passes custom (non-default) error 
-    ...                facets to the Validate Xml Files keywords.
+    ...                facets to the Validate Xml Files keyword.
     ...    
     ...                Error facets determine which attributes of a 
     ...                parse error or an XmlSchema (validation) error 
@@ -247,10 +247,10 @@ Variables    teardown_vars.py
     ...                Error facets can also be passed during library 
     ...                import. Passing error facets to the keyword 
     ...                overrules these default facets. However, the next 
-    ...                time the keyword ios called without passing 
+    ...                time the keyword is called without passing 
     ...                error_facets, the default facets apply again. 
     ...    
-    ...                The validations errors that are reported/returned 
+    ...                The validation errors that are reported/returned 
     ...                in this test case will not be validated. Instead, 
     ...                each error is logged, including the data type of 
     ...                the error facet (e.g. a string or 
@@ -260,7 +260,7 @@ Variables    teardown_vars.py
     # Pass non-default error facets; pass no XSD file path, but provide a matching strategy (XSDs are assumed to reside in the XML folder).
     ${errors}    ${csv_path} =    Validate Xml Files    
     ...                           ${EXECDIR}/test/_data/integration/TC_30
-    ...                           xsd_search_strategy=by_name_space
+    ...                           xsd_search_strategy=by_namespace
     ...                           error_facets=${new_error_facets}
     # Let's see what's inside the collected errors/violations.
     FOR    ${idx}    ${error}    IN ENUMERATE    @{errors}
@@ -283,30 +283,30 @@ Variables    teardown_vars.py
     [Documentation]    Validates that the public
     ...                ``skip_none_error_facets`` keyword argument controls
     ...                whether requested error facets whose value is None
-    ...                are omitted or preserved.
+    ...                are reported as unavailable or omitted.
     # Set up test variables.
     ${xml_file} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_31/xml/invalid_by_main.xml
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_31/main_schema.xsd
     ${base_url} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_31
     @{error_facets}=    Create List    path    reason    non_existing_facet
-    # Validate default behavior: None-valued facets are omitted.
+    # Validate default behavior: None-valued facets are reported as unavailable.
     ${errors}    ${csv_path} =    Validate Xml Files
     ...                           ${xml_file}
     ...                           xsd_path=${xsd_path}
     ...                           base_url=${base_url}
     ...                           error_facets=${error_facets}
-    ...                           write_to_csv=${False}
-    Dictionary Should Not Contain Key    ${errors}[0]    non_existing_facet
-    # Validate opt-in behavior: None-valued facets are preserved.
-    ${errors}    ${csv_path} =    Validate Xml Files
-    ...                           ${xml_file}
-    ...                           xsd_path=${xsd_path}
-    ...                           base_url=${base_url}
-    ...                           error_facets=${error_facets}
-    ...                           skip_none_error_facets=${False}
     ...                           write_to_csv=${False}
     Dictionary Should Contain Key    ${errors}[0]    non_existing_facet
-    Should Be Equal    ${errors}[0][non_existing_facet]    ${None}
+    Should Be Equal    ${errors}[0][non_existing_facet]    Unavailable
+    # Validate opt-in behavior: None-valued facets are omitted.
+    ${errors}    ${csv_path} =    Validate Xml Files
+    ...                           ${xml_file}
+    ...                           xsd_path=${xsd_path}
+    ...                           base_url=${base_url}
+    ...                           error_facets=${error_facets}
+    ...                           skip_none_error_facets=${True}
+    ...                           write_to_csv=${False}
+    Dictionary Should Not Contain Key    ${errors}[0]    non_existing_facet
     # Teardown.
     ${xml_validator} =    Get Library Instance    xmlvalidator
     [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    xmlvalidator    reset_schema=${RESET_SCHEMA}

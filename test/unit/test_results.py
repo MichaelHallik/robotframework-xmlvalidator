@@ -14,25 +14,23 @@
 
 """
 Contains the unit tests for the ValidatorResultRecorder and
-ValidatorResult classes in the
-src/xmlvalidator/xml_validator_results.py module.
+ValidatorResult classes in the src/xmlvalidator/results.py module.
 
-See for an overview of all tests the file test/overview_of_tests.html.
+See for an overview of all tests the file test/_doc/unit/overview.html.
 """
+
+# pylint: disable=W0212:protected-access
 
 # Standard library imports.
 import csv
 from pathlib import Path
 
 # Local application imports.
-from xmlvalidator import xml_validator_results as results_module
-from xmlvalidator.xml_validator_results import (
-    ValidatorResult,
-    ValidatorResultRecorder
-)
-
+from xmlvalidator import results as results_module
+from xmlvalidator.results import ValidatorResult, ValidatorResultRecorder
 
 # ValidatorResultRecorder.__init__()
+
 
 def test_validator_result_recorder_initializes_empty_state():
     """
@@ -43,12 +41,13 @@ def test_validator_result_recorder_initializes_empty_state():
     # Create a fresh result recorder.
     recorder = ValidatorResultRecorder()
     # Expected outcome: all mutable recorder state starts empty/reset.
-    assert recorder.errors_by_file == []
+    assert not recorder.errors_by_file
     assert recorder.validation_summary == {"valid": [], "invalid": []}
     assert recorder.error_table_id == 0
 
 
 # add_valid_file()
+
 
 def test_add_valid_file_records_file_and_logs(monkeypatch):
     """
@@ -68,11 +67,12 @@ def test_add_valid_file_records_file_and_logs(monkeypatch):
     recorder.add_valid_file(Path("valid.xml"))
     # Expected outcome: the file is stored under the valid category.
     assert recorder.validation_summary["valid"] == ["valid.xml"]
-    assert recorder.validation_summary["invalid"] == []
+    assert not recorder.validation_summary["invalid"]
     assert log_messages == ["\tXML is valid!"]
 
 
 # add_invalid_file()
+
 
 def test_add_invalid_file_records_file_and_logs(monkeypatch):
     """
@@ -91,12 +91,13 @@ def test_add_invalid_file_records_file_and_logs(monkeypatch):
     # Call the method under test.
     recorder.add_invalid_file(Path("invalid.xml"))
     # Expected outcome: the file is stored under the invalid category.
-    assert recorder.validation_summary["valid"] == []
+    assert not recorder.validation_summary["valid"]
     assert recorder.validation_summary["invalid"] == ["invalid.xml"]
     assert warning_messages == ["\tXML is invalid:"]
 
 
 # add_file_errors()
+
 
 def test_add_file_errors_ignores_none_and_empty_collections():
     """
@@ -110,7 +111,7 @@ def test_add_file_errors_ignores_none_and_empty_collections():
     recorder.add_file_errors(Path("invalid.xml"), [])
     recorder.add_file_errors(Path("invalid.xml"), {})
     # Expected outcome: no error entries are created.
-    assert recorder.errors_by_file == []
+    assert not recorder.errors_by_file
 
 
 def test_add_file_errors_records_single_error_dictionary():
@@ -160,6 +161,7 @@ def test_add_file_errors_records_list_of_error_dictionaries():
 
 # log_file_errors()
 
+
 def test_log_file_errors_logs_all_error_fields(monkeypatch):
     """
     Test that log_file_errors() logs each error and its fields.
@@ -192,6 +194,7 @@ def test_log_file_errors_logs_all_error_fields(monkeypatch):
 
 # log_summary()
 
+
 def test_log_summary_logs_summary_counts(monkeypatch):
     """
     Test that log_summary() logs validation summary counts.
@@ -221,6 +224,7 @@ def test_log_summary_logs_summary_counts(monkeypatch):
 
 
 # _get_summary()
+
 
 def test_get_summary_returns_validation_counts():
     """
@@ -262,6 +266,7 @@ def test_get_summary_handles_missing_categories():
 
 
 # write_error_table_to_log()
+
 
 def test_write_error_table_to_log_ignores_empty_errors(monkeypatch):
     """
@@ -337,6 +342,7 @@ def test_write_error_table_to_log_adds_style_only_for_first_table(monkeypatch):
 
 # write_errors_to_csv()
 
+
 def test_write_errors_to_csv_ignores_empty_errors(monkeypatch):
     """
     Test that write_errors_to_csv() creates no file for empty errors.
@@ -407,7 +413,59 @@ def test_write_errors_to_csv_writes_file_and_moves_file_name_first(
     ]
 
 
+def test_write_errors_to_csv_handles_different_error_keys(monkeypatch):
+    """
+    Test that write_errors_to_csv() preserves columns that appear only
+    in later error dictionaries.
+
+    Priority: M
+    """
+    # Suppress logger output during the unit test.
+    monkeypatch.setattr(results_module.logger, "info", lambda *_, **__: None)
+    recorder = ValidatorResultRecorder()
+    output_dir = Path("results/unit-test-output")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_csv_path = output_dir / "errors.csv"
+    output_csv_path.unlink(missing_ok=True)
+    errors = [
+        {
+            "file_name": "invalid_1.xml",
+            "path": "/root"
+        },
+        {
+            "file_name": "invalid_2.xml",
+            "reason": "Missing element."
+        }
+    ]
+    # Call the method under test with intentionally uneven dictionaries.
+    csv_path = recorder.write_errors_to_csv(
+        errors,
+        output_dir / "input.xml",
+        file_name_column="file_name"
+    )
+    # Read the generated CSV file for verification.
+    with Path(csv_path).open(encoding="utf-8", newline="") as csv_file:
+        rows = list(csv.DictReader(csv_file))
+        fieldnames = rows[0].keys()
+    # Expected outcome: all encountered keys become CSV columns.
+    assert Path(csv_path).resolve() == output_csv_path.resolve()
+    assert list(fieldnames) == ["file_name", "path", "reason"]
+    assert rows == [
+        {
+            "file_name": "invalid_1.xml",
+            "path": "/root",
+            "reason": ""
+        },
+        {
+            "file_name": "invalid_2.xml",
+            "path": "",
+            "reason": "Missing element."
+        }
+    ]
+
+
 # reset()
+
 
 def test_reset_clears_all_recorder_state():
     """
@@ -425,12 +483,13 @@ def test_reset_clears_all_recorder_state():
     # Call the method under test.
     recorder.reset()
     # Expected outcome: all recorder state is restored to defaults.
-    assert recorder.errors_by_file == []
+    assert not recorder.errors_by_file
     assert recorder.validation_summary == {"valid": [], "invalid": []}
     assert recorder.error_table_id == 0
 
 
 # ValidatorResult.__init__()
+
 
 def test_validator_result_stores_success_value():
     """
@@ -461,6 +520,7 @@ def test_validator_result_stores_failure_error():
 
 
 # ValidatorResult.__repr__()
+
 
 def test_validator_result_repr_returns_success_representation():
     """

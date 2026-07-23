@@ -54,7 +54,7 @@ Variables    teardown_vars.py
     ...    
     ...                The XSD files reside in the same folder as the 
     ...                XML files. Therefore we do not have to specify a 
-    ...                seperate path to the XSD files upon calling the 
+    ...                separate path to the XSD files upon calling the 
     ...                keyword.
     # Set up test variables.
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_20/

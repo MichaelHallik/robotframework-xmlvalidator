@@ -2,7 +2,7 @@
 
 This document outlines planned features and/or ideas for the future development of the `robotframework-xmlvalidator` library.
 
-This roadmap is aspirational and may evolve based on user feedback input and practical constraints.
+This roadmap is aspirational and may evolve based on user feedback and practical constraints.
 
 Want to contribute or suggest a feature? Feel free to open an issue or join the discussion.
 

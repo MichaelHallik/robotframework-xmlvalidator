@@ -71,7 +71,7 @@ class ValidatorResultRecorder:
 
     - This class is used internally by XmlValidator to record,
       summarize and export validation results.
-    - This class keeps validation state per ilibrary nstance and
+    - This class keeps validation state per library instance and
       provides utility methods for result recording and reporting.
     """
 
@@ -391,6 +391,10 @@ class ValidatorResultRecorder:
           an informational message without creating a file.
         - Column reordering occurs only if `file_name_column` exists in
           the error dictionaries.
+        - If different error dictionaries contain different keys,
+          pandas creates columns for the union of those keys. Missing
+          values are written as empty CSV cells. Explicit values such as
+          "Unavailable" are preserved.
         - The method uses `pandas` for CSV generation.
         """
         # Nothing to export.
@@ -459,7 +463,7 @@ class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
     success or failure, simplifying error handling.
 
     `ValidatorResult` is intentionally different from
-    `ValidatorResultRecorder`: one class records/report validation
+    `ValidatorResultRecorder`: one class records/reports validation
     outcomes, the other represents an individual operation result.
 
     `ValidatorResult` represents the result of one operation: for

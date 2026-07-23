@@ -95,7 +95,7 @@ Variables    teardown_vars.py
     ${invalid_xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_05/05_invalid_schema.xsd
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${invalid_xsd_path}    AS    ${TEST NAME}
     Should Be Equal    ${status}    FAIL
-    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_05/05_invalid_schema.xsd ] failed: SystemError: Loading of schema failed: {'XMLSchemaValidationError': ParseError('mismatched tag: line 8, column 2')}
+    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_05/05_invalid_schema.xsd ] failed: SystemError: Loading of schema failed: {'ParseError': ParseError('mismatched tag: line 8, column 2')}
 
 06_ImportLibrary_Multiple_XSDs
     [Documentation]    Attempt to import the XmlValidator library with 

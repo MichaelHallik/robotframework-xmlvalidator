@@ -5,31 +5,43 @@
     workflows
         lint.yml
         test.yml
+        update_pepy_badge.yml
     PULL_REQUEST_TEMPLATE.md
 docs
-    images
-        contributing.JPG
+    ...
     XmlValidator.html
 src
     xmlvalidator
+        schema
+            __init__.py
+            manager.py
+            resolver.py
         __init__.py
-        xml_validator_results.py
-        xml_validator_utils.py
+        _version.py
+        files.py
+        namespaces.py
+        paths.py
+        results.py
+        validation.py
         XmlValidator.py
 test
     _data
+        demo
+            TC_01
+                invalid_01.xml
+                invalid_02.xml
+                schema.xsd
+                valid.xml
+            TC_02
+                ...
+            ...
         integration
             TC_02
                 02_test_schema.xsd
+            TC_03
+                03_included_schema.xsd
+                03_test_schema_with_include.xsd
             ...
-            TC_31
-                includes
-                    included_schema.xsd
-                xml
-                    invalid_by_include.xml
-                    invalid_by_main.xml
-                    valid.xml
-                main_schema.xsd
         unit
             test.xml
             test.xsd
@@ -40,8 +52,9 @@ test
         unit
             overview.html
             README.md
+    demo
+        demo.robot
     integration
-        00_helper_keywords.robot
         01_library_initialization.robot
         02_basic_validation.robot
         03_error_handling.robot
@@ -52,14 +65,21 @@ test
         validation_keywords.py
         validation_keywords.resource
     unit
-        test_xml_validator_results.py
-        test_xml_validator_utils.py
+        test_files.py
+        test_namespaces.py
+        test_paths.py
+        test_results.py
+        test_schema_manager.py
+        test_schema_resolver.py
+        test_validation.py
         test_xmlvalidator.py
     conftest.py
 .gitignore
+badge_pepy_downloads.svg
 CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
+fetch_pepy_downloads.py
 LICENSE
 Makefile
 poetry.lock
@@ -70,3 +90,4 @@ pyrightconfig.json
 README.md
 requirements-dev.txt
 requirements.txt
+ROADMAP.md

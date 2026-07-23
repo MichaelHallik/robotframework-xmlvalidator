@@ -21,24 +21,24 @@ TC_03
 TC_04
     # Dynamic XML/XSD mapping - by filename - one folder.
     Validate Xml Files    ${EXECDIR}/test/_data/demo/TC_04
-    ...                   xsd_search_strategy=by_filename
+    ...                   xsd_search_strategy=by_file_name
     
 TC_05
     # Dynamic XML/XSD mapping - by filename - separate folders.
     Validate Xml Files    ${EXECDIR}/test/_data/demo/TC_05/xml
     ...                   xsd_path=${EXECDIR}/test/_data/demo/TC_05/xsd
-    ...                   xsd_search_strategy=by_filename
+    ...                   xsd_search_strategy=by_file_name
 
 TC_06
     # Dynamic XML/XSD mapping - by namespace.
     Validate Xml Files    ${EXECDIR}/test/_data/demo/TC_06
-    ...                   xsd_search_strategy=by_name_space
+    ...                   xsd_search_strategy=by_namespace
 
 TC_07
     # Custom error facets.
     @{new_error_facets}=    Create List    message    elem    namespaces    validator
     Validate Xml Files    ${EXECDIR}/test/_data/demo/TC_07
-    ...                   xsd_search_strategy=by_name_space
+    ...                   xsd_search_strategy=by_namespace
     ...                   error_facets=${new_error_facets}
 
 TC_08
