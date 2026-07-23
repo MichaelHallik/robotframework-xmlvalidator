@@ -37,7 +37,7 @@ Variables    teardown_vars.py
     ${xsd_path_1} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_15/15_non_existing.xsd
     ${xsd_path_2} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_15/empty_folder
     ${xsd_path_3} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_15/non_xsd_extension/15_test_schema.txt
-    # Import with the three invalid XSD paths and validate each error is catched and reported.
+    # Import with the three invalid XSD paths and validate each error is caught and reported.
     ## Path to non-existing file.
     Run Keyword And Expect Error    * ValueError: The provided path is neither a file nor a folder: *    Import Library    xmlvalidator    ${xsd_path_1}    AS    ${TEST_NAME}
     ## Path to an empty folder (could also contain one or more non-xsd files).
@@ -55,7 +55,7 @@ Variables    teardown_vars.py
     # Set up test variables.
     ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_16/16_test_schema.xsd
     ${xml_missing} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_16/16_non_existing.xml
-    # Call the keyword and validate the error is catched and reported.
+    # Call the keyword and validate the error is caught and reported.
     Import Library    xmlvalidator    ${xsd_path}    AS    ${TEST_NAME}
     Run Keyword And Expect Error    ValueError: The provided path is neither a file nor a folder: *    ${TEST_NAME}.Validate Xml Files    ${xml_missing}
     # Teardown (and validate schema attribute is None).
@@ -73,10 +73,10 @@ Variables    teardown_vars.py
     ${xsd_malformed_1}=    Set Variable    ${EXECDIR}/test/_data/integration/TC_17/17_malformed_1.xsd
     ${xsd_malformed_2}=    Set Variable    ${EXECDIR}/test/_data/integration/TC_17/17_malformed_2.xsd
     ${xml_path}=    Set Variable    ${EXECDIR}/test/_data/integration/TC_17/17_valid_xml.xml
-    # Call the keyword and validate errors are catched and reported.
+    # Call the keyword and validate errors are caught and reported.
     Import Library    xmlvalidator    AS    ${TEST_NAME}
-    ${result}=    Run Keyword And Expect Error    SystemError: Loading of schema failed: {'XMLSchemaValidationError': ParseError('no element found: line 11, column 0')}.    ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_malformed_1}
-    ${result}=    Run Keyword And Expect Error    SystemError: Loading of schema failed: {'XMLSchemaValidationError': XMLSchemaParseError(XMLSchema10(name='17_malformed_2.xsd', namespace=''), "Unexpected child with tag 'xs:invalidTag' at position 2.", <Element '{http://www.w3.org/2001/XMLSchema}schema' at *   ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_malformed_2}
+    ${result}=    Run Keyword And Expect Error    SystemError: Loading of schema failed: {'ParseError': ParseError('no element found: line 11, column 0')}.    ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_malformed_1}
+    ${result}=    Run Keyword And Expect Error    SystemError: Loading of schema failed: {'XMLSchemaParseError': XMLSchemaParseError(XMLSchema10(name='17_malformed_2.xsd', namespace=''), "Unexpected child with tag 'xs:invalidTag' at position 2.", <Element '{http://www.w3.org/2001/XMLSchema}schema' at *   ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_malformed_2}
     # Teardown (and validate schema attribute is None).
     ${xml_validator} =    Get Library Instance    ${TEST NAME}
     Should Be Equal    ${xml_validator.schema}    ${None}
@@ -98,7 +98,7 @@ Variables    teardown_vars.py
     ${xsd_path_2} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_18/empty_folder
     ${xsd_path_3} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_18/non_xsd_extension/18_test_schema.txt
     ${xml_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_18/18_valid_test.xml
-    # Call the keyword and validate errors are catched and reported.
+    # Call the keyword and validate errors are caught and reported.
     Import Library    xmlvalidator    AS    ${TEST_NAME}
     ## Path to non-existing file.
     ${result}=    Run Keyword And Expect Error    ValueError: The provided path is neither a file nor a folder: *    ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_path_1}

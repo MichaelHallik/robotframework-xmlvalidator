@@ -81,7 +81,7 @@ For example
   - Some got commented out.
   - Some indentation changes as well.
 - Fixed unit tests that now failed due to aforementioned changes in the logging.
-- Changed documentation (READEME.md, keyword documentation, etc.) to reflect additions and changes in this version.
+- Changed documentation (README.md, keyword documentation, etc.) to reflect additions and changes in this version.
 
 ## [2.1.0] - 2026-03-19
 

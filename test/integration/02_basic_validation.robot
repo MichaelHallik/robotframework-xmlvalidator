@@ -192,7 +192,7 @@ Variables    teardown_vars.py
 13_ImportLibrary_Change_Schema_On_Validation
     [Documentation]    Import the XmlValidator library with an XSD file, 
     ...                validate that the schema attribute is correctly 
-    ...                set, then call the Validate XML Files keyword 
+    ...                set, then call the Validate Xml Files keyword 
     ...                with a valid XML file and a *new* XSD file, 
     ...                verifying that the new schema is correctly set 
     ...                and used for validation.

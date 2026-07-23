@@ -2,17 +2,17 @@
 
 ## Run all tests in the project
 
-python -m pytest test/
+python -m pytest test/unit
 
     Runs all test cases in all test_*.py files within the project.
 
 ## Run all tests in a specific test file
 
-pytest test/test_xmlvalidator.py
+python -m pytest test/unit/test_xmlvalidator.py
 
-    Runs all test cases inside test/test_xmlvalidator.py.
+    Runs all test cases inside test/unit/test_xmlvalidator.py.
 
-pytest test/test_xmlvalidator.py test/test_xml_validator_utils.py
+python -m pytest test/unit/test_xmlvalidator.py test/unit/test_namespaces.py
 
     Runs all tests from multiple test files.
 
@@ -22,15 +22,15 @@ You can run a single specific test case using pytest by specifying the test modu
 
 Basic Syntax:
 
-    pytest test/test_module.py::test_function_name
+    python -m pytest test/unit/test_module.py::test_function_name
 
 Examples:
 
-    pytest test/test_xmlvalidator.py::test_find_schemas_namespace_matching_success
+    python -m pytest test/unit/test_schema_resolver.py::test_match_xml_files_to_schemas_namespace_matching_success
 
-        Runs only the test_find_schemas_namespace_matching_success function inside test/test_xmlvalidator.py.
+        Runs only the test_match_xml_files_to_schemas_namespace_matching_success function inside test/unit/test_schema_resolver.py.
 
-    pytest test/test_xmlvalidator.py::test_find_schemas_namespace_matching_success test/test_xml_validator_utils.py::test_match_namespace_to_schema_valid_target_namespace
+    python -m pytest test/unit/test_schema_resolver.py::test_match_xml_files_to_schemas_namespace_matching_success test/unit/test_namespaces.py::test_schema_matches_xml_namespaces_returns_true_for_matching_target_namespace
 
         Runs two specific test cases from two different files.
 
@@ -38,34 +38,34 @@ Examples:
 
 ## Run tests with verbose output (-v)
 
-pytest -v
+python -m pytest -v
 
 Shows detailed test output (pass/fail status).
 
-pytest -v test/test_xmlvalidator.py::test_find_schemas_namespace_matching_success
+python -m pytest -v test/unit/test_schema_resolver.py::test_match_xml_files_to_schemas_namespace_matching_success
 
 ## Stop on first failure (-x)
 
-pytest -x
+python -m pytest -x
 
 Stops running when the first test fails.
 
-pytest -x test/test_xmlvalidator.py::test_find_schemas_namespace_matching_success
+python -m pytest -x test/unit/test_schema_resolver.py::test_match_xml_files_to_schemas_namespace_matching_success
 
 ## Display print statements (-s)
 
-pytest -s
+python -m pytest -s
 
 Shows print output inside tests.
 
-pytest -s test/test_xmlvalidator.py::test_find_schemas_namespace_matching_success
+python -m pytest -s test/unit/test_schema_resolver.py::test_match_xml_files_to_schemas_namespace_matching_success
 
 ## Show detailed traceback (--tb=long)
 
-pytest --tb=long test/test_xmlvalidator.py::test_find_schemas_namespace_matching_success
+python -m pytest --tb=long test/unit/test_schema_resolver.py::test_match_xml_files_to_schemas_namespace_matching_success
 
 ## Run tests matching a pattern
 
-pytest -k "schema"
+python -m pytest -k "schema"
 
 Runs all tests where the function name contains "schema".

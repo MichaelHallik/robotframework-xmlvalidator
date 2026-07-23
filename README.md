@@ -12,7 +12,6 @@
     - [Why XSD validation matters in testing](#why-xsd-validation-matters-in-testing)
     - [Why automating XSD validation matters in testing](#why-automating-xsd-validation-matters-in-testing)
     - [When it may not be useful](#when-it-may-not-be-useful)
-    - [Summary](#summary)
   - [Installing](#installing)
     - [Install from PyPI](#install-from-pypi)
     - [Install from GitHub](#install-from-github)
@@ -80,7 +79,7 @@ A [Robot Framework](https://robotframework.org/) test library for validating XML
 
 This library leverages the power of the [`xmlschema`](https://pypi.org/project/xmlschema/) library and is designed for both single-file and batch XML validation workflows.
 
-It provides structured and detailed reporting of XML parse errors (malformed XML content) and XSD violations, schema auto-detection and CSV exports of collected errors.
+It provides structured and detailed reporting of XML parse errors (malformed XML content) and XSD violations, dynamic schema resolution and CSV exports of collected errors.
 
 Rather than reimplementing XML parsing or schema validation logic, the library acts as a lightweight wrapper around `xmlschema`, exposing common validation workflows as easy-to-use Robot Framework keywords.
 
@@ -100,11 +99,11 @@ Rather than reimplementing XML parsing or schema validation logic, the library a
 
 ## When this library is useful
 
-This library is useful when a system under test relies heavily on XML for data exchange.
+Automated schema validation can provide fast and reliable feedback, whenever XML is a crucial part of the integration landscape
 
-In such a context, an XML Schema Definition (XSD) often acts as a formal contract: it defines which elements are allowed, how they are nested, which data types are expected and which fields are mandatory.
+When a system under test relies heavily on XML for formal data exchange, an XML Schema Definition (XSD) often acts as a formal contract: it defines which elements are allowed, how they are nested, which data types are expected and which fields are mandatory.
 
-Therefore, when XML is part of the integration landscape, automated schema validation can provide fast and reliable feedback.
+This library can turn complex, repetitive, structural XSD checks into a single, efficient automated step.
 
 ### Why XSD validation matters in testing
 
@@ -152,10 +151,6 @@ Therefore, when XML is part of the integration landscape, automated schema valid
   
   This library focuses on XSD validation. If you need to edit XML, inspect arbitrary XPath values or build XML payloads dynamically, pair it with Robot Framework's built-in XML library or another XML-processing tool.
 
-### Summary
-
-This library is not necessary for every test project. However, where XML is used as a formal data exchange format, it can turn complex and repetitive structural checks into a single, efficient automated step.
-
 ---
 
 ## Installing
@@ -172,6 +167,14 @@ pip install robotframework-xmlvalidator
 
 ```bash
 pip install git+https://github.com/MichaelHallik/robotframework-xmlvalidator.git
+```
+
+For stable releases, prefer installing from PyPI or from a version tag.
+The `main` branch may contain unreleased changes ahead of the latest
+PyPI release.
+
+```bash
+pip install git+https://github.com/MichaelHallik/robotframework-xmlvalidator.git@v2.1.1
 ```
 
 ### Install using poetry
@@ -277,7 +280,7 @@ See also the [library initialization Robot test file](test/integration/01_librar
 
 ### Keyword overview
 
-Thi section merely provides a short summary of the library's capabilities.
+This section provides a short summary of the library's capabilities.
 
 For more details, please see the [keyword documentation](https://michaelhallik.github.io/robotframework-xmlvalidator/XmlValidator.html).
 
@@ -325,11 +328,11 @@ Actually, almost anything goes:
 - one folder with: one or more XML files and one or more XSD files
 - one folder with one or more XML files and another folder with one or more XSD files
 - one folder with one or more XML files and a single XSD file
-- a single XML file and a sigle XSD file
+- a single XML file and a single XSD file
 
 #### Test case status - fail_on_error
 
-A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the ``fail_on_errors`` (bool) argument to change this default behaviour. When set to `False`, the test cases's status will always be PASS, regardless whether errors were collected or not.
+A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the `fail_on_errors` (bool) argument to change this default behavior. When set to `False`, the test case status will always be PASS, regardless of whether errors were collected.
 
 #### Dynamic XSD resolution
 
@@ -502,7 +505,7 @@ Collecting error facets: ['path', 'reason'].
 XML Validator ready for use!
 ==============================================================================
 01 Advanced Validation:: Demo XML validation
-Mapping XML files to schemata by namespace.
+Mapping XML files to schemas by namespace.
 Validating 'valid_1.xml'.
     XML is valid!
 Validating 'valid_2.xml'.
@@ -593,6 +596,8 @@ Use the `error_facets` argument to set which error details to collect.
 
 For each error that is encountered, the selected error facet(s) will be collected and reported.
 
+By default, requested facets whose value is unavailable are still reported and shown as `Unavailable`. If you prefer to omit requested facets that have no value for a specific error, pass `skip_none_error_facets=True` to `Validate Xml Files`.
+
 You can customize which error facet(s) should be collected, by passing a list of one or more error facets:
 - when importing the library
 - when calling the `Validate Xml Files` keyword
@@ -624,7 +629,7 @@ The table lists the most commonly available attributes, though additional fields
 | [How to - Running the integration tests](test/_doc/integration/README.md) | User / Dev | Testing (integration) |
 | [Overview of all integration tests](test/_doc/integration/overview.html) | User / Dev | Test documentation |
 | [How to - Running the unit tests](test/_doc/unit/README.md) | Dev | Testing (unit) |
-| [Overview of all unit tests](test/_doc/integration/overview.html) | Dev | Test documentation |
+| [Overview of all unit tests](test/_doc/unit/overview.html) | Dev | Test documentation |
 
 ---
 
@@ -736,47 +741,81 @@ In [.github/](.github/) you’ll also find the various contribution templates:
 ```mermaid
 classDiagram
     class XmlValidator {
-        +__init__(xsd_path: Optional[str|Path]=None, base_url: Optional[str]=None, error_facets: Optional[List[str]]=None)
-        +get_error_facets() List[str]
-        +get_schema(return_name: bool=True) Optional[str|XMLSchema]
+        +__init__(...)
+        +get_error_facets() list[str]
+        +get_schema(return_schema_name: bool=True) str | XMLSchema | None
         +log_schema(log_name: bool=True)
         +reset_error_facets()
         +reset_errors()
         +reset_schema()
-        +validate_xml_files(xml_path: str|Path, xsd_path: Optional[str|Path]=None, xsd_search_strategy: Optional[Literal['by_namespace', 'by_file_name']]=None, base_url: Optional[str]=None, error_facets: Optional[List[str]]=None, pre_parse: Optional[bool]=True, write_to_csv: Optional[bool]=True, timestamped: Optional[bool]=True, reset_errors: bool=True) Tuple[List[Dict[str, Any]], str | None]
-        -_determine_validations(xml_paths: List[Path], xsd_path: Optional[str | Path]=None, xsd_search_strategy: Optional[Literal['by_namespace', 'by_file_name']]=None, base_url: Optional[str]=None) Dict[Path, Path | None]
-        -_ensure_schema(xsd_path: Optional[Path]=None, base_url: Optional[str]=None) ValidatorResult
-        -_find_schemas(xml_file_paths: List[Path], xsd_file_paths: List[Path], search_by: Literal['by_namespace', 'by_file_name']='by_namespace', base_url: Optional[str]=None) Dict[Path, Path | None]
-        -_load_schema(xsd_path: Path, base_url: Optional[str]=None) ValidatorResult
-        -_validate_xml(xml_file_path: Path, xsd_file_path: Optional[Path]=None, base_url: Optional[str]=None, error_facets: Optional[List[str]]=None, pre_parse: Optional[bool]=True) Tuple[bool, Optional[List[Dict[str, Any]]]]
+        +validate_xml_files(...) tuple[list[dict], str | None]
     }
 
     class ValidatorResultRecorder {
         +__init__()
-        +add_file_errors(file_path: Path, error_details: List[Dict[str, Any]] | Dict[str, Any] | None)
-        +add_invalid_file(file_path: Path)
         +add_valid_file(file_path: Path)
-        +log_file_errors(errors: List[Dict[str, Any]])
+        +add_invalid_file(file_path: Path)
+        +add_file_errors(file_path: Path, error_details: ...)
+        +log_file_errors(errors: list[dict[str, Any]])
         +log_summary()
+        +write_error_table_to_log(errors: list[dict[str, Any]])
+        +write_errors_to_csv(...) str
         +reset()
-        +write_errors_to_csv(errors: List[Dict[str, Any]], output_path: Path, include_timestamp: bool=False, file_name_column: str=None) str
     }
 
     class ValidatorResult {
-        +__init__(success: bool, value: Optional[Any]=None, error: Optional[Any]=None)
+        +__init__(success: bool, value: Any | None=None, error: Any | None=None)
         +__repr__() str
     }
 
-    class ValidatorUtils {
-        +extract_xml_namespaces(xml_root: etree.ElementBase, return_dict: Optional[bool]=False, include_nested: Optional[bool]=False) Union[set[str], dict[str | None, str]]
-        +get_file_paths(file_path: str | Path, file_type: str) Tuple[List[Path], bool]
-        +match_namespace_to_schema(xsd_schema: XMLSchema, xml_namespaces: set[str]) bool
-        +sanity_check_files(file_paths: List[Path], base_url: Optional[str]=None, error_facets: Optional[List[str]]=None, parse_files: Optional[bool]=False) ValidatorResult
+    class ValidatorSchemaManager {
+        +ensure_schema(xsd_path: Path | None=None, base_url: str | None=None) ValidatorResult
+        +load_schema(xsd_path: Path, base_url: str | None=None) ValidatorResult
+        +try_load_initial_schema(xsd_path: str | Path | None=None, base_url: str | None=None) XMLSchema | None
     }
 
-    XmlValidator --> ValidatorResult
+    class ValidatorSchemaResolver {
+        +build_validation_plan(...) dict[Path, Path | BaseException | None]
+        +match_xml_files_to_schemas(...) dict[Path, Path | BaseException | None]
+    }
+
+    class XmlValidationRunner {
+        +validate_xml(...) tuple[bool, list[dict[str, Any]] | None]
+    }
+
+    class paths {
+        <<module>>
+        +get_file_paths(file_path: str | Path, file_extension: str) tuple[list[Path], bool]
+    }
+
+    class files {
+        <<module>>
+        +sanity_check_files(...) ValidatorResult
+    }
+
+    class namespaces {
+        <<module>>
+        +extract_namespaces(...) set[str] | dict[str | None, str]
+        +schema_matches_xml_namespaces(...) bool
+    }
+
     XmlValidator --> ValidatorResultRecorder
-    XmlValidator --> ValidatorUtils
+    XmlValidator --> ValidatorSchemaManager
+    XmlValidator --> ValidatorSchemaResolver
+    XmlValidator --> XmlValidationRunner
+    XmlValidator --> paths
+
+    ValidatorSchemaManager --> paths
+    ValidatorSchemaManager --> ValidatorResult
+
+    ValidatorSchemaResolver --> ValidatorSchemaManager
+    ValidatorSchemaResolver --> paths
+    ValidatorSchemaResolver --> namespaces
+
+    XmlValidationRunner --> ValidatorSchemaManager
+    XmlValidationRunner --> files
+
+    files --> ValidatorResult
 ```
 
 ---
@@ -784,6 +823,20 @@ classDiagram
 ---
 
 ## Project Structure
+
+The source modules are organized around the main responsibilities in
+the validation workflow:
+
+| Module | Responsibility |
+| --- | --- |
+| `XmlValidator` | Robot Framework facade and workflow coordinator |
+| `schema.manager` | Schema loading and schema state |
+| `schema.resolver` | XML-to-XSD planning and matching |
+| `validation` | Single XML validation execution |
+| `results` | Recording, reporting and CSV export |
+| `files` | File sanity checks |
+| `paths` | Path resolution and file discovery |
+| `namespaces` | Namespace extraction and matching |
 
 ```
 .github/                             # GitHub config and workflow automation
@@ -800,8 +853,15 @@ src/                                 # Source code root
 └── xmlvalidator/
     ├── __init__.py
     ├── XmlValidator.py              # Main Robot Framework library
-    ├── xml_validator_results.py
-    └── xml_validator_utils.py
+    ├── files.py                     # File sanity checks and error extraction
+    ├── namespaces.py                # XML/XSD namespace extraction and matching
+    ├── paths.py                     # Path resolution and file discovery
+    ├── results.py                   # Validation result and reporting helpers
+    ├── validation.py                # Single-file XML validation execution
+    └── schema/
+        ├── __init__.py
+        ├── manager.py               # Schema loading and schema state handling
+        └── resolver.py              # XML-to-XSD schema resolution
 
 test/                                # Tests and supporting files
 ├── _data/                           # Test data: schemas and XMLs
@@ -837,8 +897,13 @@ test/                                # Tests and supporting files
 │   ├── validation_keywords.py
 │   └── validation_keywords.resource
 ├── unit/                            # Unit tests (pytest)
-│   ├── test_xml_validator_results.py
-│   ├── test_xml_validator_utils.py
+│   ├── test_files.py
+│   ├── test_namespaces.py
+│   ├── test_paths.py
+│   ├── test_results.py
+│   ├── test_schema_manager.py
+│   ├── test_schema_resolver.py
+│   ├── test_validation.py
 │   └── test_xmlvalidator.py
 └── conftest.py                      # Pytest configuration
 

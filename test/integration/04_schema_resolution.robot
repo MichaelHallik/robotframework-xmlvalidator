@@ -54,7 +54,7 @@ Variables    teardown_vars.py
     ...    
     ...                The XSD files reside in the same folder as the 
     ...                XML files. Therefore we do not have to specify a 
-    ...                seperate path to the XSD files upon calling the 
+    ...                separate path to the XSD files upon calling the 
     ...                keyword.
     # Set up test variables.
     ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_20/
@@ -115,4 +115,57 @@ Variables    teardown_vars.py
     Validate CSV    ${csv_path}    ${expected_errors}
     # Teardown.
     ${xml_validator} =    Get Library Instance    ${TEST NAME}
+    [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    ${TEST NAME}
+
+32_Validate_Declared_Namespace_Not_Used_By_Default
+    [Documentation]    Validate XML files against XSD schemas (using
+    ...                namespace matching), where the XML namespace is
+    ...                merely declared in the XSD file.
+    ...
+    ...                The declared namespace should not be used for
+    ...                matching by default.
+    # Set up test variables.
+    ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_32/
+    # Import the library.
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
+    ${xml_validator} =    Get Library Instance    ${TEST NAME}
+    # Validate the XML files, using default/strict namespace matching.
+    ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files    ${xml_folder}    xsd_search_strategy=by_namespace
+    # Define the expected results.
+    ${expected_errors} =    Create Dictionary
+    ...                        file_name=declared_only.xml
+    ...                        reason=No matching XSD found for: declared_only.
+    # Validate the validation results are as expected.
+    Validate Xml Validation Result    ${errors}    ${expected_errors}
+    # Validate the CSV output.
+    Validate CSV    ${csv_path}    ${expected_errors}
+    # Teardown.
+    [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    ${TEST NAME}
+
+33_Validate_Declared_Namespace_Matching_When_Enabled
+    [Documentation]    Validate XML files against XSD schemas (using
+    ...                namespace matching), where the XML namespace is
+    ...                merely declared in the XSD file.
+    ...
+    ...                When declared namespace matching is explicitly
+    ...                enabled, the XSD file should be selected as a
+    ...                match candidate.
+    # Set up test variables.
+    ${xml_folder} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_32/
+    # Import the library.
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
+    ${xml_validator} =    Get Library Instance    ${TEST NAME}
+    # Validate the XML files, explicitly enabling declared namespace matching.
+    ${errors}    ${csv_path}=    Run Keyword    ${TEST_NAME}.Validate Xml Files
+    ...                           ${xml_folder}
+    ...                           xsd_search_strategy=by_namespace
+    ...                           allow_declared_namespace_match=${True}
+    # Define the expected results.
+    ${expected_errors} =    Create Dictionary
+    ...                        file_name=declared_only.xml
+    # Validate the validation results are as expected.
+    Validate Xml Validation Result    ${errors}    ${expected_errors}
+    # Validate the CSV output.
+    Validate CSV    ${csv_path}    ${expected_errors}
+    # Teardown.
     [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    ${TEST NAME}
