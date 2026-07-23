@@ -630,6 +630,7 @@ The table lists the most commonly available attributes, though additional fields
 | [Overview of all integration tests](test/_doc/integration/overview.html) | User / Dev | Test documentation |
 | [How to - Running the unit tests](test/_doc/unit/README.md) | Dev | Testing (unit) |
 | [Overview of all unit tests](test/_doc/unit/overview.html) | Dev | Test documentation |
+| [How to - Running performance benchmarks](benchmarks/README.md) | Dev | Performance benchmarking |
 
 ---
 
@@ -847,6 +848,11 @@ the validation workflow:
 │   ├── lint.yml
 │   └── test.yml
 └── PULL_REQUEST_TEMPLATE.md
+benchmarks/                          # Performance benchmark harness
+├── README.md
+├── generate_fixtures.py
+├── run_benchmarks.py
+└── scenarios.json
 docs/                                # Robot Framework keyword documentation
 ├── XmlValidator.html
 src/                                 # Source code root

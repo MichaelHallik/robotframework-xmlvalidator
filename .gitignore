@@ -182,5 +182,7 @@ log.html
 output.xml
 report.html
 results
+benchmarks/_data/
+benchmarks/results/
 test/_data/unit/*
 .vscode/
