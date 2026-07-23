@@ -169,6 +169,14 @@ pip install robotframework-xmlvalidator
 pip install git+https://github.com/MichaelHallik/robotframework-xmlvalidator.git
 ```
 
+For stable releases, prefer installing from PyPI or from a version tag.
+The `main` branch may contain unreleased changes ahead of the latest
+PyPI release.
+
+```bash
+pip install git+https://github.com/MichaelHallik/robotframework-xmlvalidator.git@v2.1.1
+```
+
 ### Install using poetry
 
 If you use [poetry](https://python-poetry.org/), you can also clone and then run:
