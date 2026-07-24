@@ -48,6 +48,7 @@
     - [Example CSV output](#example-csv-output)
     - [Utilizing error facets](#utilizing-error-facets)
   - [Documentation](#documentation)
+  - [Performance benchmark reports](#performance-benchmark-reports)
   - [Contributing](#contributing)
     - [Introduction](#introduction-1)
     - [Environment setup](#environment-setup)
@@ -630,7 +631,38 @@ The table lists the most commonly available attributes, though additional fields
 | [Overview of all integration tests](test/_doc/integration/overview.html) | User / Dev | Test documentation |
 | [How to - Running the unit tests](test/_doc/unit/README.md) | Dev | Testing (unit) |
 | [Overview of all unit tests](test/_doc/unit/overview.html) | Dev | Test documentation |
-| [How to - Running performance benchmarks](benchmarks/README.md) | Dev | Performance benchmarking |
+
+---
+
+## Performance benchmark reports
+
+The project contains a small performance benchmark harness for tracking
+validation behavior across representative XML/XSD workloads.
+
+The latest generated Plotly trend reports are:
+
+| Scenario | Focus | Report |
+|----------|-------|--------|
+| `many-small-valid-namespace` | Many small valid XML files matched by namespace | [Trend report](benchmarks/results/many-small-valid-namespace/history.html) |
+| `many-small-invalid-few-errors` | Many small XML files with one validation error per file | [Trend report](benchmarks/results/many-small-invalid-few-errors/history.html) |
+| `many-small-valid-filename` | Many small valid XML files matched by filename | [Trend report](benchmarks/results/many-small-valid-filename/history.html) |
+| `few-large-valid-single-schema` | A few larger valid XML files validated against one shared XSD | [Trend report](benchmarks/results/few-large-valid-single-schema/history.html) |
+| `few-large-valid-single-schema-no-preparse` | Same larger valid-file workload without pre-parse sanity parsing | [Trend report](benchmarks/results/few-large-valid-single-schema-no-preparse/history.html) |
+
+The `few-large-invalid-many-errors` scenario is intentionally heavy and
+did not complete within the current local smoke-run window. That result
+is useful in itself: it identifies high-volume validation-error
+collection as an area for further performance investigation.
+
+For details on generating fixtures, running benchmarks and creating
+reports, use the dedicated benchmark tooling maintained outside this
+public project repository.
+
+For comparable trend data:
+
+- use all-scenario runs only for quick exploratory checks;
+- run scenarios separately and sequentially for comparable trend data;
+- treat pathological or intentionally heavy scenarios separately.
 
 ---
 
@@ -848,11 +880,8 @@ the validation workflow:
 │   ├── lint.yml
 │   └── test.yml
 └── PULL_REQUEST_TEMPLATE.md
-benchmarks/                          # Performance benchmark harness
-├── README.md
-├── generate_fixtures.py
-├── run_benchmarks.py
-└── scenarios.json
+benchmarks/                          # Published performance benchmark reports
+└── results/
 docs/                                # Robot Framework keyword documentation
 ├── XmlValidator.html
 src/                                 # Source code root

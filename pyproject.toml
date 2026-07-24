@@ -40,6 +40,7 @@ pytest-cov = "^4.1.0"
 
 # Define the build-system to build the package.
 pyperf = "^2.10.0"
+plotly = "^6.9.0"
 [build-system]
 requires = ["poetry-core"] # Poetry uses poetry-core instead of setuptools.
 build-backend = "poetry.core.masonry.api" # The Poetry module which handles package building and dependency resolution.
