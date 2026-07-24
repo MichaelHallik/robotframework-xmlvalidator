@@ -7,6 +7,11 @@
         test.yml
         update_pepy_badge.yml
     PULL_REQUEST_TEMPLATE.md
+benchmarks
+    README.md
+    generate_fixtures.py
+    run_benchmarks.py
+    scenarios.json
 docs
     ...
     XmlValidator.html

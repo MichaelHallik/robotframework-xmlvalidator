@@ -12,19 +12,24 @@ For general project info, setup instructions, and usage examples, see the [READM
 - Suggest a possible fix or enhancement if you have one.
 
 ### 2. Submitting Code Changes
-#### Step 1: Fork & Clone
-- Fork this repository.
-- Clone your fork:  
+#### Step 1: Fork, clone & branch
+- If you are an external contributor, fork this repository first.
+- Clone your fork:
   ```sh
-  git clone https://github.com/MichaelHallik/robotframework-xmlvalidator.git
+  git clone https://github.com/<your-github-username>/robotframework-xmlvalidator.git
   ```
 - Navigate into the directory:
   ```sh
-  cd your-repo
+  cd robotframework-xmlvalidator
+  ```
+- If you have maintainer write access, you may instead clone the canonical repository directly:
+  ```sh
+  git clone https://github.com/MichaelHallik/robotframework-xmlvalidator.git
+  cd robotframework-xmlvalidator
   ```
 - Create a new branch for your feature/fix:
   ```sh
-  git checkout -b feature/schema-validation
+  git switch -c feature/schema-validation
   ```
   Use clear, descriptive branch names. Suggested prefixes:
   - `feature/<short-description>` for new features
@@ -35,10 +40,21 @@ For general project info, setup instructions, and usage examples, see the [READM
 #### Step 2: Code & Test
 - Follow the existing code structure and style.
 - Ensure your code is well-documented.
-- Run `pylint` and `pyright` on the code.
-- Make sure all unit tests pass before committing.  
+- Run linting, formatting and typing checks before committing:
+  ```sh
+  poetry run pylint src
+  poetry run black src --check
+  poetry run pyright --project pyrightconfig.json
+  ```
+- Make sure all unit tests pass before committing:
+  ```sh
+  poetry run python -m pytest test/unit
+  ```
   See `test/_doc/unit/README.md` for details.
-- Make sure all integration tests pass before committing.  
+- Make sure all integration tests pass before committing:
+  ```sh
+  poetry run python -m robot --outputdir results --exclude git-exclude test/integration
+  ```
   See `test/_doc/integration/README.md` for details.
 
 #### Step 3: Commit & Push
@@ -46,9 +62,9 @@ For general project info, setup instructions, and usage examples, see the [READM
   ```sh
   git commit -m "Add feature XYZ."
   ```
-- Push to your fork:
+- Push the branch to your fork, or to the canonical repository if you are a maintainer:
   ```sh
-  git push origin feature-branch
+  git push -u origin feature/schema-validation
   ```
 
 #### Step 4: Open a Pull Request (PR)

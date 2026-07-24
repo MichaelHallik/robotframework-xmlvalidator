@@ -10,13 +10,13 @@ flowchart TD
     C[Checkout Repository]
     C --> D[Set Up Python]
     D --> E[Cache Poetry Dependencies]
-    E --> F[Install Dependencies]
+    E --> F[Install Python Packages]
     F --> G[Show Poetry Configuration]
     G --> H[Add Poetry 'bin' Dir To PATH]
     H --> I[Log sys.path]
-    I --> J[Run Unit Tests]
-    J --> K[Install pytest Annotation Plugin]
-    K --> L[Upload Coverage Report]
+    I --> J[Install pytest Annotation Plugin]
+    J --> K[Run Unit Tests]
+    K --> L[Upload Coverage Reports]
     L --> M[Ensure 'results' Dir exists]
     M --> N[Run Integration Tests]
     N --> O[Upload Test Report]
@@ -29,7 +29,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[Trigger: push or PR to main/master] --> B[Job: lint - ubuntu-latest]
+  A[Trigger: push or PR to main] --> B[Job: lint - ubuntu-latest]
   B --> C
 
   subgraph StepGroup [ ]
