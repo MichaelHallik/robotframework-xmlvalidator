@@ -785,11 +785,35 @@ GitHub Actions CI is defined under [.github/workflows/](.github/workflows/), in 
 - [test.yml](.github/workflows/test.yml): Runs unit and integration tests.
 - [lint.yml](.github/workflows/lint.yml): Runs pylint and pyright.
 
-The test workflow:
+The CI workflows:
 
-![Workflow diagram for the robotframework-xmlvalidator project](./docs/images/test_workflow.JPG)
-  
-In [.github/](.github/) you’ll also find the various contribution templates:
+```mermaid
+flowchart TD
+  A[Push or pull request to main] --> B[Run Unit And Integration Tests]
+  A --> C[Lint Code]
+
+  B --> B1[Checkout repository]
+  B1 --> B2[Set up Python 3.10]
+  B2 --> B3[Cache Poetry dependencies]
+  B3 --> B4[Install Python packages]
+  B4 --> B5[Show Poetry configuration]
+  B5 --> B6[Add Poetry bin directory to PATH]
+  B6 --> B7[Log Python import path]
+  B7 --> B8[Install pytest annotation plugin]
+  B8 --> B9[Run unit tests with coverage]
+  B9 --> B10[Upload coverage reports]
+  B10 --> B11[Create results directory]
+  B11 --> B12[Run Robot Framework integration tests]
+  B12 --> B13[Upload Robot Framework test report]
+
+  C --> C1[Checkout repository]
+  C1 --> C2[Set up Python 3.10]
+  C2 --> C3[Install dependencies]
+  C3 --> C4[Run Pylint]
+  C4 --> C5[Run Pyright]
+```
+
+In [.github/](.github/) you'll also find the various contribution templates:
 
 - [Bug reports](.github/ISSUE_TEMPLATE/bug_report.md)
 - [Feature requests](.github/ISSUE_TEMPLATE/feature_request.md)
