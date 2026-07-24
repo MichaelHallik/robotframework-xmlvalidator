@@ -186,8 +186,6 @@ benchmarks/*
 test/_data/unit/*
 .vscode/
 
-# Benchmark HTML reports are intentionally trackable.
-!benchmarks/results/
-benchmarks/results/**
-!benchmarks/results/**/
-!benchmarks/results/**/*.html
+# Published benchmark reports for GitHub Pages.
+!docs/benchmarks/
+!docs/benchmarks/*.html

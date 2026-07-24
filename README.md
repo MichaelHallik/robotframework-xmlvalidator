@@ -52,14 +52,15 @@
   - [Contributing](#contributing)
     - [Introduction](#introduction-1)
     - [Environment setup](#environment-setup)
-      - [Clone the repo and navigate into it:](#clone-the-repo-and-navigate-into-it)
+      - [Fork, clone and navigate into the repo](#fork-clone-and-navigate-into-the-repo)
       - [Install using Poetry:](#install-using-poetry-1)
-      - [Activate the virtual environment:](#activate-the-virtual-environment)
+      - [Run commands in the Poetry environment](#run-commands-in-the-poetry-environment)
     - [Running tests](#running-tests)
       - [Unit tests (pytest)](#unit-tests-pytest)
       - [Integration tests (Robot Framework)](#integration-tests-robot-framework)
     - [Code quality checks](#code-quality-checks)
       - [Linting](#linting)
+      - [Formatting](#formatting)
       - [Typing](#typing)
     - [Running all tests and checks](#running-all-tests-and-checks)
     - [Continuous Integration \& GitHub templates](#continuous-integration--github-templates)
@@ -621,7 +622,7 @@ The table lists the most commonly available attributes, though additional fields
 | [CONTRIBUTING](CONTRIBUTING.md) | Dev | Contribute |
 | [Mermaid diagram of GitHub Actions](docs/images/github_actions.md) | Dev | CI, GitHub Actions |
 | [License](LICENSE) | All | Legal usage terms |
-| [Make file](Makefile) | Dev | Automation, commands |
+| [Makefile](Makefile) | Dev | Automation, commands |
 | [Project Structure](project_structure.txt) | Dev | Project layout |
 | [Dependencies - pyproject.toml](pyproject.toml) | Dev | Build config, dependencies |
 | [pyright configuration](pyrightconfig.json) | Dev | Static typing |
@@ -643,11 +644,11 @@ The latest generated Plotly trend reports are:
 
 | Scenario | Focus | Report |
 |----------|-------|--------|
-| `many-small-valid-namespace` | Many small valid XML files matched by namespace | [Trend report](benchmarks/results/many-small-valid-namespace/history.html) |
-| `many-small-invalid-few-errors` | Many small XML files with one validation error per file | [Trend report](benchmarks/results/many-small-invalid-few-errors/history.html) |
-| `many-small-valid-filename` | Many small valid XML files matched by filename | [Trend report](benchmarks/results/many-small-valid-filename/history.html) |
-| `few-large-valid-single-schema` | A few larger valid XML files validated against one shared XSD | [Trend report](benchmarks/results/few-large-valid-single-schema/history.html) |
-| `few-large-valid-single-schema-no-preparse` | Same larger valid-file workload without pre-parse sanity parsing | [Trend report](benchmarks/results/few-large-valid-single-schema-no-preparse/history.html) |
+| `many-small-valid-namespace` | Many small valid XML files matched by namespace | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-namespace.html) |
+| `many-small-invalid-few-errors` | Many small XML files with one validation error per file | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-invalid-few-errors.html) |
+| `many-small-valid-filename` | Many small valid XML files matched by filename | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-filename.html) |
+| `few-large-valid-single-schema` | A few larger valid XML files validated against one shared XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema.html) |
+| `few-large-valid-single-schema-no-preparse` | Same larger valid-file workload without pre-parse sanity parsing | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema-no-preparse.html) |
 
 The `few-large-invalid-many-errors` scenario is intentionally heavy and
 did not complete within the current local smoke-run window. That result
@@ -672,20 +673,41 @@ For comparable trend data:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The overall process:
+The usual external-contributor workflow is:
 
-![Contributing to robotframework-xmlvalidator](./docs/images/contributing.JPG)
+```mermaid
+flowchart TD
+  A[Fork repository] --> B[Clone your fork]
+  B --> C[Create feature branch]
+  C --> D[Code, test and commit]
+  D --> E[Push branch to fork]
+  E --> F[Open pull request to main]
+  F --> G[GitHub Actions run]
+
+  G -->|Pass| H[Code review]
+  G -->|Fail| L[Push fixes to branch]
+  L --> G
+
+  H -->|Approved| I[PR merged into main]
+  H -->|Changes requested| L
+```
 
 This project uses Poetry for dependency and packaging management.
 
 ### Environment setup
 
-#### Clone the repo and navigate into it:
+#### Fork, clone and navigate into the repo
+
+External contributors should fork the repository first and then clone
+their fork:
 
 ```
-git clone https://github.com/MichaelHallik/robotframework-xmlvalidator.git
+git clone https://github.com/<your-github-username>/robotframework-xmlvalidator.git
 cd robotframework-xmlvalidator
 ```
+
+Maintainers with write access may clone the canonical repository
+directly and create a feature branch there.
 
 #### Install using Poetry:
 
@@ -693,57 +715,63 @@ cd robotframework-xmlvalidator
 poetry install
 ```
 
-#### Activate the virtual environment:
+#### Run commands in the Poetry environment:
 
 ```
-poetry shell
+poetry run <command>
 ```
 
-Or, if you use a different virt environment, activate that.
+If you prefer an activated shell, use your normal virtual-environment
+workflow. With newer Poetry versions, `poetry shell` may require the
+separate Poetry shell plugin.
 
 ### Running tests
 
-Use standard Python commands, poetry or the provided [Make file](Makefile).
+Use Poetry commands or the provided [Makefile](Makefile).
 
 #### Unit tests (pytest)
 
 ```
-pytest test/unit/
-poetry run pytest test/unit/
-make test
+poetry run python -m pytest test/unit
+make unit
 ```
 
 #### Integration tests (Robot Framework)
 
 ```
-robot -d ./Results test/integration
-poetry run robot -d ./Results test/integration
+poetry run python -m robot --outputdir results --exclude git-exclude test/integration
 make robot
 ```
 
 ### Code quality checks
 
-Use standard Python commands, poetry or the provided [Make file](Makefile).
+Use Poetry commands or the provided [Makefile](Makefile).
 
 #### Linting
 
 ```
-pylint src/ --exit-zero
-poetry run pylint src/ --exit-zero
+poetry run pylint src
 make lint
+```
+
+#### Formatting
+
+```
+poetry run black src --check
+make format
 ```
 
 #### Typing
 
 ```
-pyright --project pyrightconfig.json || exit 0
-poetry run pyright --project pyrightconfig.json || exit 0
+poetry run pyright --project pyrightconfig.json
 make type
 ```
 
 ### Running all tests and checks
 
-Use the provided [Make file](Makefile).
+Use the provided [Makefile](Makefile).
+
 ```
 make check
 ```
@@ -752,10 +780,10 @@ make check
 
 This project uses **GitHub Actions** for automated testing and linting.
 
-GitHub Actions CI is defined under [github/workflows/](.github/workflows/), in particular:
+GitHub Actions CI is defined under [.github/workflows/](.github/workflows/), in particular:
 
 - [test.yml](.github/workflows/test.yml): Runs unit and integration tests.
-- [lint.yml](.github/workflows/lint.yml): Enforces coding standards using linting tools (pylint, pyright, black).
+- [lint.yml](.github/workflows/lint.yml): Runs pylint and pyright.
 
 The test workflow:
 
@@ -880,10 +908,10 @@ the validation workflow:
 │   ├── lint.yml
 │   └── test.yml
 └── PULL_REQUEST_TEMPLATE.md
-benchmarks/                          # Published performance benchmark reports
-└── results/
 docs/                                # Robot Framework keyword documentation
 ├── XmlValidator.html
+├── benchmarks/                      # Published performance benchmark reports
+│   └── *.html
 src/                                 # Source code root
 └── xmlvalidator/
     ├── __init__.py

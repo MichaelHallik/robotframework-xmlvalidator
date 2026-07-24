@@ -1,15 +1,16 @@
 ```mermaid
 flowchart TD
-  A[Fork repo] --> B[Create feature branch]
-  B --> C[Code, test & commit]
-  C --> D[Push to fork]
-  D --> E[Open pull request to main]
-  E --> F[GitHub Actions run]
+  A[Fork repository] --> B[Clone your fork]
+  B --> C[Create feature branch]
+  C --> D[Code, test and commit]
+  D --> E[Push branch to fork]
+  E --> F[Open pull request to main]
+  F --> G[GitHub Actions run]
 
-  F -->|✅ Pass| G[Code review]
-  F -->|❌ Fail| L[Push changes to branch]
-  L --> F
+  G -->|Pass| H[Code review]
+  G -->|Fail| L[Push fixes to branch]
+  L --> G
 
-  G -->|✅ Approved| H[PR merged into main]
-  G -->|❌ Changes requested| L
+  H -->|Approved| I[PR merged into main]
+  H -->|Changes requested| L
 ```
