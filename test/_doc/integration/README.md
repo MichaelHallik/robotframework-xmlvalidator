@@ -1,5 +1,18 @@
 # Execute all test suites in a Folder
 
+## Project default
+
+For this project, the normal integration-test command is:
+
+```bash
+python -m robot -e git-exclude -d results/integration test/integration
+```
+
+The `git-exclude` tag marks tests that are intentionally excluded from
+the default local/CI integration run. These tests exercise edge cases
+that are useful during manual investigation, but are not treated as part
+of the standard regression gate.
+
 ## Syntax
 robot path/to/folder
 

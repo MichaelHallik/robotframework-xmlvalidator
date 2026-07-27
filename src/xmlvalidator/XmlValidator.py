@@ -16,12 +16,17 @@
 
 """
 This module defines the `XmlValidator` class — a Robot Framework test
-library for validating XML files against XSD schemas using the
-`xmlschema` library.
+library for validating XML files against XSD schemas.
 
 The validator supports both individual and batch validation workflows,
 with comprehensive error reporting and optional export to structured
 CSV files.
+
+XSD validation can use either lxml's fast C-backed validator or
+xmlschema's richer Python validation engine. The default ``auto``
+backend uses lxml when possible and falls back to xmlschema. Users can
+force the legacy xmlschema validation path with
+``validation_backend=xmlschema``.
 
 Key Features:
 
@@ -34,8 +39,7 @@ Key Features:
 - Graceful handling of malformed XML or XSD files.
 - Optional export of all collected errors to a CSV file.
 
-This module is intended to be imported by Robot Framework test suites
-or executed as a Python module via a direct call.
+This module is intended to be imported by Robot Framework test suites.
 """
 
 # pylint: disable=C0103:invalid-name    # On account of the module name, that is not snake-cased (required by Robot Framework).
@@ -60,7 +64,11 @@ from .paths import get_file_paths
 from .results import ValidatorResultRecorder
 from .schema.manager import ValidatorSchemaManager
 from .schema.resolver import ValidatorSchemaResolver
-from .validation import XmlValidationRunner
+from .validation import (
+    ValidationBackend,
+    XmlValidationRunner,
+    validate_validation_backend
+)
 
 
 @library(scope='GLOBAL', version=__version__, doc_format="REST")
@@ -70,8 +78,9 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     test library for validating XML files against XSD schemas.
 
     The library leverages the power of the
-    `xmlschema library <https://pypi.org/project/xmlschema/>`_ and is
-    designed for both single-file and batch XML validation workflows.
+    `xmlschema library <https://pypi.org/project/xmlschema/>`_ and
+    `lxml <https://pypi.org/project/lxml/>`_ and is designed for both
+    single-file and batch XML validation workflows.
 
     It provides structured and detailed reporting of XML parse errors
     (malformed XML content) and XSD violations, dynamic schema resolution
@@ -85,7 +94,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     The main keyword is ``Validate Xml Files``.
 
     The other keywords are convenience/helper functions, e.g. ``Reset
-    Error Facets``.
+    Error Facets`` and ``Set Validation Backend``.
 
     The ``Validate Xml Files`` validates one or more XML files against
     one or more XSD schema files and collects and reports all
@@ -229,16 +238,14 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     by error facets that are passed at the test case level, when calling
     the ``Validate Xml Files`` keyword.
 
-    The values you can pass through the `error_facets` argument are
-    based on the attributes of the error objects as returned by the
-    XMLSchema.iter_errors() method, that is provided by the xmlschema
-    library and the xmlvalidator library leverages. Said method yields
-    instances of
-    xmlschema.validators.exceptions.XMLSchemaValidationError (or its
-    subclasses), each representing a specific validation issue
-    encountered in an XML file. These error objects expose various
-    attributes that describe the nature, location, and cause of the
-    problem.
+    For XSD validation errors, the default ``auto`` backend normally
+    collects these details from lxml's C-backed validation error log,
+    because that is much faster for large invalid XML files. If lxml
+    cannot compile a schema, the library falls back to xmlschema's
+    ``XMLSchema.iter_errors()`` method. To force the
+    pre-performance-refactor xmlschema diagnostics path, use
+    ``validation_backend=xmlschema``. Available facets may therefore
+    vary slightly by error type and validation backend.
 
     The table lists the most commonly available attributes, though
     additional fields may be available depending on the type of
@@ -284,7 +291,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
 	.. code:: robotframework
 
 		*** Settings ***
-		Library    XmlValidator    xsd_path=path/to/default/schema.xsd
+		Library    xmlvalidator    xsd_path=path/to/default/schema.xsd
 
 		*** Variables ***
 		${SINGLE_XML_FILE}                path/to/file1.xml
@@ -418,6 +425,9 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         """
         Sets the currently loaded schema on the schema manager.
         """
+        if value is None:
+            self.schema_manager.reset_schema()
+            return
         self.schema_manager.schema = value
 
     def __init__(
@@ -426,6 +436,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         base_url: str | None = None,
         error_facets: list[str] | None = None,
         fail_on_errors: bool = True,
+        validation_backend: ValidationBackend = "auto",
     ) -> None:
         """
         **Library Scope**
@@ -448,6 +459,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         +----------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
         | fail_on_errors | bool        | No       | Whether to fail the test case if one or more XML validation errors are found.               | True           |
         |                |             |          | Can be overridden per keyword call.                                                         |                |
+        +----------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
+        | validation_backend | str     | No       | Validation backend: ``auto``, ``lxml`` or ``xmlschema``.                                    | auto           |
         +----------------+-------------+----------+---------------------------------------------------------------------------------------------+----------------+
 
         All arguments are optional.
@@ -504,7 +517,17 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         See the introduction for more details on the purpose and usage
         of error facets.
 
-        ``fail_on_error``
+        ``validation_backend``
+
+        Controls which backend performs XSD validation:
+
+        - ``auto``: use lxml's fast C-backed validator when possible,
+          with xmlschema fallback.
+        - ``lxml``: require lxml validation.
+        - ``xmlschema``: use xmlschema's ``iter_errors()`` path,
+          preserving the pre-performance-refactor diagnostic behavior.
+
+        ``fail_on_errors``
 
         The ``fail_on_errors`` argument controls whether a test case
         should fail if one or more XML validation errors are detected.
@@ -523,7 +546,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         - Schema discovery or diagnostics, where conformance is not yet enforced.
         - Soft rollout of stricter validation rules, allowing time to adapt.
 
-        Note that with ``fail_on_error=True`` the library's batch
+        Note that with ``fail_on_errors=True`` the library's batch
         validation behavior remains unchanged by the latter. That is,
         fail_on_errors=True does not short-circuit the validation
         process in any way.
@@ -585,7 +608,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         | SystemError   | Raised if loading the specified XSD schema fails due to an   |
         |               | invalid or unreadable file.                                  |
         +---------------+--------------------------------------------------------------+
-        | IOError       | Raised if the XSD file cannot be accessed due to file        |
+        | OSError       | Raised if the XSD file cannot be accessed due to file        |
         |               | system restrictions.                                         |
         +---------------+--------------------------------------------------------------+
         """
@@ -594,6 +617,9 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         self.schema_resolver = ValidatorSchemaResolver(self.schema_manager)
         self.validation_runner = XmlValidationRunner(self.schema_manager)
         self.validator_results = ValidatorResultRecorder()
+        self.validation_backend: ValidationBackend = validate_validation_backend(
+            validation_backend
+        )
         # Initialize the xsd schema from the xsd_path, if provided.
         self.schema = self.schema_manager.try_load_initial_schema(
             xsd_path=xsd_path, base_url=base_url
@@ -604,6 +630,10 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         ]
         logger.info(
             f"Collecting error facets: {self.error_facets}.",
+            also_console=True
+        )
+        logger.info(
+            f"Using validation backend: {self.validation_backend}.",
             also_console=True
         )
         # Set the validation strictness.
@@ -640,6 +670,37 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         A list of active error facets, e.g. ["path", "reason"].
         """
         return self.error_facets
+
+    @keyword
+    def get_validation_backend(self) -> ValidationBackend:
+        """
+        Returns the currently configured default validation backend.
+
+        The returned value is one of ``auto``, ``lxml`` or ``xmlschema``.
+
+        This value is used by ``Validate Xml Files`` unless that keyword
+        call provides its own ``validation_backend`` argument.
+        """
+        return self.validation_backend
+
+    @keyword
+    def set_validation_backend(
+        self,
+        validation_backend: ValidationBackend
+    ) -> None:
+        """
+        Sets the default backend used by subsequent validation runs.
+
+        Accepted values are ``auto``, ``lxml`` and ``xmlschema``.
+
+        The setting affects later ``Validate Xml Files`` calls unless a
+        specific call provides its own ``validation_backend`` argument.
+        """
+        self.validation_backend = validate_validation_backend(validation_backend)
+        logger.info(
+            f"Validation backend set to: {self.validation_backend}.",
+            also_console=True
+        )
 
     @keyword
     def get_schema(self,return_schema_name: bool = True
@@ -770,7 +831,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         fail_on_errors: bool | None = None,
         error_table: bool | None = True,
         allow_declared_namespace_match: bool = False,
-        skip_none_error_facets: bool = False
+        skip_none_error_facets: bool = False,
+        validation_backend: ValidationBackend | None = None
         ) -> tuple[
             list[dict[str, Any]],
             str | None
@@ -882,6 +944,14 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         the collected error dictionaries. Facets without an available
         value are reported as ``Unavailable``.
 
+        ``validation_backend``
+
+        Backend used for XSD validation. Use ``auto`` for the fast lxml
+        path with xmlschema fallback, ``lxml`` to require lxml, or
+        ``xmlschema`` to preserve the pre-performance-refactor
+        xmlschema ``iter_errors()`` behavior. Defaults to the backend
+        configured during library import.
+
         ``pre_parse``
 
         If True, performs well-formedness checks on all XML/XSD files
@@ -945,7 +1015,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         For instance if the passed ``xml_path`` is non-existing, points
         to a non-xml file or points to an empty folder.
 
-        ``IOError``
+        ``OSError``
 
         If writing the CSV file fails due to filesystem restrictions.
         """
@@ -957,6 +1027,11 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             fail_on_errors \
                 if fail_on_errors is not None \
                     else self.fail_on_errors
+        )
+        effective_validation_backend = (
+            validate_validation_backend(validation_backend)
+            if validation_backend is not None
+            else self.validation_backend
         )
         # Determine and resolve/normalize the XML file path(s).
         xml_file_paths, is_single_xml_file = (
@@ -978,7 +1053,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             base_url,
             error_facets,
             pre_parse,
-            skip_none_error_facets
+            skip_none_error_facets,
+            effective_validation_backend
         )
         # Export, report and return the completed validation results.
         return self._finalize_validation_run(
@@ -996,7 +1072,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         base_url: str | None = None,
         error_facets: list[str] | None = None,
         pre_parse: bool = True,
-        skip_none_error_facets: bool = False
+        skip_none_error_facets: bool = False,
+        validation_backend: ValidationBackend = "auto"
     ) -> None:
         """
         Executes a prepared XML-to-XSD validation plan.
@@ -1020,7 +1097,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
                 error_facets=error_facets,
                 default_error_facets=self.error_facets,
                 pre_parse=pre_parse,
-                skip_none_error_facets=skip_none_error_facets
+                skip_none_error_facets=skip_none_error_facets,
+                validation_backend=validation_backend
                 )
             # Process the validation results.
             if is_valid:

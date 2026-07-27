@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=I1101:c-extension-no-member
+
 """
 Provides schema-loading and schema-state management for XmlValidator.
 
@@ -27,6 +29,7 @@ schemas.
 from pathlib import Path
 
 # Third party library imports.
+from lxml import etree
 from robot.api import logger
 from xmlschema import XMLSchema
 
@@ -50,6 +53,18 @@ class ValidatorSchemaManager:
         Initializes a ValidatorSchemaManager instance.
         """
         self.schema: XMLSchema | None = None
+        self.schema_path: Path | None = None
+        self.schema_base_url: str | None = None
+        self._lxml_schema_cache: dict[tuple[Path, str | None], etree.XMLSchema] = {}
+
+    def reset_schema(self) -> None:
+        """
+        Clears loaded schema state and compiled schema caches.
+        """
+        self.schema = None
+        self.schema_path = None
+        self.schema_base_url = None
+        self._lxml_schema_cache.clear()
 
     def ensure_schema(
         self,
@@ -95,13 +110,45 @@ class ValidatorSchemaManager:
         ValidatorResult instead of being raised directly.
         """
         try:
+            resolved_xsd_path = xsd_path.resolve()
             self.schema = XMLSchema(xsd_path, base_url=base_url)
+            self.schema_path = resolved_xsd_path
+            self.schema_base_url = base_url
             return ValidatorResult(success=True, value=self.schema)
         except Exception as e: # pylint: disable=W0718:broad-exception-caught
             return ValidatorResult(
                 success=False,
                 error={type(e).__name__: e}
             )
+
+    def get_lxml_schema(
+        self,
+        xsd_path: Path | None = None,
+        base_url: str | None = None
+    ) -> etree.XMLSchema | None:
+        """
+        Returns a cached lxml schema for high-throughput validation.
+
+        The xmlschema package remains the source of truth for schema
+        loading and metadata, but lxml's C-backed XMLSchema validator is
+        much faster for large invalid XML documents with many validation
+        errors. If lxml cannot compile the schema, None is returned so
+        callers can fall back to xmlschema-based validation.
+        """
+        schema_path = xsd_path.resolve() if xsd_path else self.schema_path
+        schema_base_url = base_url if xsd_path else self.schema_base_url
+        if schema_path is None:
+            return None
+
+        cache_key = (schema_path, schema_base_url)
+        if cache_key not in self._lxml_schema_cache:
+            try:
+                self._lxml_schema_cache[cache_key] = etree.XMLSchema(
+                    etree.parse(str(schema_path))
+                )
+            except (OSError, etree.LxmlError):
+                return None
+        return self._lxml_schema_cache[cache_key]
 
     def try_load_initial_schema(
         self,

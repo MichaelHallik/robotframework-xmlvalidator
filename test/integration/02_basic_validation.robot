@@ -63,12 +63,74 @@ Variables    teardown_vars.py
     # Define the expected results.
     ${expected_errors} =    Create Dictionary    
     ...                        file_name=08_invalid_test.xml
-    ...                        path=/root
+    ...                        path=/root/wrongChild
     ...                        reason=Unexpected child with tag 'wrongChild' at position 1. Tag 'child' expected. 
     # Validate the returned errors list.
     Validate Xml Validation Result    ${errors}    ${expected_errors}
     # Validate the created CSV file.
     Validate CSV    ${csv_path}    ${expected_errors}
+    # Teardown.
+    ${xml_validator} =    Get Library Instance    ${TEST NAME}
+    [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    ${TEST NAME}
+
+08_Validate_Single_Invalid_XML_With_Xmlschema_Backend
+    [Documentation]    Validate that the xmlschema backend preserves the
+    ...                legacy xmlschema validation diagnostics path.
+    ...
+    ...                The same invalid XML/XSD pair as the previous
+    ...                test is used, but the expected path is the legacy
+    ...                xmlschema-style parent element path.
+    # Set up test variables.
+    ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_08/08_test_schema.xsd
+    ${xml_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_08/08_invalid_test.xml
+    # Import the library and call the keyword with the xmlschema backend.
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
+    ${errors}    ${csv_path}=    Run Keyword
+    ...    ${TEST_NAME}.Validate Xml Files
+    ...    ${xml_path}
+    ...    ${xsd_path}
+    ...    validation_backend=xmlschema
+    ...    write_to_csv=${False}
+    # Define the expected legacy xmlschema result.
+    ${expected_errors} =    Create Dictionary
+    ...                        file_name=08_invalid_test.xml
+    ...                        path=/root
+    ...                        reason=Unexpected child with tag 'wrongChild' at position 1. Tag 'child' expected.
+    # Validate the returned errors list.
+    Validate Xml Validation Result    ${errors}    ${expected_errors}
+    # Teardown.
+    ${xml_validator} =    Get Library Instance    ${TEST NAME}
+    [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    ${TEST NAME}
+
+08_Set_Validation_Backend_Then_Validate_Single_Invalid_XML
+    [Documentation]    Validate that Set Validation Backend changes the
+    ...                default backend used by later validation calls.
+    ...
+    ...                The same invalid XML/XSD pair is used to verify that
+    ...                Get Validation Backend returns the updated value and
+    ...                that Validate Xml Files uses that value when no
+    ...                keyword-level validation_backend argument is passed.
+    # Set up test variables.
+    ${xsd_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_08/08_test_schema.xsd
+    ${xml_path} =    Set Variable    ${EXECDIR}/test/_data/integration/TC_08/08_invalid_test.xml
+    # Import the library and set the default backend through the convenience keyword.
+    Import Library    xmlvalidator    fail_on_errors=${False}    AS    ${TEST_NAME}
+    Run Keyword    ${TEST_NAME}.Set Validation Backend    xmlschema
+    ${backend}=    Run Keyword    ${TEST_NAME}.Get Validation Backend
+    Should Be Equal    ${backend}    xmlschema
+    # Validate without a keyword-level backend override.
+    ${errors}    ${csv_path}=    Run Keyword
+    ...    ${TEST_NAME}.Validate Xml Files
+    ...    ${xml_path}
+    ...    ${xsd_path}
+    ...    write_to_csv=${False}
+    # Define the expected xmlschema backend result.
+    ${expected_errors} =    Create Dictionary
+    ...                        file_name=08_invalid_test.xml
+    ...                        path=/root
+    ...                        reason=Unexpected child with tag 'wrongChild' at position 1. Tag 'child' expected.
+    # Validate the returned errors list.
+    Validate Xml Validation Result    ${errors}    ${expected_errors}
     # Teardown.
     ${xml_validator} =    Get Library Instance    ${TEST NAME}
     [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    ${TEST NAME}
@@ -136,7 +198,7 @@ Variables    teardown_vars.py
     # Define the expected results.
     ${expected_errors_1} =    Create Dictionary
     ...                        file_name=11_invalid_test_1.xml
-    ...                        path=/root
+    ...                        path=/root/wrongChild
     ...                        reason=Unexpected child with tag 'wrongChild' at position 1. Tag 'child' expected.
     ${expected_errors_2} =    Create Dictionary    
     ...                        file_name=11_invalid_test_2.xml

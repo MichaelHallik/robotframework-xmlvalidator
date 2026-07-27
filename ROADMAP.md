@@ -8,7 +8,10 @@ Want to contribute or suggest a feature? Feel free to open an issue or join the 
 
 ## In progress / near-term
 
-- Currently none.
+- Continue performance hardening based on benchmark evidence.
+  - Keep validating the new lxml-backed validation path against real-world XML/XSD workloads.
+  - Preserve the explicit `validation_backend=xmlschema` option for users who need the legacy xmlschema diagnostics path.
+  - Use benchmark trend reports to guide further optimization work.
 
 ## Planned / future
 
@@ -37,10 +40,10 @@ We should investigate and benchmark performance on realistic XML/XSD workloads a
 
 The following candidate performance enhancements should be evaluated with benchmarks before implementation.
 
-- Cache compiled XSD schemas.
-  - `xmlschema.XMLSchema(...)` compilation is likely one of the more expensive repeated operations.
-  - Namespace-based schema matching currently loads candidate schemas while searching for matches.
-  - A schema cache keyed by XSD path and `base_url` could avoid recompiling the same schema multiple times during batch validation.
+- Extend schema caching where it proves useful.
+  - The lxml-backed validation path now caches compiled lxml schemas by XSD path and `base_url`.
+  - Further benchmarking should determine whether additional caching around `xmlschema.XMLSchema(...)` or namespace-matching metadata is worthwhile.
+  - Namespace-based schema matching may still load candidate schemas while searching for matches.
 
 - Pre-index schema metadata for dynamic namespace matching.
   - Instead of loading and checking every candidate XSD for every XML file, load each schema once and build an index of:
@@ -95,8 +98,8 @@ The following candidate performance enhancements should be evaluated with benchm
   - XML files in a batch are often independent and could theoretically be validated in parallel.
   - This is a larger design change because schema caching, Robot Framework logging, deterministic output ordering, and error aggregation would need careful handling.
 
-- Add benchmark tests and performance regression checks.
-  - Before optimizing, create representative benchmark fixtures:
+- Maintain benchmark reports and consider automated performance regression checks.
+  - Representative benchmark fixtures should continue to cover:
     - small, medium, and large XML files
     - deeply nested XML files
     - many XML files with one schema
@@ -110,4 +113,4 @@ The following candidate performance enhancements should be evaluated with benchm
 
 ## Last updated
 
-2026-07-19
+2026-07-27

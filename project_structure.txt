@@ -7,13 +7,18 @@
         test.yml
         update_pepy_badge.yml
     PULL_REQUEST_TEMPLATE.md
-benchmarks
-    README.md
-    generate_fixtures.py
-    run_benchmarks.py
-    scenarios.json
 docs
-    ...
+    benchmarks
+        few-large-invalid-many-errors.html
+        few-large-valid-single-schema.html
+        few-large-valid-single-schema-no-preparse.html
+        many-small-invalid-few-errors.html
+        many-small-valid-filename.html
+        many-small-valid-namespace.html
+        scenario-comparison.html
+    images
+        CONTRIBUTING-diagram.md
+        github_actions.md
     XmlValidator.html
 src
     xmlvalidator
@@ -60,6 +65,7 @@ test
     demo
         demo.robot
     integration
+        00_helper_keywords.robot
         01_library_initialization.robot
         02_basic_validation.robot
         03_error_handling.robot

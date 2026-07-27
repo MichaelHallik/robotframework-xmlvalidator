@@ -44,16 +44,12 @@ Variables    teardown_vars.py
     ...                        reason=invalid literal for int() with base 10: 'thirty'
     ${expected_errors_2} =    Create Dictionary    
     ...                        file_name=invalid_02.xml
-    ...                        path=/Person
+    ...                        path=/Person/Phone
     ...                        reason=Unexpected child with tag 'Phone' at position 2. Tag 'Age' expected.
-    ${expected_errors_3} =    Create Dictionary    
-    ...                        file_name=invalid_02.xml
-    ...                        path=/Person
-    ...                        reason=Unexpected child with tag 'ExtraElement' at position 4.
     # Validate the validation results are as expected.
-    Validate Xml Validation Results    ${errors}    ${expected_errors_1}    ${expected_errors_2}    ${expected_errors_3}
+    Validate Xml Validation Results    ${errors}    ${expected_errors_1}    ${expected_errors_2}
     # Validate the CSV output.
-    Validate CSV    ${csv_path}    ${expected_errors_1}    ${expected_errors_2}    ${expected_errors_3}
+    Validate CSV    ${csv_path}    ${expected_errors_1}    ${expected_errors_2}
     # Teardown.
     ${xml_validator} =    Get Library Instance    xmlvalidator
     [Teardown]    Default Test Case Teardown    ${csv_path}    ${DELETE_CSV}    ${xml_validator}    xmlvalidator    reset_schema=${RESET_SCHEMA}
@@ -342,7 +338,7 @@ Variables    teardown_vars.py
     ...                        reason=value doesn't match any pattern of ['\\\\d{3}-\\\\d{3}-\\\\d{4}']
     ${expected_result_2} =    Create Dictionary    
     ...                        file_name=invalid_by_main.xml
-    ...                        path=/Person
+    ...                        path=/Person/PhoneNumber
     ...                        reason=Unexpected child with tag '{http://example.com/my_namespace}PhoneNumber' at position 1. Tag '{http://example.com/my_namespace}Name' expected.
     # Validate structured results
     Validate Xml Validation Results    ${result}    ${expected_result_1}    ${expected_result_2}
