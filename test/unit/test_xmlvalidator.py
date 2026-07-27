@@ -21,7 +21,7 @@ See for an overview of all tests the file test/_doc/unit/overview.html.
 # Standard library imports.
 import importlib
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 # Third-party library imports.
 import pytest
@@ -153,6 +153,74 @@ def test_init_creates_collaborator_objects_and_default_state():
         assert isinstance(validator.validation_runner, XmlValidationRunner)
         assert validator.schema is None
         assert validator.error_facets == ['path', 'reason']
+        assert validator.validation_backend == "auto"
+
+def test_init_accepts_custom_validation_backend():
+    """
+    Test that XmlValidator stores a valid custom validation backend.
+
+    Priority: H
+    """
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"):
+        validator = XmlValidator(validation_backend="xmlschema")
+        assert validator.validation_backend == "xmlschema"
+
+def test_init_rejects_unknown_validation_backend():
+    """
+    Test that XmlValidator rejects unsupported validation backends.
+
+    Priority: H
+    """
+    with pytest.raises(ValueError, match="Unsupported validation_backend"):
+        XmlValidator(validation_backend="unsupported") # type: ignore[arg-type]
+
+
+# get_validation_backend()
+
+
+def test_get_validation_backend_returns_current_default_backend():
+    """
+    Test that get_validation_backend() returns the current default backend.
+
+    Priority: M
+    """
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"):
+        validator = XmlValidator(validation_backend="xmlschema")
+
+    assert validator.get_validation_backend() == "xmlschema"
+
+
+# set_validation_backend()
+
+
+def test_set_validation_backend_updates_default_backend():
+    """
+    Test that set_validation_backend() updates the default backend.
+
+    Priority: H
+    """
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"):
+        validator = XmlValidator()
+        validator.set_validation_backend("lxml")
+
+    assert validator.validation_backend == "lxml"
+    assert validator.get_validation_backend() == "lxml"
+
+def test_set_validation_backend_rejects_unknown_backend():
+    """
+    Test that set_validation_backend() rejects unsupported backends.
+
+    Priority: H
+    """
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"):
+        validator = XmlValidator()
+
+    with pytest.raises(ValueError, match="Unsupported validation_backend"):
+        validator.set_validation_backend("unsupported") # type: ignore[arg-type]
 
 def test_init_logs_custom_error_facets():
     """
@@ -207,3 +275,144 @@ def test_init_propagates_initial_schema_file_access_error():
         side_effect=OSError("Permission denied")
     ), pytest.raises(OSError, match="Permission denied"):
         XmlValidator(xsd_path="restricted_schema.xsd")
+
+
+# validate_xml_files()
+
+
+def test_validate_xml_files_uses_keyword_backend_override():
+    """
+    Test that validate_xml_files() uses keyword-level backend overrides.
+
+    Priority: H
+    """
+    xml_path = Path("example.xml")
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"), \
+         patch.object(
+             xml_validator_module,
+             "get_file_paths",
+             return_value=([xml_path], True)
+         ):
+        validator = XmlValidator(validation_backend="lxml")
+        validator.schema_resolver.build_validation_plan = MagicMock(
+            return_value={xml_path: None}
+        )
+        validator._run_validation_plan = MagicMock() # pylint: disable=W0212
+        validator._finalize_validation_run = MagicMock( # pylint: disable=W0212
+            return_value=([], None)
+        )
+
+        result = validator.validate_xml_files(
+            xml_path,
+            validation_backend="xmlschema"
+        )
+
+    assert result == ([], None)
+    validator._run_validation_plan.assert_called_once_with( # pylint: disable=W0212
+        {xml_path: None},
+        None,
+        None,
+        True,
+        False,
+        "xmlschema"
+    )
+
+def test_validate_xml_files_uses_instance_backend_when_no_override():
+    """
+    Test that validate_xml_files() uses the instance backend by default.
+
+    Priority: H
+    """
+    xml_path = Path("example.xml")
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"), \
+         patch.object(
+             xml_validator_module,
+             "get_file_paths",
+             return_value=([xml_path], True)
+         ):
+        validator = XmlValidator(validation_backend="auto")
+        validator.set_validation_backend("lxml")
+        validator.schema_resolver.build_validation_plan = MagicMock(
+            return_value={xml_path: None}
+        )
+        validator._run_validation_plan = MagicMock() # pylint: disable=W0212
+        validator._finalize_validation_run = MagicMock( # pylint: disable=W0212
+            return_value=([], None)
+        )
+
+        validator.validate_xml_files(xml_path)
+
+    validator._run_validation_plan.assert_called_once_with( # pylint: disable=W0212
+        {xml_path: None},
+        None,
+        None,
+        True,
+        False,
+        "lxml"
+    )
+
+
+# _finalize_validation_run()
+
+
+def test_finalize_validation_run_writes_csv_error_table_and_summary(tmp_path):
+    """
+    Test that _finalize_validation_run() performs requested reporting.
+
+    Priority: H
+    """
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"):
+        validator = XmlValidator()
+    xml_path = tmp_path / "example.xml"
+    validator.validator_results.errors_by_file = [{
+        "file_name": "example.xml",
+        "reason": "Invalid XML."
+    }]
+    validator.validator_results.write_errors_to_csv = MagicMock(
+        return_value=str(tmp_path / "errors.csv")
+    )
+    validator.validator_results.write_error_table_to_log = MagicMock()
+    validator.validator_results.log_summary = MagicMock()
+
+    errors, csv_path = validator._finalize_validation_run( # pylint: disable=W0212
+        [xml_path],
+        True,
+        write_to_csv=True,
+        timestamped=False,
+        error_table=True,
+        fail_on_errors=False
+    )
+
+    assert errors == validator.validator_results.errors_by_file
+    assert csv_path == str(tmp_path / "errors.csv")
+    validator.validator_results.write_errors_to_csv.assert_called_once()
+    validator.validator_results.write_error_table_to_log.assert_called_once()
+    validator.validator_results.log_summary.assert_called_once()
+
+def test_finalize_validation_run_raises_failure_when_configured(tmp_path):
+    """
+    Test that _finalize_validation_run() fails when errors are fatal.
+
+    Priority: H
+    """
+    with patch.object(xml_validator_module.logger, "info"), \
+         patch.object(xml_validator_module.logger, "console"):
+        validator = XmlValidator()
+    xml_path = tmp_path / "example.xml"
+    validator.validator_results.errors_by_file = [{
+        "file_name": "example.xml",
+        "reason": "Invalid XML."
+    }]
+
+    with pytest.raises(xml_validator_module.Failure, match="1 errors"):
+        validator._finalize_validation_run( # pylint: disable=W0212
+            [xml_path],
+            True,
+            write_to_csv=False,
+            timestamped=False,
+            error_table=False,
+            fail_on_errors=True
+        )

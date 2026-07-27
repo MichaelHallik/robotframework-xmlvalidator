@@ -26,14 +26,15 @@
       - [Importing with preloaded XSD that requires a `base_url`](#importing-with-preloaded-xsd-that-requires-a-base_url)
       - [Importing with custom `error_facets`](#importing-with-custom-error_facets)
       - [Importing with `fail_on_errors=True`](#importing-with-fail_on_errorstrue)
+      - [Selecting a validation backend](#selecting-a-validation-backend)
       - [Further examples](#further-examples)
   - [Usage](#usage)
     - [Keyword overview](#keyword-overview)
       - [Error collection](#error-collection)
       - [Batch mode](#batch-mode)
       - [Single file mode](#single-file-mode)
-      - [Test case status - fail\_on\_error](#test-case-status---fail_on_error)
-      - [Dynamic XSD resolution](#dynamic-xsd-resolution)
+    - [Test case status - fail\_on\_errors](#test-case-status---fail_on_errors)
+    - [Dynamic XSD resolution](#dynamic-xsd-resolution)
     - [Error collection](#error-collection-1)
       - [XSD Schema violations.](#xsd-schema-violations)
       - [Malformed XML](#malformed-xml)
@@ -63,8 +64,10 @@
       - [Formatting](#formatting)
       - [Typing](#typing)
     - [Running all tests and checks](#running-all-tests-and-checks)
-    - [Continuous Integration \& GitHub templates](#continuous-integration--github-templates)
+  - [Continuous Integration \& GitHub templates](#continuous-integration--github-templates)
   - [Design (simplified)](#design-simplified)
+    - [Class/module overview](#classmodule-overview)
+    - [Validation sequence](#validation-sequence)
   - [Project Structure](#project-structure)
   - [Changelog](#changelog)
   - [Roadmap](#roadmap)
@@ -79,11 +82,11 @@
 
 A [Robot Framework](https://robotframework.org/) test library for validating XML files against XSD schemas.
 
-This library leverages the power of the [`xmlschema`](https://pypi.org/project/xmlschema/) library and is designed for both single-file and batch XML validation workflows.
+This library leverages the power of [`xmlschema`](https://pypi.org/project/xmlschema/) and [`lxml`](https://pypi.org/project/lxml/) and is designed for both single-file and batch XML validation workflows.
 
 It provides structured and detailed reporting of XML parse errors (malformed XML content) and XSD violations, dynamic schema resolution and CSV exports of collected errors.
 
-Rather than reimplementing XML parsing or schema validation logic, the library acts as a lightweight wrapper around `xmlschema`, exposing common validation workflows as easy-to-use Robot Framework keywords.
+Rather than reimplementing XML parsing or schema validation logic, the library acts as a lightweight wrapper around `xmlschema` and `lxml`, exposing common validation workflows as easy-to-use Robot Framework keywords.
 
 ---
 
@@ -212,7 +215,8 @@ See the [Robot Framework Library Scope docs](https://robotframework.org/robotfra
 | `xsd_path`      | `str`       | No        | Path to an XSD file/folder to preload during initialization. In case of a folder, the folder must hold one file only.  | None            |
 | `base_url`      | `str`       | No        | Base path used to resolve includes/imports within the provided XSD schema.                                             | None            |
 | `error_facets`  | `list[str]` | No        | The attributes of validation errors to collect and report (e.g., `path`, `reason`)                                     | [path, reason]  |
-| `fail_on_error` | `bool`      | No        | Whether to fail the test case if one or more XML validation errors are found. Can be overridden per keyword call.      | True            |
+| `fail_on_errors` | `bool`     | No        | Whether to fail the test case if one or more XML validation errors are found. Can be overridden per keyword call.      | True            |
+| `validation_backend` | `str` | No        | Validation backend: `auto`, `lxml` or `xmlschema`.                                                                    | auto            |
 
 ### Examples
 
@@ -263,6 +267,35 @@ The fail_on_errors argument controls whether a test case should fail if XML vali
 
 It defaults to True.
 
+#### Selecting a validation backend
+
+By default, the library uses `validation_backend=auto`. In this mode,
+it validates XSD violations with lxml's fast C-backed validator when
+possible and falls back to xmlschema if lxml cannot compile the schema.
+
+If you need the pre-performance-refactor behavior and richer legacy
+xmlschema diagnostics, use:
+
+```robotframework
+Library    xmlvalidator    validation_backend=xmlschema
+```
+
+You can also override the backend per keyword call:
+
+```robotframework
+Validate Xml Files    ${XML_PATH}    ${XSD_PATH}    validation_backend=xmlschema
+```
+
+Or change the default backend for subsequent validation calls:
+
+```robotframework
+Set Validation Backend    xmlschema
+```
+
+Backend precedence is: keyword-level `validation_backend` argument, then
+`Set Validation Backend`, then import-time `validation_backend`, then the
+default `auto` backend.
+
 The library's batch validation behavior remains unchanged. That is, `fail_on_errors=True` does *not* short-circuit the validation process in any way.
 
 Set `fail_on_errors=False` to log validation issues without failing the test. This is useful for:
@@ -295,8 +328,10 @@ For more details, please see the [keyword documentation](https://michaelhallik.g
 | `Log Schema`             | Log the currently loaded schema                                     |
 | `Get Error Facets`       | Returns a list of the currently active error facets                 |
 | `Reset Error Facets`     | Reset the error facets to default (`path`, `reason`)                |
+| `Get Validation Backend` | Returns the currently configured default validation backend         |
+| `Set Validation Backend` | Set the default backend for subsequent validation calls             |
 
-The main keyword is `Validate Xml Files`. The other keywords are convenience/helper functions, e.g. 'Reset Error Facets'.
+The main keyword is `Validate Xml Files`. The other keywords are convenience/helper functions, e.g. 'Reset Error Facets' and 'Set Validation Backend'.
 
 #### Error collection
 
@@ -332,7 +367,7 @@ Actually, almost anything goes:
 - one folder with one or more XML files and a single XSD file
 - a single XML file and a single XSD file
 
-#### Test case status - fail_on_error
+#### Test case status - fail_on_errors
 
 A test case that has resulted in the collection of one or more errors (of whatever type) will receive a status of FAIL. You can use the `fail_on_errors` (bool) argument to change this default behavior. When set to `False`, the test case status will always be PASS, regardless of whether errors were collected.
 
@@ -439,7 +474,7 @@ The keyword documentation provides detailed descriptions of all functionalities,
 
 ```robotframework
 *** Settings ***
-Library    XmlValidator    xsd_path=path/to/default/schema.xsd
+Library    xmlvalidator    xsd_path=path/to/default/schema.xsd
 
 *** Variables ***
 ${SINGLE_XML_FILE}                path/to/file1.xml
@@ -606,7 +641,7 @@ You can customize which error facet(s) should be collected, by passing a list of
 
 Error facets passed during library initialization will be overruled by error facets that are passed at the test case level, when calling the `Validate Xml Files` keyword.
 
-The values you can pass through the `error_facets` argument are based on the attributes of the error objects as returned by the XMLSchema.iter_errors() method, that is provided by the xmlschema library and the xmlvalidator library leverages. Said method yields instances of xmlschema.validators.exceptions.XMLSchemaValidationError (or its subclasses), each representing a specific validation issue encountered in an XML file. These error objects expose various attributes that describe the nature, location and cause of the problem.
+For XSD validation errors, the default `auto` backend normally collects these details from lxml's C-backed validation error log, because that is much faster for large invalid XML files. If lxml cannot compile a schema, the library falls back to xmlschema's `XMLSchema.iter_errors()` method. To force the pre-performance-refactor xmlschema diagnostics path, use `validation_backend=xmlschema`. Available facets may vary slightly by error type and validation backend.
 
 The table lists the most commonly available attributes, though additional fields may be available depending on the type of validation error.
 
@@ -637,23 +672,20 @@ The table lists the most commonly available attributes, though additional fields
 
 ## Performance benchmark reports
 
-The project contains a small performance benchmark harness for tracking
+The project publishes performance benchmark reports for tracking
 validation behavior across representative XML/XSD workloads.
 
-The latest generated Plotly trend reports are:
+The latest generated Plotly benchmark reports are:
 
 | Scenario | Focus | Report |
 |----------|-------|--------|
+| `scenario-comparison` | Latest run comparison across all benchmark scenarios | [Comparison report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/scenario-comparison.html) |
 | `many-small-valid-namespace` | Many small valid XML files matched by namespace | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-namespace.html) |
 | `many-small-invalid-few-errors` | Many small XML files with one validation error per file | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-invalid-few-errors.html) |
 | `many-small-valid-filename` | Many small valid XML files matched by filename | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-filename.html) |
 | `few-large-valid-single-schema` | A few larger valid XML files validated against one shared XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema.html) |
 | `few-large-valid-single-schema-no-preparse` | Same larger valid-file workload without pre-parse sanity parsing | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema-no-preparse.html) |
-
-The `few-large-invalid-many-errors` scenario is intentionally heavy and
-did not complete within the current local smoke-run window. That result
-is useful in itself: it identifies high-volume validation-error
-collection as an area for further performance investigation.
+| `few-large-invalid-many-errors` | A few larger invalid XML files with many validation errors | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-invalid-many-errors.html) |
 
 For details on generating fixtures, running benchmarks and creating
 reports, use the dedicated benchmark tooling maintained outside this
@@ -823,17 +855,21 @@ In [.github/](.github/) you'll also find the various contribution templates:
 
 ## Design (simplified)
 
+### Class/module overview
+
 ```mermaid
 classDiagram
     class XmlValidator {
-        +__init__(...)
+        +__init__(validation_backend: auto | lxml | xmlschema = auto)
         +get_error_facets() list[str]
+        +get_validation_backend() auto | lxml | xmlschema
         +get_schema(return_schema_name: bool=True) str | XMLSchema | None
         +log_schema(log_name: bool=True)
         +reset_error_facets()
         +reset_errors()
         +reset_schema()
-        +validate_xml_files(...) tuple[list[dict], str | None]
+        +set_validation_backend(validation_backend: auto | lxml | xmlschema)
+        +validate_xml_files(..., validation_backend: auto | lxml | xmlschema | None=None) tuple[list[dict], str | None]
     }
 
     class ValidatorResultRecorder {
@@ -856,6 +892,7 @@ classDiagram
     class ValidatorSchemaManager {
         +ensure_schema(xsd_path: Path | None=None, base_url: str | None=None) ValidatorResult
         +load_schema(xsd_path: Path, base_url: str | None=None) ValidatorResult
+        +get_lxml_schema(xsd_path: Path | None=None, base_url: str | None=None) lxml.XMLSchema | None
         +try_load_initial_schema(xsd_path: str | Path | None=None, base_url: str | None=None) XMLSchema | None
     }
 
@@ -865,7 +902,7 @@ classDiagram
     }
 
     class XmlValidationRunner {
-        +validate_xml(...) tuple[bool, list[dict[str, Any]] | None]
+        +validate_xml(..., validation_backend: auto | lxml | xmlschema = auto) tuple[bool, list[dict[str, Any]] | None]
     }
 
     class paths {
@@ -901,6 +938,58 @@ classDiagram
     XmlValidationRunner --> files
 
     files --> ValidatorResult
+```
+
+### Validation sequence
+
+The following sequence shows the main runtime flow for the
+`Validate Xml Files` keyword. The facade coordinates the workflow,
+while schema planning, single-file validation and result reporting are
+delegated to focused helper classes/modules.
+
+```mermaid
+sequenceDiagram
+    actor User as Robot Framework test
+    participant Facade as XmlValidator
+    participant Paths as paths
+    participant Files as files
+    participant Manager as schema.manager
+    participant Resolver as schema.resolver
+    participant Runner as validation
+    participant Results as results
+
+    User->>Facade: Validate Xml Files(xml_path, xsd_path, options)
+    Facade->>Results: reset() when requested
+    Facade->>Paths: get_file_paths(xml_path, "xml")
+    Paths-->>Facade: XML files
+
+    Facade->>Manager: ensure_schema(xsd_path, base_url)
+    Manager-->>Facade: loaded schema or no preloaded schema
+
+    Facade->>Resolver: build_validation_plan(...)
+    Resolver->>Paths: get_file_paths(xsd_path, "xsd")
+    Resolver->>Resolver: match XML files to schemas when needed
+    Resolver-->>Facade: validation plan
+
+    Facade->>Files: sanity_check_files(...)
+    Files-->>Facade: file-level errors or OK
+
+    loop for each XML file in validation plan
+        Facade->>Runner: validate_xml(xml_file, schema, backend)
+        Runner->>Manager: get_lxml_schema(...) when backend allows it
+        alt lxml schema available
+            Runner->>Runner: validate with lxml
+        else xmlschema required or fallback needed
+            Runner->>Runner: validate with xmlschema
+        end
+        Runner-->>Facade: valid/invalid and collected errors
+        Facade->>Results: add_valid_file/add_file_errors
+    end
+
+    Facade->>Results: log_summary()
+    Facade->>Results: write_error_table_to_log(...)
+    Facade->>Results: write_errors_to_csv(...) when requested
+    Facade-->>User: collected errors and CSV path
 ```
 
 ---
@@ -998,7 +1087,7 @@ test/                                # Tests and supporting files
 CHANGELOG.md                         # Changelog of releases
 CODE_OF_CONDUCT.md                   # Contributor behavior expectations
 CONTRIBUTING.md                      # How to contribute to the project
-github_actions.md                    # Mermaid diagram of workflows
+docs/images/github_actions.md        # Mermaid diagram of workflows
 LICENSE                              # Project license (Apache 2.0)
 Makefile                             # Automation tasks
 poetry.lock                          # Poetry-generated lock file

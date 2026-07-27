@@ -9,6 +9,40 @@ import csv
 import os
 
 
+def validate_error_output(
+        actual_errors: list[dict],
+        *expected_errors: dict
+        ):
+    """
+    Validates in-memory XML validation errors against expected entries.
+
+    Each expected error must match one actual error dictionary as a
+    whole. Additional actual keys are allowed, but every expected
+    key/value pair must be present in the same actual dictionary.
+    """
+    if not isinstance(actual_errors, list):
+        return False, [
+            f"Expected actual_errors to be a list, got {type(actual_errors).__name__}."
+        ]
+    if not actual_errors:
+        return False, ["Validation result should not be empty."]
+
+    mismatches = []
+    for expected_error in expected_errors:
+        match_found = any(
+            all(
+                str(actual_error.get(key)) == str(value)
+                for key, value in expected_error.items()
+            )
+            for actual_error in actual_errors
+        )
+        if not match_found:
+            mismatches.append(
+                f"Expected error not found in validation results: {expected_error}."
+            )
+    return len(mismatches) == 0, mismatches
+
+
 def validate_csv_output(
         csv_path: str,
         expected_errors: list[dict]

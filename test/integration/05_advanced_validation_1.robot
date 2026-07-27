@@ -48,7 +48,7 @@ Variables    teardown_vars.py
     ...                        reason=invalid literal for int() with base 10: 'NotANumber'
     ${expected_error_2} =    Create Dictionary    
     ...                        file_name=23_invalid_2.xml
-    ...                        path=/root
+    ...                        path=/root/wrongChild
     ...                        reason=Unexpected child with tag 'wrongChild' at position 2. Tag 'child' expected.
     ${expected_error_3} =    Create Dictionary    
     ...                        file_name=23_invalid_3.xml

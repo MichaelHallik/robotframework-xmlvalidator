@@ -205,31 +205,12 @@ Validate Xml Validation Result
     ...    
     ...                Ensures ${actual_errors} is a list.
     ...                Ensures the list is not empty.
-    ...                Iterates through each actual error:
-    ...                Checks that all expected keys are present.
-    ...                Iterates through each expected key:
-    ...                - Verifies at least one actual error contains the expected 
-    ...                  value.
+    ...                Verifies that at least one actual error entry
+    ...                contains all expected key/value pairs together.
     ...                Logs success if all validations pass.
     [Arguments]    ${actual_errors}    ${expected_errors}
-    # Validate that the actual_results list is, indeed, a list.
-    ${data_type} =    Evaluate    type( ${actual_errors} ).__name__
-    Should Be Equal As Strings    ${data_type}    list    msg=The actual_errors var should be of type list.
-    # Validate that the actual_results list is not empty.
-    Should Not Be Empty    ${actual_errors}    msg="Validation result should not be empty."
-    # Validate the structure of each error.
-    FOR    ${actual_error}    IN    @{actual_errors}
-        Log    ${actual_error}    level=INFO
-        FOR    ${key}    IN    @{expected_errors.keys()}
-            Log    ${key}    level=INFO
-            Dictionary Should Contain Key    ${actual_error}    ${key}
-        END
-    END
-    # Validate expected values in at least one entry.
-    FOR    ${key}    IN    @{expected_errors.keys()}
-        ${values} =    Evaluate    [entry["${key}"] for entry in ${actual_errors}]
-        List Should Contain Value    ${values}    ${expected_errors}[${key}]
-    END
+    ${status}    ${mismatches}=    Validate Error Output    ${actual_errors}    ${expected_errors}
+    Should Be True    ${status}    msg=Validation result mismatch: ${mismatches}.
     Log    Errors returned by XmlValidator are as expected.
 
 Validate Xml Validation Results
@@ -250,10 +231,9 @@ Validate Xml Validation Results
     ...                Ensures ${actual_errors} is a list.
     ...                Ensures the list is not empty.
     ...                Iterates through each expected error:
-    ...                - Checks that all expected keys are present in at least one actual error.
-    ...                - Ensures at least one actual error contains the expected values.
+    ...                - Ensures at least one actual error contains all
+    ...                  expected key/value pairs together.
     ...                Logs success if all validations pass.
     [Arguments]    ${actual_errors}    @{list_expected_errors}
-    FOR    ${expected_errors}    IN    @{list_expected_errors}
-        Validate Xml Validation Result    ${actual_errors}    ${expected_errors}
-    END
+    ${status}    ${mismatches}=    Validate Error Output    ${actual_errors}    @{list_expected_errors}
+    Should Be True    ${status}    msg=Validation result mismatch: ${mismatches}.

@@ -194,3 +194,79 @@ def test_load_schema_valid_xsd():
             )
         assert result.success is True
         assert result.value is mock_schema_instance
+
+
+# get_lxml_schema()
+
+
+def test_get_lxml_schema_returns_none_without_loaded_or_provided_schema():
+    """
+    Test that get_lxml_schema() returns None when no schema path is known.
+
+    Priority: M
+    """
+    schema_manager = ValidatorSchemaManager()
+
+    assert schema_manager.get_lxml_schema() is None
+
+def test_get_lxml_schema_compiles_and_caches_schema(tmp_path):
+    """
+    Test that get_lxml_schema() compiles a schema once and reuses the cache.
+
+    Priority: H
+    """
+    xsd_file = tmp_path / "schema.xsd"
+    xsd_file.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:element name="root" type="xs:string"/>
+        </xs:schema>""",
+        encoding="utf-8"
+    )
+    schema_manager = ValidatorSchemaManager()
+
+    first_schema = schema_manager.get_lxml_schema(xsd_file)
+    second_schema = schema_manager.get_lxml_schema(xsd_file)
+
+    assert first_schema is not None
+    assert second_schema is first_schema
+    assert len(schema_manager._lxml_schema_cache) == 1 # pylint: disable=W0212
+
+def test_get_lxml_schema_returns_none_for_invalid_lxml_schema(tmp_path):
+    """
+    Test that get_lxml_schema() returns None when lxml cannot compile XSD.
+
+    Priority: H
+    """
+    xsd_file = tmp_path / "invalid_schema.xsd"
+    xsd_file.write_text("<xs:schema>", encoding="utf-8")
+    schema_manager = ValidatorSchemaManager()
+
+    assert schema_manager.get_lxml_schema(xsd_file) is None
+
+def test_reset_schema_clears_schema_state_and_lxml_cache(tmp_path):
+    """
+    Test that reset_schema() clears loaded schema state and lxml cache.
+
+    Priority: H
+    """
+    xsd_file = tmp_path / "schema.xsd"
+    xsd_file.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:element name="root" type="xs:string"/>
+        </xs:schema>""",
+        encoding="utf-8"
+    )
+    schema_manager = ValidatorSchemaManager()
+    schema_manager.schema = MagicMock()
+    schema_manager.schema_path = xsd_file
+    schema_manager.schema_base_url = "base"
+    schema_manager.get_lxml_schema(xsd_file)
+
+    schema_manager.reset_schema()
+
+    assert schema_manager.schema is None
+    assert schema_manager.schema_path is None
+    assert schema_manager.schema_base_url is None
+    assert not schema_manager._lxml_schema_cache # pylint: disable=W0212

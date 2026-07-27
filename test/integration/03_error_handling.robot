@@ -42,7 +42,7 @@ Variables    teardown_vars.py
     Run Keyword And Expect Error    * ValueError: The provided path is neither a file nor a folder: *    Import Library    xmlvalidator    ${xsd_path_1}    AS    ${TEST_NAME}
     ## Path to an empty folder (could also contain one or more non-xsd files).
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_2}    AS    ${TEST_NAME}
-    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_15/empty_folder ] failed: ValueError: No files reside in the folder: [].
+    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_15/empty_folder ] failed: ValueError: No .xsd files found in folder:
     ## Path to a non-xsd file.
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_3}    AS    ${TEST_NAME}
     Should Contain    ${error}    ValueError: ${EXECDIR}\\test\\_data\\integration\\TC_15\\non_xsd_extension\\15_test_schema.txt is not an XSD file.
@@ -104,7 +104,7 @@ Variables    teardown_vars.py
     ${result}=    Run Keyword And Expect Error    ValueError: The provided path is neither a file nor a folder: *    ${TEST_NAME}.Validate Xml Files    ${xml_path}    ${xsd_path_1}
     ## Path to an empty folder (could also contain one or more non-xsd files).
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_2}    AS    ${TEST_NAME}
-    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_18/empty_folder ] failed: ValueError: No files reside in the folder: [].
+    Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_18/empty_folder ] failed: ValueError: No .xsd files found in folder:
     ## Path to a non-xsd file.
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_3}    AS    ${TEST_NAME}
     Should Contain    ${error}    ValueError: ${EXECDIR}\\test\\_data\\integration\\TC_18\\non_xsd_extension\\18_test_schema.txt is not an XSD file.

@@ -162,7 +162,7 @@
 <tr><td>write_errors_to_csv_ignores_empty_errors</td><td>Test that write_errors_to_csv() creates no file for empty errors. </td><td>🟠</td></tr>
 <tr><td>write_errors_to_csv_writes_file_and_moves_file_name_first</td><td>Test that write_errors_to_csv() writes CSV data and reorders columns. </td><td>🔴</td></tr>
 </table>
-<h2>test_schema_manager.py (7 tests)</h2>
+<h2>test_schema_manager.py (11 tests)</h2>
 <table id="table_4" data-sort="">
                 <tr>
                     <th onclick="sortTable('table_4', 0)">Test Name</th>
@@ -174,8 +174,12 @@
 <tr><td>ensure_schema_load_new_schema</td><td>Test that ensure_schema() correctly loads a new schema when a valid XSD path is provided, ensuring the correct log message is issued. </td><td>🔴</td></tr>
 <tr><td>ensure_schema_no_existing_or_new_schema</td><td>Test that ensure_schema() raises a ValueError when neither an existing schema nor a new schema path is available. </td><td>🟠</td></tr>
 <tr><td>ensure_schema_replace_existing_schema</td><td>Test that ensure_schema() replaces an existing schema when a new valid XSD path is provided, ensuring the correct log message is issued. </td><td>🔴</td></tr>
+<tr><td>get_lxml_schema_compiles_and_caches_schema</td><td>Test that get_lxml_schema() compiles a schema once and reuses the cache. </td><td>🔴</td></tr>
+<tr><td>get_lxml_schema_returns_none_for_invalid_lxml_schema</td><td>Test that get_lxml_schema() returns None when lxml cannot compile XSD. </td><td>🔴</td></tr>
+<tr><td>get_lxml_schema_returns_none_without_loaded_or_provided_schema</td><td>Test that get_lxml_schema() returns None when no schema path is known. </td><td>🟠</td></tr>
 <tr><td>load_schema_invalid_xsd</td><td>Test that load_schema() returns a failure result when an invalid XSD is provided. </td><td>🔴</td></tr>
 <tr><td>load_schema_valid_xsd</td><td>Test that load_schema() successfully loads a valid XSD schema. </td><td>🔴</td></tr>
+<tr><td>reset_schema_clears_schema_state_and_lxml_cache</td><td>Test that reset_schema() clears loaded schema state and lxml cache. </td><td>🔴</td></tr>
 </table>
 <h2>test_schema_resolver.py (17 tests)</h2>
 <table id="table_5" data-sort="">
@@ -202,27 +206,38 @@
 <tr><td>match_xml_files_to_schemas_namespace_matching_failure</td><td>Test that match_xml_files_to_schemas() returns a FileNotFoundError when no XSD schema matches the XML namespace. </td><td>🔴</td></tr>
 <tr><td>match_xml_files_to_schemas_namespace_matching_success</td><td>Test that match_xml_files_to_schemas() correctly assigns an XSD file when the XML and XSD share the same namespace, using mocks instead of real files. </td><td>🔴</td></tr>
 </table>
-<h2>test_validation.py (6 tests)</h2>
+<h2>test_validation.py (13 tests)</h2>
 <table id="table_6" data-sort="">
                 <tr>
                     <th onclick="sortTable('table_6', 0)">Test Name</th>
                     <th onclick="sortTable('table_6', 1)">Description</th>
                     <th onclick="sortTable('table_6', 2)">Priority</th>
                 </tr>
+<tr><td>collect_lxml_validation_errors_can_skip_unavailable_facets</td><td>Test that lxml error collection can omit unavailable facets. </td><td>🟠</td></tr>
+<tr><td>collect_lxml_validation_errors_reports_readable_facets</td><td>Test that lxml validation errors expose readable path and reason facets. </td><td>🔴</td></tr>
+<tr><td>validate_validation_backend_rejects_unknown_backend</td><td>Test that validate_validation_backend() rejects unsupported backend names. </td><td>🔴</td></tr>
+<tr><td>validate_xml_auto_backend_falls_back_to_xmlschema</td><td>Test that auto backend falls back to xmlschema when lxml is unavailable. </td><td>🔴</td></tr>
+<tr><td>validate_xml_auto_backend_requests_lxml_schema</td><td>Test that validate_xml() tries to use the lxml fast path when the validation backend is set to auto. </td><td>🔴</td></tr>
 <tr><td>validate_xml_can_skip_none_error_facets</td><td>Test that validate_xml() can omit requested error facets whose value is None when explicitly requested. </td><td>🔴</td></tr>
 <tr><td>validate_xml_invalid_file</td><td>Test that validate_xml() returns (False, [errors]) when given an XML file that does not conform to the schema. </td><td>🔴</td></tr>
 <tr><td>validate_xml_keeps_none_error_facets_by_default</td><td>Test that validate_xml() keeps requested error facets whose value is None by default and reports them as unavailable. </td><td>🔴</td></tr>
+<tr><td>validate_xml_lxml_backend_reports_compile_failure</td><td>Test that validate_xml() reports an error when forced lxml cannot compile the schema. </td><td>🔴</td></tr>
 <tr><td>validate_xml_malformed_xml</td><td>Test that validate_xml() returns (False, [errors]) when given a malformed XML file (e.g., missing a closing tag). </td><td>🟠</td></tr>
 <tr><td>validate_xml_no_schema_provided</td><td>Test that validate_xml() raises an error when no XSD file is provided. </td><td>🟠</td></tr>
 <tr><td>validate_xml_valid_file</td><td>Test that validate_xml() correctly validates a well-formed XML file against a matching XSD. </td><td>🔴</td></tr>
+<tr><td>validate_xml_xmlschema_backend_skips_lxml_schema</td><td>Test that validate_xml() preserves the xmlschema-only validation path when validation_backend is set to xmlschema. </td><td>🔴</td></tr>
 </table>
-<h2>test_xmlvalidator.py (8 tests)</h2>
+<h2>test_xmlvalidator.py (17 tests)</h2>
 <table id="table_7" data-sort="">
                 <tr>
                     <th onclick="sortTable('table_7', 0)">Test Name</th>
                     <th onclick="sortTable('table_7', 1)">Description</th>
                     <th onclick="sortTable('table_7', 2)">Priority</th>
                 </tr>
+<tr><td>finalize_validation_run_raises_failure_when_configured</td><td>Test that _finalize_validation_run() fails when errors are fatal. </td><td>🔴</td></tr>
+<tr><td>finalize_validation_run_writes_csv_error_table_and_summary</td><td>Test that _finalize_validation_run() performs requested reporting. </td><td>🔴</td></tr>
+<tr><td>get_validation_backend_returns_current_default_backend</td><td>Test that get_validation_backend() returns the current default backend. </td><td>🟠</td></tr>
+<tr><td>init_accepts_custom_validation_backend</td><td>Test that XmlValidator stores a valid custom validation backend. </td><td>🔴</td></tr>
 <tr><td>init_allows_import_without_initial_schema</td><td>Test that the XmlValidator initializes correctly when no XSD schema is provided, ensuring informative logs are emitted. </td><td>🔴</td></tr>
 <tr><td>init_creates_collaborator_objects_and_default_state</td><td>Test that XmlValidator initializes its attributes correctly. </td><td>🔴</td></tr>
 <tr><td>init_loads_single_xsd_schema</td><td>Test that the XmlValidator initializes correctly when provided with a valid XSD schema.  This test mocks the file path resolution, the XMLSchema loader, and the logger to ensure correct schema loading behavior and logging. </td><td>🔴</td></tr>
@@ -231,5 +246,10 @@
 <tr><td>init_propagates_invalid_initial_xsd_path</td><td>Test that the XmlValidator raises a ValueError when an invalid XSD path is provided during initialization.  Simulates an invalid input by making get_file_paths() raise a ValueError directly. </td><td>🔴</td></tr>
 <tr><td>init_raises_system_error_when_initial_schema_loading_fails</td><td>Test that the XmlValidator raises a SystemError when schema loading fails due to an invalid or unreadable XSD file.  This test mocks get_file_paths to return a valid XSD path, but load_schema to simulate a failure result. </td><td>🔴</td></tr>
 <tr><td>init_rejects_multiple_initial_xsd_files</td><td>Test that the XmlValidator raises a ValueError when multiple XSD files are found in a directory during initialization.  The helper method get_file_paths() returns a list of multiple .xsd files, simulating an invalid schema preloading scenario. </td><td>🔴</td></tr>
+<tr><td>init_rejects_unknown_validation_backend</td><td>Test that XmlValidator rejects unsupported validation backends. </td><td>🔴</td></tr>
+<tr><td>set_validation_backend_rejects_unknown_backend</td><td>Test that set_validation_backend() rejects unsupported backends. </td><td>🔴</td></tr>
+<tr><td>set_validation_backend_updates_default_backend</td><td>Test that set_validation_backend() updates the default backend. </td><td>🔴</td></tr>
+<tr><td>validate_xml_files_uses_instance_backend_when_no_override</td><td>Test that validate_xml_files() uses the instance backend by default. </td><td>🔴</td></tr>
+<tr><td>validate_xml_files_uses_keyword_backend_override</td><td>Test that validate_xml_files() uses keyword-level backend overrides. </td><td>🔴</td></tr>
 </table>
 </body></html>

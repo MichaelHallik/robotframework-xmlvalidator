@@ -1,10 +1,79 @@
+files.py:
+    _append_file_error
+    _check_file_path
+    _extract_error_details
+    _parse_file_for_sanity_check
+    sanity_check_files
+
+namespaces.py:
+    _extract_nested_namespaces
+    _prepare_schema_namespace_matches
+    extract_namespaces
+    schema_matches_xml_namespaces
+
+paths.py:
+    _resolve_path
+    get_file_paths
+
+results.py:
+    _get_summary
+    add_file_errors
+    add_invalid_file
+    add_valid_file
+    log_file_errors
+    log_summary
+    reset
+    write_error_table_to_log
+    write_errors_to_csv
+
+validation.py:
+    _build_readable_element_path
+    _collect_lxml_validation_errors
+    _collect_validation_errors
+    _get_lxml_error_facet
+    _get_lxml_error_path
+    _get_lxml_error_position
+    _get_lxml_error_reason
+    _get_lxml_schema
+    validate_validation_backend
+    validate_xml
+
+XmlValidator.py:
+    _finalize_validation_run
+    _run_validation_plan
+    get_error_facets
+    get_schema
+    get_validation_backend
+    log_schema
+    reset_error_facets
+    reset_errors
+    reset_schema
+    schema
+    schema
+    set_validation_backend
+    validate_xml_files
+
+schema\manager.py:
+    ensure_schema
+    get_lxml_schema
+    load_schema
+    reset_schema
+    try_load_initial_schema
+
+schema\resolver.py:
+    _build_loaded_schema_plan
+    _build_xsd_path_plan
+    _match_xml_file_to_schema_by_file_name
+    _match_xml_file_to_schema_by_namespace
+    build_validation_plan
+    match_xml_files_to_schemas
 
 Summary:
 Total number of Python files: 11
 Python files with methods: 8
-Total number of methods: 42
-	Robot Framework user keywords: 7 (ca. 16%)
-Total number of lines: 2572
-	Code: 1023 (ca. 39%)
-	Comments: 247 (ca. 9%)
-	Documentation: 1302 (ca. 50%)
+Total number of methods: 54
+	Robot Framework user keywords: 9 (ca. 16%)
+Total number of lines: 2892
+	Code: 1267 (ca. 43%)
+	Comments: 247 (ca. 8%)
+	Documentation: 1378 (ca. 47%)
