@@ -13,10 +13,15 @@ docs
         few-large-valid-single-schema.html
         few-large-valid-single-schema-no-preparse.html
         many-small-invalid-few-errors.html
+        many-small-many-schemas-invalid-namespace.html
+        many-small-many-schemas-valid-filename.html
         many-small-valid-filename.html
         many-small-valid-namespace.html
-        scenario-comparison.html
-    images
+        one-very-large-invalid-many-errors.html
+        one-very-large-valid-single-schema.html
+        scenario-comparison-lxml.html
+        scenario-comparison-xmlschema.html
+    diagrams
         CONTRIBUTING-diagram.md
         github_actions.md
     XmlValidator.html

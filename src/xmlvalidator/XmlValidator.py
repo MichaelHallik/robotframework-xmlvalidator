@@ -54,7 +54,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 # Third party library imports.
-from robot.api import Failure, logger
+from robot.api import logger
 from robot.api.deco import keyword, library
 from xmlschema import XMLSchema
 
@@ -67,7 +67,6 @@ from .schema.resolver import ValidatorSchemaResolver
 from .validation import (
     ValidationBackend,
     XmlValidationRunner,
-    validate_validation_backend
 )
 
 
@@ -617,8 +616,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         self.schema_resolver = ValidatorSchemaResolver(self.schema_manager)
         self.validation_runner = XmlValidationRunner(self.schema_manager)
         self.validator_results = ValidatorResultRecorder()
-        self.validation_backend: ValidationBackend = validate_validation_backend(
-            validation_backend
+        self.validation_backend: ValidationBackend = (
+            XmlValidationRunner.validate_validation_backend(validation_backend)
         )
         # Initialize the xsd schema from the xsd_path, if provided.
         self.schema = self.schema_manager.try_load_initial_schema(
@@ -696,7 +695,9 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         The setting affects later ``Validate Xml Files`` calls unless a
         specific call provides its own ``validation_backend`` argument.
         """
-        self.validation_backend = validate_validation_backend(validation_backend)
+        self.validation_backend = XmlValidationRunner.validate_validation_backend(
+            validation_backend
+        )
         logger.info(
             f"Validation backend set to: {self.validation_backend}.",
             also_console=True
@@ -1029,7 +1030,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
                     else self.fail_on_errors
         )
         effective_validation_backend = (
-            validate_validation_backend(validation_backend)
+            XmlValidationRunner.validate_validation_backend(validation_backend)
             if validation_backend is not None
             else self.validation_backend
         )
@@ -1048,109 +1049,23 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             allow_declared_namespace_match=allow_declared_namespace_match
             )
         # Execute the validation plan and record each file's result.
-        self._run_validation_plan(
+        self.validation_runner.run_validation_plan(
             validations,
+            self.validator_results,
             base_url,
             error_facets,
+            self.error_facets,
             pre_parse,
             skip_none_error_facets,
             effective_validation_backend
         )
         # Export, report and return the completed validation results.
-        return self._finalize_validation_run(
+        return self.validation_runner.finalize_validation_run(
             xml_file_paths,
             is_single_xml_file,
+            self.validator_results,
             write_to_csv,
             timestamped,
             error_table,
             fail_on_errors
         )
-
-    def _run_validation_plan(
-        self,
-        validations: dict[Path, Path | BaseException | None],
-        base_url: str | None = None,
-        error_facets: list[str] | None = None,
-        pre_parse: bool = True,
-        skip_none_error_facets: bool = False,
-        validation_backend: ValidationBackend = "auto"
-    ) -> None:
-        """
-        Executes a prepared XML-to-XSD validation plan.
-
-        The validation plan maps each XML file to the schema path that
-        should be used for that file. A mapped value of ``None`` means
-        that the currently loaded schema should be reused. A mapped
-        exception represents an upstream schema-resolution error for
-        that XML file.
-
-        This method validates every planned XML file and records the
-        result in ``validator_results``.
-        """
-        # Validate each XML file with the corresponding schema.
-        for xml_file_path, xsd_file_path in validations.items():
-            # The actual validation.
-            is_valid, errors = self.validation_runner.validate_xml(
-                xml_file_path,
-                xsd_file_path=xsd_file_path,
-                base_url=base_url,
-                error_facets=error_facets,
-                default_error_facets=self.error_facets,
-                pre_parse=pre_parse,
-                skip_none_error_facets=skip_none_error_facets,
-                validation_backend=validation_backend
-                )
-            # Process the validation results.
-            if is_valid:
-                self.validator_results.add_valid_file(xml_file_path)
-            else:
-                self.validator_results.add_invalid_file(xml_file_path)
-                self.validator_results.add_file_errors(xml_file_path, errors)
-                self.validator_results.log_file_errors(errors) # type: ignore
-
-    def _finalize_validation_run(
-        self,
-        xml_file_paths: list[Path],
-        is_single_xml_file: bool,
-        write_to_csv: bool | None,
-        timestamped: bool | None,
-        error_table: bool | None,
-        fail_on_errors: bool
-    ) -> tuple[list[dict[str, Any]], str | None]:
-        """
-        Finalizes a completed validation run.
-
-        This method handles all post-validation reporting:
-
-        - optionally exporting collected errors to CSV
-        - optionally writing a filterable error table to the log
-        - logging the run summary
-        - failing the Robot Framework test if configured
-        - returning collected errors and the CSV path
-        """
-        # Write errors to a single CSV file if requested.
-        if write_to_csv and self.validator_results.errors_by_file:
-            csv_path = self.validator_results.write_errors_to_csv(
-                self.validator_results.errors_by_file,
-                xml_file_paths[0].parent
-                    if is_single_xml_file else xml_file_paths[0],
-                include_timestamp=timestamped,
-                file_name_column="file_name"
-                )
-        else:
-            csv_path = None
-        # Write errors to the log file as a table if requested.
-        if error_table and self.validator_results.errors_by_file:
-            self.validator_results.write_error_table_to_log(
-                self.validator_results.errors_by_file,
-            )
-        # Log a summary of the test run.
-        self.validator_results.log_summary()
-        if fail_on_errors and self.validator_results.errors_by_file:
-            raise Failure(
-                f"{len(self.validator_results.errors_by_file)} errors have been detected."
-                )
-        return (
-            self.validator_results.errors_by_file,
-            csv_path if csv_path else None
-            )

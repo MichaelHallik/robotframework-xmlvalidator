@@ -20,14 +20,15 @@ See for an overview of all tests the file test/_doc/unit/overview.html.
 
 # Standard library imports.
 import re
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 # Third-party library imports.
 import pytest
 
 # Local application imports.
+from xmlvalidator.results import ValidatorResultRecorder
 from xmlvalidator.schema.manager import ValidatorSchemaManager
-from xmlvalidator.validation import XmlValidationRunner, validate_validation_backend
+from xmlvalidator.validation import XmlValidationRunner
 
 validation_module = __import__(
     "xmlvalidator.validation",
@@ -48,7 +49,7 @@ def test_validate_validation_backend_rejects_unknown_backend():
     Priority: H
     """
     with pytest.raises(ValueError, match="Unsupported validation_backend"):
-        validate_validation_backend("unsupported")
+        XmlValidationRunner.validate_validation_backend("unsupported")
 
 
 # validate_xml()
@@ -453,3 +454,66 @@ def test_collect_lxml_validation_errors_can_skip_unavailable_facets(
     assert "path" in errors[0]
     assert "reason" in errors[0]
     assert "non_existing_facet" not in errors[0]
+
+
+# finalize_validation_run()
+
+
+def test_finalize_validation_run_writes_csv_error_table_and_summary(tmp_path):
+    """
+    Test that finalize_validation_run() performs requested reporting.
+
+    Priority: H
+    """
+    xml_path = tmp_path / "example.xml"
+    result_recorder = ValidatorResultRecorder()
+    result_recorder.errors_by_file = [{
+        "file_name": "example.xml",
+        "reason": "Invalid XML."
+    }]
+    result_recorder.write_errors_to_csv = MagicMock(
+        return_value=str(tmp_path / "errors.csv")
+    )
+    result_recorder.write_error_table_to_log = MagicMock()
+    result_recorder.log_summary = MagicMock()
+
+    errors, csv_path = XmlValidationRunner.finalize_validation_run(
+        [xml_path],
+        True,
+        result_recorder,
+        write_to_csv=True,
+        timestamped=False,
+        error_table=True,
+        fail_on_errors=False
+    )
+
+    assert errors == result_recorder.errors_by_file
+    assert csv_path == str(tmp_path / "errors.csv")
+    result_recorder.write_errors_to_csv.assert_called_once()
+    result_recorder.write_error_table_to_log.assert_called_once()
+    result_recorder.log_summary.assert_called_once()
+
+
+def test_finalize_validation_run_raises_failure_when_configured(tmp_path):
+    """
+    Test that finalize_validation_run() fails when errors are fatal.
+
+    Priority: H
+    """
+    xml_path = tmp_path / "example.xml"
+    result_recorder = ValidatorResultRecorder()
+    result_recorder.errors_by_file = [{
+        "file_name": "example.xml",
+        "reason": "Invalid XML."
+    }]
+
+    with pytest.raises(validation_module.Failure, match="1 errors"):
+        XmlValidationRunner.finalize_validation_run(
+            [xml_path],
+            True,
+            result_recorder,
+            write_to_csv=False,
+            timestamped=False,
+            error_table=False,
+            fail_on_errors=True
+        )

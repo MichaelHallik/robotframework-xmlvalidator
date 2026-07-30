@@ -27,35 +27,21 @@ back to xmlschema-based error collection when needed.
 """
 
 # Standard library imports.
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any, Literal, cast
 
 # Third party library imports.
 from lxml import etree
-from robot.api import logger
+from robot.api import Failure, logger
 
 # Local application imports.
 from .files import sanity_check_files
+from .results import ValidatorResultRecorder
 from .schema.manager import ValidatorSchemaManager
 
 ValidationBackend = Literal["auto", "lxml", "xmlschema"]
 VALIDATION_BACKENDS = {"auto", "lxml", "xmlschema"}
-
-
-def validate_validation_backend(
-    validation_backend: str
-) -> ValidationBackend:
-    """
-    Validates and normalizes the selected validation backend.
-    """
-    if validation_backend not in VALIDATION_BACKENDS:
-        raise ValueError(
-            "Unsupported validation_backend: "
-            f"{validation_backend}. Expected one of: "
-            f"{', '.join(sorted(VALIDATION_BACKENDS))}."
-        )
-    return cast(ValidationBackend, validation_backend)
 
 
 class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
@@ -74,6 +60,65 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         Initializes an XmlValidationRunner instance.
         """
         self.schema_manager = schema_manager
+
+    @staticmethod
+    def validate_validation_backend(
+        validation_backend: str
+    ) -> ValidationBackend:
+        """
+        Validates and normalizes the selected validation backend.
+        """
+        if validation_backend not in VALIDATION_BACKENDS:
+            raise ValueError(
+                "Unsupported validation_backend: "
+                f"{validation_backend}. Expected one of: "
+                f"{', '.join(sorted(VALIDATION_BACKENDS))}."
+            )
+        return cast(ValidationBackend, validation_backend)
+
+    def run_validation_plan(  # pylint: disable=R0913:too-many-arguments, R0917:too-many-positional-arguments
+        self,
+        validations: dict[Path, Path | BaseException | None],
+        result_recorder: ValidatorResultRecorder,
+        base_url: str | None = None,
+        error_facets: list[str] | None = None,
+        default_error_facets: list[str] | None = None,
+        pre_parse: bool = True,
+        skip_none_error_facets: bool = False,
+        validation_backend: ValidationBackend = "auto"
+    ) -> None:
+        """
+        Executes a prepared XML-to-XSD validation plan.
+
+        The validation plan maps each XML file to the schema path that
+        should be used for that file. A mapped value of ``None`` means
+        that the currently loaded schema should be reused. A mapped
+        exception represents an upstream schema-resolution error for
+        that XML file.
+
+        This method validates every planned XML file and records the
+        result in the provided result recorder.
+        """
+        # Validate each XML file with the corresponding schema.
+        for xml_file_path, xsd_file_path in validations.items():
+            # The actual validation.
+            is_valid, errors = self.validate_xml(
+                xml_file_path,
+                xsd_file_path=xsd_file_path,
+                base_url=base_url,
+                error_facets=error_facets,
+                default_error_facets=default_error_facets,
+                pre_parse=pre_parse,
+                skip_none_error_facets=skip_none_error_facets,
+                validation_backend=validation_backend
+                )
+            # Process the validation results.
+            if is_valid:
+                result_recorder.add_valid_file(xml_file_path)
+            else:
+                result_recorder.add_invalid_file(xml_file_path)
+                result_recorder.add_file_errors(xml_file_path, errors)
+                result_recorder.log_file_errors(errors) # type: ignore
 
     def validate_xml(  # pylint: disable=R0913:too-many-arguments, R0917:too-many-positional-arguments
         self,
@@ -122,7 +167,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
             # Abort the validation if schema loading failed.
             logger.warn("Schema loading failed.")
             return False, loading_result.error
-        validation_backend = validate_validation_backend(validation_backend)
+        validation_backend = self.validate_validation_backend(validation_backend)
         lxml_schema = self._get_lxml_schema(
             xsd_file_path,
             base_url,
@@ -379,3 +424,51 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         if parent is None:
             return 1
         return list(parent).index(element) + 1
+
+    @staticmethod
+    def finalize_validation_run(
+        xml_file_paths: list[Path],
+        is_single_xml_file: bool,
+        result_recorder: ValidatorResultRecorder,
+        write_to_csv: bool | None,
+        timestamped: bool | None,
+        error_table: bool | None,
+        fail_on_errors: bool
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        """
+        Finalizes a completed validation run.
+
+        This method handles all post-validation reporting:
+
+        - optionally exporting collected errors to CSV
+        - optionally writing a filterable error table to the log
+        - logging the run summary
+        - failing the Robot Framework test if configured
+        - returning collected errors and the CSV path
+        """
+        # Write errors to a single CSV file if requested.
+        if write_to_csv and result_recorder.errors_by_file:
+            csv_path = result_recorder.write_errors_to_csv(
+                result_recorder.errors_by_file,
+                xml_file_paths[0].parent
+                    if is_single_xml_file else xml_file_paths[0],
+                include_timestamp=timestamped,
+                file_name_column="file_name"
+                )
+        else:
+            csv_path = None
+        # Write errors to the log file as a table if requested.
+        if error_table and result_recorder.errors_by_file:
+            result_recorder.write_error_table_to_log(
+                result_recorder.errors_by_file,
+            )
+        # Log a summary of the test run.
+        result_recorder.log_summary()
+        if fail_on_errors and result_recorder.errors_by_file:
+            raise Failure(
+                f"{len(result_recorder.errors_by_file)} errors have been detected."
+                )
+        return (
+            result_recorder.errors_by_file,
+            csv_path if csv_path else None
+            )

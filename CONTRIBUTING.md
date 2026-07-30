@@ -53,7 +53,7 @@ For general project info, setup instructions, and usage examples, see the [READM
   See `test/_doc/unit/README.md` for details.
 - Make sure all integration tests pass before committing:
   ```sh
-  poetry run python -m robot --outputdir results --exclude git-exclude test/integration
+  poetry run python -m robot --outputdir results test/integration
   ```
   See `test/_doc/integration/README.md` for details.
 

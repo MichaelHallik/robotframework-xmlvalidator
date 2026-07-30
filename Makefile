@@ -36,7 +36,7 @@ unit:
 # Run integration tests using Robot Framework.
 robot:
 	@echo "Running integration tests..."
-	@poetry run python -m robot --outputdir results --exclude git-exclude test/integration
+	@poetry run python -m robot --outputdir results test/integration
 
 # Run all static checks and test suites (for CI or pre-push).
 check:
