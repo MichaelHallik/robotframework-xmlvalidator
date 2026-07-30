@@ -24,8 +24,7 @@ from pathlib import Path
 
 
 def get_file_paths(
-    file_path: str | Path,
-    file_extension: str
+    file_path: str | Path, file_extension: str
 ) -> tuple[list[Path], bool]:
     """
     Resolves files from the given path and filters them by extension.
@@ -40,13 +39,10 @@ def get_file_paths(
     if resolved_path.is_file():
         return [resolved_path], True
     if resolved_path.is_dir():
-        resolved_paths = sorted(
-            resolved_path.glob(f"*.{file_extension}")
-        )
+        resolved_paths = sorted(resolved_path.glob(f"*.{file_extension}"))
         if not resolved_paths:
             raise ValueError(
-                f"No .{file_extension} files found in folder: "
-                f"{resolved_path}."
+                f"No .{file_extension} files found in folder: " f"{resolved_path}."
             )
         return resolved_paths, len(resolved_paths) == 1
     raise ValueError(

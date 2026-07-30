@@ -481,9 +481,7 @@ def test_finalize_validation_run_writes_csv_error_table_and_summary(tmp_path):
         [xml_path],
         True,
         result_recorder,
-        write_to_csv=True,
-        timestamped=False,
-        error_table=True,
+        (True, False, True),
         fail_on_errors=False
     )
 
@@ -506,14 +504,14 @@ def test_finalize_validation_run_raises_failure_when_configured(tmp_path):
         "file_name": "example.xml",
         "reason": "Invalid XML."
     }]
+    result_recorder.log_summary = MagicMock()
 
     with pytest.raises(validation_module.Failure, match="1 errors"):
         XmlValidationRunner.finalize_validation_run(
             [xml_path],
             True,
             result_recorder,
-            write_to_csv=False,
-            timestamped=False,
-            error_table=False,
+            (False, False, False),
             fail_on_errors=True
         )
+    result_recorder.log_summary.assert_called_once()

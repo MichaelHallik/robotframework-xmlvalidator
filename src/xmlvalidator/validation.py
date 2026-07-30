@@ -52,19 +52,14 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
     loading and reuse remain delegated to ValidatorSchemaManager.
     """
 
-    def __init__(
-        self,
-        schema_manager: ValidatorSchemaManager
-    ) -> None:
+    def __init__(self, schema_manager: ValidatorSchemaManager) -> None:
         """
         Initializes an XmlValidationRunner instance.
         """
         self.schema_manager = schema_manager
 
     @staticmethod
-    def validate_validation_backend(
-        validation_backend: str
-    ) -> ValidationBackend:
+    def validate_validation_backend(validation_backend: str) -> ValidationBackend:
         """
         Validates and normalizes the selected validation backend.
         """
@@ -85,7 +80,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         default_error_facets: list[str] | None = None,
         pre_parse: bool = True,
         skip_none_error_facets: bool = False,
-        validation_backend: ValidationBackend = "auto"
+        validation_backend: ValidationBackend = "auto",
     ) -> None:
         """
         Executes a prepared XML-to-XSD validation plan.
@@ -110,15 +105,15 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
                 default_error_facets=default_error_facets,
                 pre_parse=pre_parse,
                 skip_none_error_facets=skip_none_error_facets,
-                validation_backend=validation_backend
-                )
+                validation_backend=validation_backend,
+            )
             # Process the validation results.
             if is_valid:
                 result_recorder.add_valid_file(xml_file_path)
             else:
                 result_recorder.add_invalid_file(xml_file_path)
                 result_recorder.add_file_errors(xml_file_path, errors)
-                result_recorder.log_file_errors(errors) # type: ignore
+                result_recorder.log_file_errors(errors)  # type: ignore
 
     def validate_xml(  # pylint: disable=R0913:too-many-arguments, R0917:too-many-positional-arguments
         self,
@@ -129,59 +124,54 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         default_error_facets: list[str] | None = None,
         pre_parse: bool = True,
         skip_none_error_facets: bool = False,
-        validation_backend: ValidationBackend = "auto"
-        ) -> tuple[
-            bool,
-            list[dict[str, Any]] | None
-            ]:
+        validation_backend: ValidationBackend = "auto",
+    ) -> tuple[bool, list[dict[str, Any]] | None]:
         """
         Validates an XML file against the active or provided XSD schema.
         """
         # Log informative.
-        logger.info(
-            f"Validating '{xml_file_path.name}'.", also_console=True
-        )
+        logger.info(f"Validating '{xml_file_path.name}'.", also_console=True)
         # Check upstream XSD matching led to an err pertaining to the XML.
         if isinstance(xsd_file_path, BaseException):
-            return False, [{
-                facet: str(xsd_file_path) if facet == "reason" else ""
-                for facet in (error_facets or default_error_facets or [])
-            }]
+            return False, [
+                {
+                    facet: str(xsd_file_path) if facet == "reason" else ""
+                    for facet in (error_facets or default_error_facets or [])
+                }
+            ]
         # Sanity check the target (XML/XSD) files.
         sanity_check_result = sanity_check_files(
-            [file_path for file_path in [
-                xml_file_path, xsd_file_path
-            ] if isinstance(file_path, Path) and file_path],
+            [
+                file_path
+                for file_path in [xml_file_path, xsd_file_path]
+                if isinstance(file_path, Path) and file_path
+            ],
             base_url=base_url,
             parse_files=pre_parse,
-            skip_none_error_facets=skip_none_error_facets
+            skip_none_error_facets=skip_none_error_facets,
         )
         if not sanity_check_result.success:
             # Abort validation if one or more sanity checks failed.
             return False, sanity_check_result.error
         # Ensure a valid schema is loaded.
-        loading_result = self.schema_manager.ensure_schema(
-            xsd_file_path, base_url
-        )
+        loading_result = self.schema_manager.ensure_schema(xsd_file_path, base_url)
         if not loading_result.success:
             # Abort the validation if schema loading failed.
             logger.warn("Schema loading failed.")
             return False, loading_result.error
         validation_backend = self.validate_validation_backend(validation_backend)
-        lxml_schema = self._get_lxml_schema(
-            xsd_file_path,
-            base_url,
-            validation_backend
-        )
+        lxml_schema = self._get_lxml_schema(xsd_file_path, base_url, validation_backend)
         if validation_backend == "lxml" and lxml_schema is None:
-            return False, [{
-                facet: (
-                    "lxml could not compile the XSD schema."
-                    if facet == "reason"
-                    else ""
-                )
-                for facet in (error_facets or default_error_facets or [])
-            }]
+            return False, [
+                {
+                    facet: (
+                        "lxml could not compile the XSD schema."
+                        if facet == "reason"
+                        else ""
+                    )
+                    for facet in (error_facets or default_error_facets or [])
+                }
+            ]
         # Validate the XML and collect details for each XSD violation.
         errors = self._collect_validation_errors(
             xml_file_path,
@@ -189,7 +179,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
             lxml_schema,
             error_facets,
             default_error_facets,
-            skip_none_error_facets
+            skip_none_error_facets,
         )
         # Determine validity based on the presence of errors.
         return (True, None) if len(errors) == 0 else (False, errors)
@@ -198,7 +188,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         self,
         xsd_file_path: Path | BaseException | None,
         base_url: str | None,
-        validation_backend: ValidationBackend
+        validation_backend: ValidationBackend,
     ) -> etree.XMLSchema | None:
         """
         Returns an lxml schema unless xmlschema-only validation is requested.
@@ -216,8 +206,8 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         lxml_schema: etree.XMLSchema | None = None,
         error_facets: list[str] | None = None,
         default_error_facets: list[str] | None = None,
-        skip_none_error_facets: bool = False
-        ) -> list[dict[str, Any]]:
+        skip_none_error_facets: bool = False,
+    ) -> list[dict[str, Any]]:
         """
         Collects configured error details for each XSD validation error.
 
@@ -248,10 +238,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         facets = error_facets or default_error_facets or []
         if lxml_schema is not None:
             return XmlValidationRunner._collect_lxml_validation_errors(
-                xml_file_path,
-                lxml_schema,
-                facets,
-                skip_none_error_facets
+                xml_file_path, lxml_schema, facets, skip_none_error_facets
             )
         return [
             {
@@ -263,10 +250,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
                 )
                 # Error facets to collect determined by arg or instance.
                 for facet in facets
-                if (
-                    not skip_none_error_facets
-                    or getattr(err, facet, None) is not None
-                )
+                if (not skip_none_error_facets or getattr(err, facet, None) is not None)
             }
             # Generate an err obj (with err details) per encountered violation.
             for err in schema.iter_errors(xml_file_path)
@@ -277,7 +261,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         xml_file_path: Path,
         schema: etree.XMLSchema,
         facets: list[str],
-        skip_none_error_facets: bool = False
+        skip_none_error_facets: bool = False,
     ) -> list[dict[str, Any]]:
         """
         Collects validation errors using lxml's C-backed XSD validator.
@@ -290,11 +274,12 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
                 facet: value if value is not None else "Unavailable"
                 for facet in facets
                 if (
-                    (value := XmlValidationRunner._get_lxml_error_facet(
-                        error,
-                        facet,
-                        document
-                    )) is not None
+                    (
+                        value := XmlValidationRunner._get_lxml_error_facet(
+                            error, facet, document
+                        )
+                    )
+                    is not None
                     or not skip_none_error_facets
                 )
             }
@@ -303,9 +288,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
 
     @staticmethod
     def _get_lxml_error_facet(
-        error: etree._LogEntry,
-        facet: str,
-        document: etree._ElementTree
+        error: etree._LogEntry, facet: str, document: etree._ElementTree
     ) -> Any:
         """
         Maps requested error facets to lxml error-log attributes.
@@ -320,8 +303,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
 
     @staticmethod
     def _get_lxml_error_path(
-        error: etree._LogEntry,
-        document: etree._ElementTree
+        error: etree._LogEntry, document: etree._ElementTree
     ) -> str | None:
         """
         Converts lxml's structural XPath into a readable element path.
@@ -337,15 +319,12 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         return XmlValidationRunner._build_readable_element_path(matches[0])
 
     @staticmethod
-    def _build_readable_element_path(
-        element: etree._Element
-    ) -> str:
+    def _build_readable_element_path(element: etree._Element) -> str:
         """
         Builds a slash-separated path from an lxml element.
         """
         path_parts = [
-            etree.QName(ancestor).localname
-            for ancestor in element.iterancestors()
+            etree.QName(ancestor).localname for ancestor in element.iterancestors()
         ]
         path_parts.reverse()
         path_parts.append(etree.QName(element).localname)
@@ -353,8 +332,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
 
     @staticmethod
     def _get_lxml_error_reason(
-        error: etree._LogEntry,
-        document: etree._ElementTree
+        error: etree._LogEntry, document: etree._ElementTree
     ) -> str:
         """
         Converts common lxml validation messages to familiar wording.
@@ -363,7 +341,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         invalid_value_match = re.match(
             r"Element '([^']+)': '([^']+)' is not a valid value of "
             r"the atomic type '([^']+)'\.",
-            message
+            message,
         )
         if invalid_value_match:
             _, value, value_type = invalid_value_match.groups()
@@ -377,17 +355,13 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         unexpected_child_match = re.match(
             r"Element '([^']+)': This element is not expected\."
             r"(?: Expected is \( ([^)]+) \)\.)?",
-            message
+            message,
         )
         if unexpected_child_match:
             child_tag, expected_tag = unexpected_child_match.groups()
-            position = XmlValidationRunner._get_lxml_error_position(
-                error,
-                document
-            )
+            position = XmlValidationRunner._get_lxml_error_position(error, document)
             reason = (
-                f"Unexpected child with tag '{child_tag}' "
-                f"at position {position}."
+                f"Unexpected child with tag '{child_tag}' " f"at position {position}."
             )
             if expected_tag:
                 reason = f"{reason} Tag '{expected_tag.strip()}' expected."
@@ -396,7 +370,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         pattern_match = re.match(
             r"Element '([^']+)': \[facet 'pattern'\] The value '([^']+)' "
             r"is not accepted by the pattern '([^']+)'\.",
-            message
+            message,
         )
         if pattern_match:
             _, _, pattern = pattern_match.groups()
@@ -407,8 +381,7 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
 
     @staticmethod
     def _get_lxml_error_position(
-        error: etree._LogEntry,
-        document: etree._ElementTree
+        error: etree._LogEntry, document: etree._ElementTree
     ) -> int:
         """
         Returns the one-based element position among siblings.
@@ -430,10 +403,8 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         xml_file_paths: list[Path],
         is_single_xml_file: bool,
         result_recorder: ValidatorResultRecorder,
-        write_to_csv: bool | None,
-        timestamped: bool | None,
-        error_table: bool | None,
-        fail_on_errors: bool
+        reporting_options: tuple[bool | None, bool | None, bool | None],
+        fail_on_errors: bool,
     ) -> tuple[list[dict[str, Any]], str | None]:
         """
         Finalizes a completed validation run.
@@ -446,15 +417,15 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         - failing the Robot Framework test if configured
         - returning collected errors and the CSV path
         """
+        write_to_csv, timestamped, error_table = reporting_options
         # Write errors to a single CSV file if requested.
         if write_to_csv and result_recorder.errors_by_file:
             csv_path = result_recorder.write_errors_to_csv(
                 result_recorder.errors_by_file,
-                xml_file_paths[0].parent
-                    if is_single_xml_file else xml_file_paths[0],
+                xml_file_paths[0].parent if is_single_xml_file else xml_file_paths[0],
                 include_timestamp=timestamped,
-                file_name_column="file_name"
-                )
+                file_name_column="file_name",
+            )
         else:
             csv_path = None
         # Write errors to the log file as a table if requested.
@@ -467,8 +438,5 @@ class XmlValidationRunner:  # pylint: disable=R0903:too-few-public-methods
         if fail_on_errors and result_recorder.errors_by_file:
             raise Failure(
                 f"{len(result_recorder.errors_by_file)} errors have been detected."
-                )
-        return (
-            result_recorder.errors_by_file,
-            csv_path if csv_path else None
             )
+        return (result_recorder.errors_by_file, csv_path if csv_path else None)

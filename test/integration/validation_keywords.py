@@ -9,6 +9,21 @@ import csv
 import os
 
 
+def _matches_expected_value(actual_value, expected_value) -> bool:
+    """
+    Checks whether an actual value satisfies an expected test value.
+
+    Expected string values ending in ``*`` are treated as prefix
+    expectations. This keeps integration tests stable for messages that
+    contain platform-specific path fragments after a stable error prefix.
+    """
+    actual_value = str(actual_value)
+    expected_value = str(expected_value)
+    if expected_value.endswith("*"):
+        return actual_value.startswith(expected_value[:-1])
+    return actual_value == expected_value
+
+
 def validate_error_output(
         actual_errors: list[dict],
         *expected_errors: dict
@@ -31,7 +46,7 @@ def validate_error_output(
     for expected_error in expected_errors:
         match_found = any(
             all(
-                str(actual_error.get(key)) == str(value)
+                _matches_expected_value(actual_error.get(key), value)
                 for key, value in expected_error.items()
             )
             for actual_error in actual_errors

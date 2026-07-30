@@ -43,7 +43,7 @@ INFRASTRUCTURE_SCHEMA_NAMESPACES = {
 def extract_namespaces(
     xml_root: etree.ElementBase,
     include_nested: bool | None = False,
-    return_dict: bool | None = False
+    return_dict: bool | None = False,
 ) -> set[str] | dict[str | None, str]:
     """
     Extracts XML namespaces from an XML root element.
@@ -62,9 +62,7 @@ def extract_namespaces(
     return namespaces if return_dict else set(namespaces.values())
 
 
-def _extract_nested_namespaces(
-    element: etree.ElementBase
-) -> dict[str | None, str]:
+def _extract_nested_namespaces(element: etree.ElementBase) -> dict[str | None, str]:
     """
     Recursively extracts namespaces from all elements in an XML tree.
     """
@@ -82,47 +80,39 @@ def _extract_nested_namespaces(
 def schema_matches_xml_namespaces(
     xsd_schema: "XMLSchema",
     xml_namespaces: set[str],
-    allow_declared_namespace_match: bool = False
+    allow_declared_namespace_match: bool = False,
 ) -> bool:
     """
     Matches an XSD schema to an XML document based on namespace rules.
     """
-    (
-        target_namespace,
-        imported_namespaces,
-        declared_match_namespaces
-    ) = _prepare_schema_namespace_matches(
-        xsd_schema,
-        allow_declared_namespace_match
+    target_namespace, imported_namespaces, declared_match_namespaces = (
+        _prepare_schema_namespace_matches(xsd_schema, allow_declared_namespace_match)
     )
     if target_namespace and target_namespace in xml_namespaces:
         logger.info(
             f"Schema matched by target namespace: '{target_namespace}'.",
-            also_console=True
+            also_console=True,
         )
         return True
     matching_imported_namespaces = imported_namespaces & xml_namespaces
     if matching_imported_namespaces:
         namespace = next(iter(matching_imported_namespaces))
         logger.info(
-            f"Schema matched by imported namespace: '{namespace}'.",
-            also_console=True
+            f"Schema matched by imported namespace: '{namespace}'.", also_console=True
         )
         return True
     matching_declared_namespaces = declared_match_namespaces & xml_namespaces
     if matching_declared_namespaces:
         namespace = next(iter(matching_declared_namespaces))
         logger.info(
-            f"Schema matched by declared namespace: '{namespace}'.",
-            also_console=True
+            f"Schema matched by declared namespace: '{namespace}'.", also_console=True
         )
         return True
     return False
 
 
 def _prepare_schema_namespace_matches(
-    xsd_schema: "XMLSchema",
-    allow_declared_namespace_match: bool
+    xsd_schema: "XMLSchema", allow_declared_namespace_match: bool
 ) -> tuple[str | None, set[str], set[str]]:
     """
     Collects and filters schema namespaces used for XML matching.
@@ -131,9 +121,7 @@ def _prepare_schema_namespace_matches(
     imports = getattr(xsd_schema, "imports", None) or {}
     imported_namespaces = set(imports.keys())
     declared_namespaces = {
-        ns
-        for ns in getattr(xsd_schema, "namespaces", {}).values()
-        if ns
+        ns for ns in getattr(xsd_schema, "namespaces", {}).values() if ns
     }
     declared_match_namespaces = (
         declared_namespaces if allow_declared_namespace_match else set()
@@ -164,6 +152,6 @@ def _prepare_schema_namespace_matches(
     for namespace in sorted(ignored_namespaces):
         logger.info(
             f"Schema namespace ignored during matching: '{namespace}'.",
-            also_console=False
+            also_console=False,
         )
     return target_namespace, imported_namespaces, declared_match_namespaces

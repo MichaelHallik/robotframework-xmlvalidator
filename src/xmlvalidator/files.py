@@ -34,16 +34,16 @@ DEFAULT_ERROR_FACETS: dict[type, list[str]] = {
     OSError: ["strerror"],
     etree.ParseError: ["msg", "position"],
     etree.XMLSchemaParseError: ["msg", "position"],
-    etree.XMLSyntaxError: ["msg", "position"]
+    etree.XMLSyntaxError: ["msg", "position"],
 }
 
 
-def sanity_check_files( # pylint: disable=R0914:too-many-locals
+def sanity_check_files(  # pylint: disable=R0914:too-many-locals
     file_paths: list[Path],
     base_url: str | None = None,
     error_facets: list[str] | None = None,
     parse_files: bool = False,
-    skip_none_error_facets: bool = False
+    skip_none_error_facets: bool = False,
 ) -> ValidatorResult:
     """
     Performs file-level sanity checks on XML or XSD files.
@@ -66,38 +66,22 @@ def sanity_check_files( # pylint: disable=R0914:too-many-locals
             errors.append(file_error)
             continue
         try:
-            _parse_file_for_sanity_check(
-                file_path,
-                file_type,
-                base_url,
-                parse_files
-            )
+            _parse_file_for_sanity_check(file_path, file_type, base_url, parse_files)
         except (
             OSError,
             etree.ParseError,
             etree.XMLSchemaParseError,
-            etree.XMLSyntaxError
+            etree.XMLSyntaxError,
         ) as e:
             error_details = _extract_error_details(
-                e,
-                error_facets,
-                DEFAULT_ERROR_FACETS,
-                skip_none_error_facets
+                e, error_facets, DEFAULT_ERROR_FACETS, skip_none_error_facets
             )
-            _append_file_error(
-                errors,
-                file_path,
-                "File parsing failed.",
-                error_details
-            )
+            _append_file_error(errors, file_path, "File parsing failed.", error_details)
     success = len(errors) == 0
     return ValidatorResult(success=success, error=errors)
 
 
-def _check_file_path(
-    file_path: Path,
-    file_type: str
-) -> dict[str, str | None] | None:
+def _check_file_path(file_path: Path, file_type: str) -> dict[str, str | None] | None:
     """
     Checks whether a file path can be processed by sanity checks.
     """
@@ -105,30 +89,25 @@ def _check_file_path(
         return {
             "file": str(file_path),
             "reason": f"Unsupported file type: {file_type}.",
-            "Error type": "ValueError"
+            "Error type": "ValueError",
         }
     if not file_path.exists():
         return {
             "file": str(file_path),
-            "reason": (
-                f"The {file_type.removeprefix('.')} file does not exist."
-            ),
-            "Error type": "OSError"
+            "reason": (f"The {file_type.removeprefix('.')} file does not exist."),
+            "Error type": "OSError",
         }
     if file_path.stat().st_size == 0:
         return {
             "file": str(file_path),
             "reason": "File is empty.",
-            "Error type": "ValueError"
+            "Error type": "ValueError",
         }
     return None
 
 
 def _parse_file_for_sanity_check(
-    file_path: Path,
-    file_type: str,
-    base_url: str | None,
-    parse_files: bool
+    file_path: Path, file_type: str, base_url: str | None, parse_files: bool
 ) -> None:
     """
     Parses a file when sanity checks include XML/XSD parsing.
@@ -137,9 +116,7 @@ def _parse_file_for_sanity_check(
         return
     with file_path.open("rb") as file:
         tree = etree.parse(
-            file,
-            parser=etree.XMLParser(),
-            base_url=base_url # type:ignore
+            file, parser=etree.XMLParser(), base_url=base_url  # type: ignore
         )
         if file_type == ".xsd":
             _ = etree.XMLSchema(tree)
@@ -149,7 +126,7 @@ def _extract_error_details(
     error: Exception,
     error_facets: list[str] | None,
     default_facets: dict[type, list[str]],
-    skip_none_error_facets: bool = False
+    skip_none_error_facets: bool = False,
 ) -> dict[str, str | None]:
     """
     Extracts selected details from an exception into a dictionary.
@@ -163,10 +140,7 @@ def _extract_error_details(
     dictionaries, logs and CSV output predictable. Passing
     ``skip_none_error_facets=True`` omits such unavailable facets.
     """
-    facets_to_include = error_facets or default_facets.get(
-        type(error),
-        []
-    )
+    facets_to_include = error_facets or default_facets.get(type(error), [])
     error_details: dict[str, str | None] = {}
     for facet in facets_to_include:
         if hasattr(error, facet):
@@ -186,15 +160,12 @@ def _append_file_error(
     errors: list[dict[str, str | None]],
     file_path: Path,
     reason: str,
-    additional_details: dict[str, str | None] | None = None
+    additional_details: dict[str, str | None] | None = None,
 ) -> None:
     """
     Appends a structured file validation error to the error list.
     """
-    error: dict[str, str | None] = {
-        "file": str(file_path),
-        "reason": reason
-    }
+    error: dict[str, str | None] = {"file": str(file_path), "reason": reason}
     if additional_details:
         error.update(additional_details)
     errors.append(error)

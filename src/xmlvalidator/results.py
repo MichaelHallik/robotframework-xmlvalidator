@@ -141,10 +141,7 @@ class ValidatorResultRecorder:
         # Stores all collected errors, grouped by source file.
         self.errors_by_file: list[dict[str, Any]] = []
         # Tracks validated file names by outcome category.
-        self.validation_summary: dict[str, list[str]] = {
-            "valid": [],
-            "invalid": []
-        }
+        self.validation_summary: dict[str, list[str]] = {"valid": [], "invalid": []}
         # Tracks error tables so each table receives a unique HTML id.
         self.error_table_id: int = 0
 
@@ -193,7 +190,7 @@ class ValidatorResultRecorder:
     def add_file_errors(
         self,
         file_path: Path,
-        error_details: list[dict[str, Any]] | dict[str, Any] | None
+        error_details: list[dict[str, Any]] | dict[str, Any] | None,
     ) -> None:
         """
         Adds validation error(s) for a given XML file.
@@ -340,11 +337,12 @@ class ValidatorResultRecorder:
         # Write the filterable table to the log file.
         logger.info(full_html, html=True)
 
-    def write_errors_to_csv(self,
+    def write_errors_to_csv(
+        self,
         errors: list[dict[str, Any]],
         output_path: Path,
         include_timestamp: bool | None = False,
-        file_name_column: str | None = None
+        file_name_column: str | None = None,
     ) -> str:
         """
         Writes a list of validation errors to a CSV file.
@@ -400,7 +398,7 @@ class ValidatorResultRecorder:
         # Nothing to export.
         if not errors:
             logger.info("No errors to write to CSV.")
-            return ''
+            return ""
         # Generate a timestamp to be added to the filename.
         timestamp = (
             f'_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
@@ -415,19 +413,17 @@ class ValidatorResultRecorder:
         if file_name_column and file_name_column in df.columns:
             columns_order = [file_name_column] + [
                 col for col in df.columns if col != file_name_column
-                ]
+            ]
             df = df[columns_order]
         # Write the DataFrame to a CSV file.
         try:
             df.to_csv(output_csv_path, index=False)
             logger.info(
                 f"Validation errors exported to: \n\t'{output_csv_path}'.",
-                also_console=True
-                )
+                also_console=True,
+            )
         except OSError as e:
-            raise OSError(
-                f"Failed to write CSV file: {output_csv_path}."
-                ) from e
+            raise OSError(f"Failed to write CSV file: {output_csv_path}.") from e
         return str(output_csv_path.resolve())
 
     # Clear all results.
@@ -449,7 +445,7 @@ class ValidatorResultRecorder:
         self.error_table_id = 0
 
 
-class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
+class ValidatorResult:  # pylint: disable=R0903:too-few-public-methods
     """
     Encapsulates the result of an operation in a success-or-failure
     format.
@@ -496,10 +492,7 @@ class ValidatorResult: # pylint: disable=R0903:too-few-public-methods
     """
 
     def __init__(
-        self,
-        success: bool,
-        value: Any | None = None,
-        error: Any | None = None
+        self, success: bool, value: Any | None = None, error: Any | None = None
     ):
         """
         Initializes a ValidatorResult instance.

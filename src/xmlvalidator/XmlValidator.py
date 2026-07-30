@@ -70,7 +70,7 @@ from .validation import (
 )
 
 
-@library(scope='GLOBAL', version=__version__, doc_format="REST")
+@library(scope="GLOBAL", version=__version__, doc_format="REST")
 class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     """
     XmlValidator is a `Robot Framework <https://robotframework.org/>`_
@@ -287,42 +287,42 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
 
     A test suite file may look like the following:
 
-	.. code:: robotframework
+        .. code:: robotframework
 
-		*** Settings ***
-		Library    xmlvalidator    xsd_path=path/to/default/schema.xsd
+                *** Settings ***
+                Library    xmlvalidator    xsd_path=path/to/default/schema.xsd
 
-		*** Variables ***
-		${SINGLE_XML_FILE}                path/to/file1.xml
-		${FOLDER_MULTIPLE_XML}            path/to/xml_folder_1
-		${FOLDER_MULTIPLE_XML_ALT}        path/to/xml_folder_2
-		${FOLDER_MULTIPLE_XML_NS}         path/to/xml_folder_3
-		${FOLDER_MULTIPLE_XML_FN}         path/to/xml_folder_4
+                *** Variables ***
+                ${SINGLE_XML_FILE}                path/to/file1.xml
+                ${FOLDER_MULTIPLE_XML}            path/to/xml_folder_1
+                ${FOLDER_MULTIPLE_XML_ALT}        path/to/xml_folder_2
+                ${FOLDER_MULTIPLE_XML_NS}         path/to/xml_folder_3
+                ${FOLDER_MULTIPLE_XML_FN}         path/to/xml_folder_4
 
-		${SINGLE_XSD_FILE}                path/to/alt_schema.xsd
-		${FOLDER_MULTIPLE_XSD}            path/to/xsd_schemas/
+                ${SINGLE_XSD_FILE}                path/to/alt_schema.xsd
+                ${FOLDER_MULTIPLE_XSD}            path/to/xsd_schemas/
 
-		*** Test Cases ***
+                *** Test Cases ***
 
-		Validate Single XML File With Default Schema
-			[Documentation]    Validates a single XML file using the default schema
-			Validate Xml Files    ${SINGLE_XML_FILE}
+                Validate Single XML File With Default Schema
+                        [Documentation]    Validates a single XML file using the default schema
+                        Validate Xml Files    ${SINGLE_XML_FILE}
 
-		Validate Folder Of XML Files With Default Schema
-			[Documentation]    Validates all XML files in a folder using the default schema
-			Validate Xml Files    ${FOLDER_MULTIPLE_XML}
+                Validate Folder Of XML Files With Default Schema
+                        [Documentation]    Validates all XML files in a folder using the default schema
+                        Validate Xml Files    ${FOLDER_MULTIPLE_XML}
 
-		Validate Folder With Explicit Schema Override
-			[Documentation]    Validates XML files using a different, explicitly provided schema
-			Validate Xml Files    ${FOLDER_MULTIPLE_XML_ALT}    ${SINGLE_XSD_FILE}
+                Validate Folder With Explicit Schema Override
+                        [Documentation]    Validates XML files using a different, explicitly provided schema
+                        Validate Xml Files    ${FOLDER_MULTIPLE_XML_ALT}    ${SINGLE_XSD_FILE}
 
-		Validate Folder With Multiple Schemas By Namespace
-			[Documentation]    Resolves matching schema for each XML file based on namespace
-			Validate Xml Files    ${FOLDER_MULTIPLE_XML_NS}    ${FOLDER_MULTIPLE_XSD}    xsd_search_strategy=by_namespace
+                Validate Folder With Multiple Schemas By Namespace
+                        [Documentation]    Resolves matching schema for each XML file based on namespace
+                        Validate Xml Files    ${FOLDER_MULTIPLE_XML_NS}    ${FOLDER_MULTIPLE_XSD}    xsd_search_strategy=by_namespace
 
-		Validate Folder With Multiple Schemas By File Name
-			[Documentation]    Resolves schema based on matching file name patterns (no schema path passed)
-			Validate Xml Files    ${FOLDER_MULTIPLE_XML_FN}    xsd_search_strategy=by_file_name
+                Validate Folder With Multiple Schemas By File Name
+                        [Documentation]    Resolves schema based on matching file name patterns (no schema path passed)
+                        Validate Xml Files    ${FOLDER_MULTIPLE_XML_FN}    xsd_search_strategy=by_file_name
 
     Example of the console output where some files passed validation and
     multiple errors have been found for multiple other files:
@@ -624,28 +624,18 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             xsd_path=xsd_path, base_url=base_url
         )
         # Set the error facets to collect for failed XML validations.
-        self.error_facets = error_facets if error_facets else [
-            'path', 'reason'
-        ]
+        self.error_facets = error_facets if error_facets else ["path", "reason"]
+        logger.info(f"Collecting error facets: {self.error_facets}.", also_console=True)
         logger.info(
-            f"Collecting error facets: {self.error_facets}.",
-            also_console=True
-        )
-        logger.info(
-            f"Using validation backend: {self.validation_backend}.",
-            also_console=True
+            f"Using validation backend: {self.validation_backend}.", also_console=True
         )
         # Set the validation strictness.
         self.fail_on_errors = fail_on_errors
-        logger.info(
-            f"Fail on errors: {self.fail_on_errors}.", also_console=True
-        )
+        logger.info(f"Fail on errors: {self.fail_on_errors}.", also_console=True)
         # Report readiness.
         logger.info("XML Validator ready for use!", also_console=True)
         self.nr_instances += 1
-        logger.info(
-            f'Number of library instances: {self.nr_instances}.'
-        )
+        logger.info(f"Number of library instances: {self.nr_instances}.")
 
     @keyword
     def get_error_facets(self) -> list[str]:
@@ -683,10 +673,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         return self.validation_backend
 
     @keyword
-    def set_validation_backend(
-        self,
-        validation_backend: ValidationBackend
-    ) -> None:
+    def set_validation_backend(self, validation_backend: ValidationBackend) -> None:
         """
         Sets the default backend used by subsequent validation runs.
 
@@ -699,13 +686,11 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             validation_backend
         )
         logger.info(
-            f"Validation backend set to: {self.validation_backend}.",
-            also_console=True
+            f"Validation backend set to: {self.validation_backend}.", also_console=True
         )
 
     @keyword
-    def get_schema(self,return_schema_name: bool = True
-        ) -> str | XMLSchema | None:
+    def get_schema(self, return_schema_name: bool = True) -> str | XMLSchema | None:
         """
         .. raw:: html
 
@@ -764,13 +749,9 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         """
         if self.schema and log_name:
             logger.info(
-                f"Schema currently loaded: {self.schema.name}.",
-                also_console=True
-                )
-        logger.info(
-            f"Schema currently loaded: {self.schema}.",
-            also_console=True
+                f"Schema currently loaded: {self.schema.name}.", also_console=True
             )
+        logger.info(f"Schema currently loaded: {self.schema}.", also_console=True)
 
     @keyword
     def reset_error_facets(self):
@@ -783,11 +764,11 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
 
         Prints the change to the console and in the Robot Framework log
         """
-        self.error_facets = ['path', 'reason']
+        self.error_facets = ["path", "reason"]
         logger.info(
             f"Error facets restored to default: {', '.join(self.error_facets)}.",
-            also_console=True
-            )
+            also_console=True,
+        )
 
     @keyword
     def reset_errors(self):
@@ -818,11 +799,11 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         logger.info("Schema attribute reset: no schema loaded.", also_console=True)
 
     @keyword
-    def validate_xml_files( # pylint: disable=R0914:too-many-locals
+    def validate_xml_files(  # pylint: disable=R0914:too-many-locals
         self,
         xml_path: str | Path,
         xsd_path: str | Path | None = None,
-        xsd_search_strategy: Literal['by_namespace', 'by_file_name'] | None = None,
+        xsd_search_strategy: Literal["by_namespace", "by_file_name"] | None = None,
         base_url: str | None = None,
         error_facets: list[str] | None = None,
         pre_parse: bool = True,
@@ -833,11 +814,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         error_table: bool | None = True,
         allow_declared_namespace_match: bool = False,
         skip_none_error_facets: bool = False,
-        validation_backend: ValidationBackend | None = None
-        ) -> tuple[
-            list[dict[str, Any]],
-            str | None
-            ]:
+        validation_backend: ValidationBackend | None = None,
+    ) -> tuple[list[dict[str, Any]], str | None]:
         """
         **Introduction**
 
@@ -1025,9 +1003,7 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             self.validator_results.reset()
         # Determine the validation strictness.
         fail_on_errors = (
-            fail_on_errors \
-                if fail_on_errors is not None \
-                    else self.fail_on_errors
+            fail_on_errors if fail_on_errors is not None else self.fail_on_errors
         )
         effective_validation_backend = (
             XmlValidationRunner.validate_validation_backend(validation_backend)
@@ -1035,19 +1011,15 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             else self.validation_backend
         )
         # Determine and resolve/normalize the XML file path(s).
-        xml_file_paths, is_single_xml_file = (
-                get_file_paths(
-                xml_path, 'xml'
-                )
-            )
+        xml_file_paths, is_single_xml_file = get_file_paths(xml_path, "xml")
         # Pair each XML file with its proper XSD counterpart.
         validations = self.schema_resolver.build_validation_plan(
             xml_file_paths,
             xsd_path=xsd_path,
             xsd_search_strategy=xsd_search_strategy,
             base_url=base_url,
-            allow_declared_namespace_match=allow_declared_namespace_match
-            )
+            allow_declared_namespace_match=allow_declared_namespace_match,
+        )
         # Execute the validation plan and record each file's result.
         self.validation_runner.run_validation_plan(
             validations,
@@ -1057,15 +1029,13 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
             self.error_facets,
             pre_parse,
             skip_none_error_facets,
-            effective_validation_backend
+            effective_validation_backend,
         )
         # Export, report and return the completed validation results.
         return self.validation_runner.finalize_validation_run(
             xml_file_paths,
             is_single_xml_file,
             self.validator_results,
-            write_to_csv,
-            timestamped,
-            error_table,
-            fail_on_errors
+            (write_to_csv, timestamped, error_table),
+            fail_on_errors,
         )
