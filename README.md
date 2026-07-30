@@ -655,7 +655,7 @@ The table lists the most commonly available attributes, though additional fields
 | [CHANGELOG](CHANGELOG.md) | User / Dev | Version history, features |
 | [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Dev | Community guidelines |
 | [CONTRIBUTING](CONTRIBUTING.md) | Dev | Contribute |
-| [Mermaid diagram of GitHub Actions](docs/images/github_actions.md) | Dev | CI, GitHub Actions |
+| [Mermaid diagram of GitHub Actions](docs/diagrams/github_actions.md) | Dev | CI, GitHub Actions |
 | [License](LICENSE) | All | Legal usage terms |
 | [Makefile](Makefile) | Dev | Automation, commands |
 | [Project Structure](project_structure.txt) | Dev | Project layout |
@@ -679,13 +679,24 @@ The latest generated Plotly benchmark reports are:
 
 | Scenario | Focus | Report |
 |----------|-------|--------|
-| `scenario-comparison` | Latest run comparison across all benchmark scenarios | [Comparison report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/scenario-comparison.html) |
+| `scenario-comparison-lxml` | Scenario comparison with the lxml validation backend | [lxml scenario comparison](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/scenario-comparison-lxml.html) |
+| `scenario-comparison-xmlschema` | Scenario comparison with the xmlschema validation backend | [xmlschema scenario comparison](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/scenario-comparison-xmlschema.html) |
+| `backend-comparison` | lxml versus xmlschema validation backend comparison | [Backend comparison report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/backend-comparison.html) |
 | `many-small-valid-namespace` | Many small valid XML files matched by namespace | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-namespace.html) |
 | `many-small-invalid-few-errors` | Many small XML files with one validation error per file | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-invalid-few-errors.html) |
 | `many-small-valid-filename` | Many small valid XML files matched by filename | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-filename.html) |
+| `many-small-many-schemas-invalid-namespace` | Many small XML files matched to many small XSDs by namespace, with many validation errors | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-many-schemas-invalid-namespace.html) |
+| `many-small-many-schemas-valid-filename` | Many small valid XML files matched to many small XSDs by filename | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-many-schemas-valid-filename.html) |
 | `few-large-valid-single-schema` | A few larger valid XML files validated against one shared XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema.html) |
 | `few-large-valid-single-schema-no-preparse` | Same larger valid-file workload without pre-parse sanity parsing | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema-no-preparse.html) |
 | `few-large-invalid-many-errors` | A few larger invalid XML files with many validation errors | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-invalid-many-errors.html) |
+| `one-very-large-valid-single-schema` | One very large valid XML file validated against one large XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/one-very-large-valid-single-schema.html) |
+| `one-very-large-invalid-many-errors` | One very large XML file with many validation errors, validated against one large XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/one-very-large-invalid-many-errors.html) |
+
+Trend reports show repeated measurements for one scenario. Comparison
+reports are point-in-time snapshots across scenarios and/or validation
+backends; their local benchmark history is tracked separately from
+per-scenario trend history.
 
 For details on generating fixtures, running benchmarks and creating
 reports, use the dedicated benchmark tooling maintained outside this
@@ -771,7 +782,7 @@ make unit
 #### Integration tests (Robot Framework)
 
 ```
-poetry run python -m robot --outputdir results --exclude git-exclude test/integration
+poetry run python -m robot --outputdir results test/integration
 make robot
 ```
 
@@ -902,6 +913,8 @@ classDiagram
     }
 
     class XmlValidationRunner {
+        +run_validation_plan(...) None
+        +finalize_validation_run(...) tuple[list[dict[str, Any]], str | None]
         +validate_xml(..., validation_backend: auto | lxml | xmlschema = auto) tuple[bool, list[dict[str, Any]] | None]
     }
 
@@ -935,6 +948,7 @@ classDiagram
     ValidatorSchemaResolver --> namespaces
 
     XmlValidationRunner --> ValidatorSchemaManager
+    XmlValidationRunner --> ValidatorResultRecorder
     XmlValidationRunner --> files
 
     files --> ValidatorResult
@@ -971,24 +985,28 @@ sequenceDiagram
     Resolver->>Resolver: match XML files to schemas when needed
     Resolver-->>Facade: validation plan
 
-    Facade->>Files: sanity_check_files(...)
-    Files-->>Facade: file-level errors or OK
+    Facade->>Runner: run_validation_plan(validation plan, results, backend)
 
     loop for each XML file in validation plan
-        Facade->>Runner: validate_xml(xml_file, schema, backend)
+        Runner->>Files: sanity_check_files(...)
+        Files-->>Runner: file-level errors or OK
+        Runner->>Runner: validate_xml(xml_file, schema, backend)
         Runner->>Manager: get_lxml_schema(...) when backend allows it
         alt lxml schema available
             Runner->>Runner: validate with lxml
         else xmlschema required or fallback needed
             Runner->>Runner: validate with xmlschema
         end
-        Runner-->>Facade: valid/invalid and collected errors
-        Facade->>Results: add_valid_file/add_file_errors
+        Runner->>Results: add_valid_file/add_file_errors
+        Runner->>Results: log_file_errors(...)
     end
 
-    Facade->>Results: log_summary()
-    Facade->>Results: write_error_table_to_log(...)
-    Facade->>Results: write_errors_to_csv(...) when requested
+    Runner-->>Facade: validation plan completed
+    Facade->>Runner: finalize_validation_run(...)
+    Runner->>Results: log_summary()
+    Runner->>Results: write_error_table_to_log(...)
+    Runner->>Results: write_errors_to_csv(...) when requested
+    Runner-->>Facade: collected errors and CSV path
     Facade-->>User: collected errors and CSV path
 ```
 
@@ -1087,7 +1105,7 @@ test/                                # Tests and supporting files
 CHANGELOG.md                         # Changelog of releases
 CODE_OF_CONDUCT.md                   # Contributor behavior expectations
 CONTRIBUTING.md                      # How to contribute to the project
-docs/images/github_actions.md        # Mermaid diagram of workflows
+docs/diagrams/github_actions.md      # Mermaid diagram of workflows
 LICENSE                              # Project license (Apache 2.0)
 Makefile                             # Automation tasks
 poetry.lock                          # Poetry-generated lock file

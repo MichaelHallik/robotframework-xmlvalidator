@@ -20,7 +20,6 @@
 Provides the package version from installed package metadata.
 """
 
-
 import warnings
 from importlib.metadata import PackageNotFoundError, version
 
@@ -28,7 +27,4 @@ try:
     __version__ = version("robotframework-xmlvalidator")
 except PackageNotFoundError:
     __version__ = "0.0.0"
-    warnings.warn(
-        "Package metadata not found, using fallback version.",
-        stacklevel=2
-    )
+    warnings.warn("Package metadata not found, using fallback version.", stacklevel=2)

@@ -67,9 +67,7 @@ class ValidatorSchemaManager:
         self._lxml_schema_cache.clear()
 
     def ensure_schema(
-        self,
-        xsd_path: Path | None = None,
-        base_url: str | None = None
+        self, xsd_path: Path | None = None, base_url: str | None = None
     ) -> ValidatorResult:
         """
         Ensures that a schema is available for validation.
@@ -79,28 +77,19 @@ class ValidatorSchemaManager:
         is loaded and replaces the current one.
         """
         if not (self.schema or xsd_path):
-            raise ValueError(
-                "No schema: provide an XSD path during keyword call(s)."
-            )
+            raise ValueError("No schema: provide an XSD path during keyword call(s).")
         if self.schema and not xsd_path:
             return ValidatorResult(success=True, value=self.schema)
         if not self.schema and xsd_path:
             logger.info(f"Setting schema file: {xsd_path}.", also_console=True)
         if self.schema and xsd_path:
-            logger.info(
-                f"\tUsing schema: {xsd_path}.",
-                also_console=True
-            )
+            logger.info(f"\tUsing schema: {xsd_path}.", also_console=True)
         if xsd_path is None:
-            raise ValueError(
-                "No schema: provide an XSD path during keyword call(s)."
-            )
+            raise ValueError("No schema: provide an XSD path during keyword call(s).")
         return self.load_schema(xsd_path, base_url)
 
     def load_schema(
-        self,
-        xsd_path: Path,
-        base_url: str | None = None
+        self, xsd_path: Path, base_url: str | None = None
     ) -> ValidatorResult:
         """
         Loads an XSD schema from disk and stores it as the active
@@ -115,16 +104,11 @@ class ValidatorSchemaManager:
             self.schema_path = resolved_xsd_path
             self.schema_base_url = base_url
             return ValidatorResult(success=True, value=self.schema)
-        except Exception as e: # pylint: disable=W0718:broad-exception-caught
-            return ValidatorResult(
-                success=False,
-                error={type(e).__name__: e}
-            )
+        except Exception as e:  # pylint: disable=W0718:broad-exception-caught
+            return ValidatorResult(success=False, error={type(e).__name__: e})
 
     def get_lxml_schema(
-        self,
-        xsd_path: Path | None = None,
-        base_url: str | None = None
+        self, xsd_path: Path | None = None, base_url: str | None = None
     ) -> etree.XMLSchema | None:
         """
         Returns a cached lxml schema for high-throughput validation.
@@ -151,9 +135,7 @@ class ValidatorSchemaManager:
         return self._lxml_schema_cache[cache_key]
 
     def try_load_initial_schema(
-        self,
-        xsd_path: str | Path | None = None,
-        base_url: str | None = None
+        self, xsd_path: str | Path | None = None, base_url: str | None = None
     ) -> XMLSchema | None:
         """
         Attempts to load a single initial schema during library import.
@@ -163,29 +145,21 @@ class ValidatorSchemaManager:
         XSD file.
         """
         if xsd_path:
-            xsd_file_path, is_single_xsd_file = (
-                get_file_paths(xsd_path, "xsd")
-            )
+            xsd_file_path, is_single_xsd_file = get_file_paths(xsd_path, "xsd")
             if not is_single_xsd_file:
-                raise ValueError(
-                    f"Got multiple xsd files: {xsd_file_path}."
-                )
+                raise ValueError(f"Got multiple xsd files: {xsd_file_path}.")
             if xsd_file_path[0].suffix != ".xsd":
-                raise SystemError(
-                    f"ValueError: {xsd_file_path[0]} is not an XSD file."
-                )
+                raise SystemError(f"ValueError: {xsd_file_path[0]} is not an XSD file.")
             result = self.load_schema(xsd_file_path[0], base_url)
             if result.success:
                 logger.info(
-                    f"Schema '{self.schema.name}' set.", # type: ignore
-                    also_console=True
+                    f"Schema '{self.schema.name}' set.",  # type: ignore
+                    also_console=True,
                 )
                 return result.value
-            raise SystemError(
-                f"Loading of schema failed: {result.error}"
-            )
+            raise SystemError(f"Loading of schema failed: {result.error}")
         logger.info(
             "No XSD schema set: provide schema(s) during keyword calls.",
-            also_console=True
+            also_console=True,
         )
         return None

@@ -29,7 +29,6 @@ Features:
 - Supports dynamic version discovery from installed metadata.
 """
 
-
 # pylint: disable=C0103:invalid-name  # On account of the class name, which is not snake-cased (required by RF).
 
 

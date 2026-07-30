@@ -298,8 +298,8 @@ def test_validate_xml_files_uses_keyword_backend_override():
         validator.schema_resolver.build_validation_plan = MagicMock(
             return_value={xml_path: None}
         )
-        validator._run_validation_plan = MagicMock() # pylint: disable=W0212
-        validator._finalize_validation_run = MagicMock( # pylint: disable=W0212
+        validator.validation_runner.run_validation_plan = MagicMock()
+        validator.validation_runner.finalize_validation_run = MagicMock(
             return_value=([], None)
         )
 
@@ -309,10 +309,12 @@ def test_validate_xml_files_uses_keyword_backend_override():
         )
 
     assert result == ([], None)
-    validator._run_validation_plan.assert_called_once_with( # pylint: disable=W0212
+    validator.validation_runner.run_validation_plan.assert_called_once_with(
         {xml_path: None},
+        validator.validator_results,
         None,
         None,
+        validator.error_facets,
         True,
         False,
         "xmlschema"
@@ -337,82 +339,20 @@ def test_validate_xml_files_uses_instance_backend_when_no_override():
         validator.schema_resolver.build_validation_plan = MagicMock(
             return_value={xml_path: None}
         )
-        validator._run_validation_plan = MagicMock() # pylint: disable=W0212
-        validator._finalize_validation_run = MagicMock( # pylint: disable=W0212
+        validator.validation_runner.run_validation_plan = MagicMock()
+        validator.validation_runner.finalize_validation_run = MagicMock(
             return_value=([], None)
         )
 
         validator.validate_xml_files(xml_path)
 
-    validator._run_validation_plan.assert_called_once_with( # pylint: disable=W0212
+    validator.validation_runner.run_validation_plan.assert_called_once_with(
         {xml_path: None},
+        validator.validator_results,
         None,
         None,
+        validator.error_facets,
         True,
         False,
         "lxml"
     )
-
-
-# _finalize_validation_run()
-
-
-def test_finalize_validation_run_writes_csv_error_table_and_summary(tmp_path):
-    """
-    Test that _finalize_validation_run() performs requested reporting.
-
-    Priority: H
-    """
-    with patch.object(xml_validator_module.logger, "info"), \
-         patch.object(xml_validator_module.logger, "console"):
-        validator = XmlValidator()
-    xml_path = tmp_path / "example.xml"
-    validator.validator_results.errors_by_file = [{
-        "file_name": "example.xml",
-        "reason": "Invalid XML."
-    }]
-    validator.validator_results.write_errors_to_csv = MagicMock(
-        return_value=str(tmp_path / "errors.csv")
-    )
-    validator.validator_results.write_error_table_to_log = MagicMock()
-    validator.validator_results.log_summary = MagicMock()
-
-    errors, csv_path = validator._finalize_validation_run( # pylint: disable=W0212
-        [xml_path],
-        True,
-        write_to_csv=True,
-        timestamped=False,
-        error_table=True,
-        fail_on_errors=False
-    )
-
-    assert errors == validator.validator_results.errors_by_file
-    assert csv_path == str(tmp_path / "errors.csv")
-    validator.validator_results.write_errors_to_csv.assert_called_once()
-    validator.validator_results.write_error_table_to_log.assert_called_once()
-    validator.validator_results.log_summary.assert_called_once()
-
-def test_finalize_validation_run_raises_failure_when_configured(tmp_path):
-    """
-    Test that _finalize_validation_run() fails when errors are fatal.
-
-    Priority: H
-    """
-    with patch.object(xml_validator_module.logger, "info"), \
-         patch.object(xml_validator_module.logger, "console"):
-        validator = XmlValidator()
-    xml_path = tmp_path / "example.xml"
-    validator.validator_results.errors_by_file = [{
-        "file_name": "example.xml",
-        "reason": "Invalid XML."
-    }]
-
-    with pytest.raises(xml_validator_module.Failure, match="1 errors"):
-        validator._finalize_validation_run( # pylint: disable=W0212
-            [xml_path],
-            True,
-            write_to_csv=False,
-            timestamped=False,
-            error_table=False,
-            fail_on_errors=True
-        )

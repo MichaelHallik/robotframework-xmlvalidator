@@ -58,10 +58,7 @@ class ValidatorSchemaResolver:
       - ValidatorSchemaResolver: decide which XML maps to which schema.
     """
 
-    def __init__(
-        self,
-        schema_manager: ValidatorSchemaManager
-    ) -> None:
+    def __init__(self, schema_manager: ValidatorSchemaManager) -> None:
         """
         Initializes a ValidatorSchemaResolver instance.
 
@@ -78,7 +75,7 @@ class ValidatorSchemaResolver:
         xsd_path: str | Path | None = None,
         xsd_search_strategy: Literal["by_namespace", "by_file_name"] | None = None,
         base_url: str | None = None,
-        allow_declared_namespace_match: bool = False
+        allow_declared_namespace_match: bool = False,
     ) -> ValidationPlan:
         """
         Constructs a mapping between XML files and XSD schemas.
@@ -127,7 +124,7 @@ class ValidatorSchemaResolver:
                 xsd_path,
                 xsd_search_strategy,
                 base_url,
-                allow_declared_namespace_match
+                allow_declared_namespace_match,
             )
         # No XSD path and no dynamic strategy: use the existing schema.
         self.schema_manager.ensure_schema(None, None)
@@ -139,26 +136,19 @@ class ValidatorSchemaResolver:
         xsd_path: str | Path,
         xsd_search_strategy: Literal["by_namespace", "by_file_name"] | None,
         base_url: str | None,
-        allow_declared_namespace_match: bool
+        allow_declared_namespace_match: bool,
     ) -> ValidationPlan:
         """
         Builds a validation plan from an explicit or inferred XSD path.
         """
         # Resolve the XSD path to one or more concrete schema files.
-        xsd_paths, is_single_xsd_file = (
-            get_file_paths(xsd_path, "xsd")
-        )
+        xsd_paths, is_single_xsd_file = get_file_paths(xsd_path, "xsd")
         # Single schema: is loaded once and reused for all XMLs.
         if is_single_xsd_file:
-            result = self.schema_manager.ensure_schema(
-                xsd_paths[0],
-                base_url
-            )
+            result = self.schema_manager.ensure_schema(xsd_paths[0], base_url)
             # Raise if unable to load schema.
             if not result.success:
-                raise SystemError(
-                    f"Loading of schema failed: {result.error}."
-                )
+                raise SystemError(f"Loading of schema failed: {result.error}.")
             # Use the loaded schema for each of the XMLs.
             return self._build_loaded_schema_plan(xml_paths)
         # Multiple schemas: must be matched to XMLs before validation.
@@ -167,13 +157,11 @@ class ValidatorSchemaResolver:
             xsd_paths,
             xsd_search_strategy if xsd_search_strategy else "by_namespace",
             base_url,
-            allow_declared_namespace_match
+            allow_declared_namespace_match,
         )
 
     @staticmethod
-    def _build_loaded_schema_plan(
-        xml_paths: list[Path]
-    ) -> ValidationPlan:
+    def _build_loaded_schema_plan(xml_paths: list[Path]) -> ValidationPlan:
         """
         Builds a validation plan that reuses the currently loaded schema.
         """
@@ -190,7 +178,7 @@ class ValidatorSchemaResolver:
         xsd_file_paths: list[Path],
         search_by: Literal["by_namespace", "by_file_name"] = "by_namespace",
         base_url: str | None = None,
-        allow_declared_namespace_match: bool = False
+        allow_declared_namespace_match: bool = False,
     ) -> ValidationPlan:
         """
         Finds matching XSD schemas for XML files.
@@ -200,7 +188,7 @@ class ValidatorSchemaResolver:
         """
         logger.info(
             f"Mapping XML files to schemas {search_by.replace('_', ' ')}.",
-            also_console=True
+            also_console=True,
         )
         # Build one XML-to-XSD mapping entry per XML file.
         validations = {}
@@ -215,14 +203,13 @@ class ValidatorSchemaResolver:
                         xml_file_path,
                         xsd_file_paths,
                         base_url,
-                        allow_declared_namespace_match
+                        allow_declared_namespace_match,
                     )
                 )
             elif search_by == "by_file_name":
                 validations[xml_file_path] = (
                     self._match_xml_file_to_schema_by_file_name(
-                        xml_file_path,
-                        xsd_file_paths
+                        xml_file_path, xsd_file_paths
                     )
                 )
             else:
@@ -241,33 +228,27 @@ class ValidatorSchemaResolver:
         xml_file_path: Path,
         xsd_file_paths: list[Path],
         base_url: str | None,
-        allow_declared_namespace_match: bool
+        allow_declared_namespace_match: bool,
     ) -> Path | BaseException | None:
         """
         Matches a single XML file to an XSD file by namespace.
         """
         # Parse the XML and collect the namespaces declared on its root.
         try:
-            xml_root = etree.parse( # pylint: disable=I1101:c-extension-no-member
+            xml_root = etree.parse(  # pylint: disable=I1101:c-extension-no-member
                 str(xml_file_path),
-                parser=etree.XMLParser() # pylint: disable=I1101:c-extension-no-member
+                parser=etree.XMLParser(),  # pylint: disable=I1101:c-extension-no-member
             ).getroot()
-            xml_namespaces = extract_namespaces(
-                xml_root,
-                include_nested=False
-            )
+            xml_namespaces = extract_namespaces(xml_root, include_nested=False)
         # Return parse/access errors, so downstream reporting can log them.
-        except Exception as err: # pylint: disable=W0718:broad-exception-caught
+        except Exception as err:  # pylint: disable=W0718:broad-exception-caught
             logger.info("\t\tProcessing XML file failed.")
             return err
         # Test each candidate schema until one matches the XML namespace(s).
         for xsd_file_path in xsd_file_paths:
             logger.info(f"\t\tTesting schema: {xsd_file_path}.")
             # Load the schema.
-            result = self.schema_manager.load_schema(
-                xsd_file_path,
-                base_url=base_url
-            )
+            result = self.schema_manager.load_schema(xsd_file_path, base_url=base_url)
             if not result.success:
                 logger.warn(
                     f"Matching attempt failed due to exception: {result.error}."
@@ -275,9 +256,9 @@ class ValidatorSchemaResolver:
                 continue
             # Compare XML namespaces with the loaded schema's namespaces.
             match = schema_matches_xml_namespaces(
-                result.value, # type: ignore
-                xml_namespaces, # type: ignore
-                allow_declared_namespace_match
+                result.value,  # type: ignore
+                xml_namespaces,  # type: ignore
+                allow_declared_namespace_match,
             )
             # Return a matching XSD's file path.
             if match:
@@ -288,8 +269,7 @@ class ValidatorSchemaResolver:
 
     @staticmethod
     def _match_xml_file_to_schema_by_file_name(
-        xml_file_path: Path,
-        xsd_file_paths: list[Path]
+        xml_file_path: Path, xsd_file_paths: list[Path]
     ) -> Path | None:
         """
         Matches a single XML file to an XSD file by filename stem.

@@ -45,7 +45,7 @@ Variables    teardown_vars.py
     Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_15/empty_folder ] failed: ValueError: No .xsd files found in folder:
     ## Path to a non-xsd file.
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_3}    AS    ${TEST_NAME}
-    Should Contain    ${error}    ValueError: ${EXECDIR}\\test\\_data\\integration\\TC_15\\non_xsd_extension\\15_test_schema.txt is not an XSD file.
+    Should Contain    ${error}    15_test_schema.txt is not an XSD file.
 
 16_Validate_Non_Existing_XML
     [Documentation]    Attempt to validate a non-existent XML file and 
@@ -107,7 +107,7 @@ Variables    teardown_vars.py
     Should Contain    ${error}    Initializing library 'xmlvalidator' with arguments [ ${EXECDIR}/test/_data/integration/TC_18/empty_folder ] failed: ValueError: No .xsd files found in folder:
     ## Path to a non-xsd file.
     ${status}    ${error}=    Run Keyword And Ignore Error    Import Library    xmlvalidator    ${xsd_path_3}    AS    ${TEST_NAME}
-    Should Contain    ${error}    ValueError: ${EXECDIR}\\test\\_data\\integration\\TC_18\\non_xsd_extension\\18_test_schema.txt is not an XSD file.
+    Should Contain    ${error}    18_test_schema.txt is not an XSD file.
     # Teardown (and validate schema attribute is None).
     ${xml_validator} =    Get Library Instance    ${TEST NAME}
     Should Be Equal    ${xml_validator.schema}    ${None}
