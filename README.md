@@ -675,6 +675,8 @@ The table lists the most commonly available attributes, though additional fields
 The project publishes performance benchmark reports for tracking
 validation behavior across representative XML/XSD workloads.
 
+The links below point to files published from `docs/benchmarks/`.
+
 The latest generated Plotly benchmark reports are:
 
 | Scenario | Focus | Report |
@@ -685,18 +687,22 @@ The latest generated Plotly benchmark reports are:
 | `many-small-valid-namespace` | Many small valid XML files matched by namespace | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-namespace.html) |
 | `many-small-invalid-few-errors` | Many small XML files with one validation error per file | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-invalid-few-errors.html) |
 | `many-small-valid-filename` | Many small valid XML files matched by filename | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-valid-filename.html) |
-| `many-small-many-schemas-invalid-namespace` | Many small XML files matched to many small XSDs by namespace, with many validation errors | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-many-schemas-invalid-namespace.html) |
 | `many-small-many-schemas-valid-filename` | Many small valid XML files matched to many small XSDs by filename | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/many-small-many-schemas-valid-filename.html) |
 | `few-large-valid-single-schema` | A few larger valid XML files validated against one shared XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema.html) |
 | `few-large-valid-single-schema-no-preparse` | Same larger valid-file workload without pre-parse sanity parsing | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-valid-single-schema-no-preparse.html) |
-| `few-large-invalid-many-errors` | A few larger invalid XML files with many validation errors | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/few-large-invalid-many-errors.html) |
 | `one-very-large-valid-single-schema` | One very large valid XML file validated against one large XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/one-very-large-valid-single-schema.html) |
-| `one-very-large-invalid-many-errors` | One very large XML file with many validation errors, validated against one large XSD | [Trend report](https://michaelhallik.github.io/robotframework-xmlvalidator/benchmarks/one-very-large-invalid-many-errors.html) |
 
 Trend reports show repeated measurements for one scenario. Comparison
 reports are point-in-time snapshots across scenarios and/or validation
 backends; their local benchmark history is tracked separately from
 per-scenario trend history.
+
+The heavier invalid/error-volume scenarios are tracked as stress cases,
+but no public HTML trend reports are currently published for them:
+
+- `many-small-many-schemas-invalid-namespace`
+- `few-large-invalid-many-errors`
+- `one-very-large-invalid-many-errors`
 
 For details on generating fixtures, running benchmarks and creating
 reports, use the dedicated benchmark tooling maintained outside this
