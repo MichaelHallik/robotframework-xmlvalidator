@@ -2,6 +2,38 @@
 
 All notable changes to the project will be documented in this file.
 
+## [3.0.0] - 2026-08-15
+
+### Breaking changes
+
+- Reworked internal package structure after the validation refactor.
+  - Helper functionality was split into focused modules for paths, files,
+    namespaces, schema management, schema resolution, validation and result
+    reporting.
+  - Code that imported non-keyword internals directly may need to update import
+    paths.
+
+### Added
+
+- Added selectable validation backends:
+  - ``auto`` uses the fast lxml-backed validation path when possible.
+  - ``lxml`` forces lxml-backed validation.
+  - ``xmlschema`` preserves the richer xmlschema-backed validation path.
+- Added a Robot Framework keyword for changing the default validation backend.
+- Added benchmark reports for scenario-level and backend-level performance
+  comparisons.
+
+### Changed
+
+- Improved validation performance for large XML files and error-heavy
+  scenarios by introducing the lxml-backed validation path.
+- Refactored validation orchestration into smaller, more focused source
+  modules and classes.
+- Improved source documentation, comments, diagrams and generated test
+  documentation.
+- Updated README guidance around project structure, validation backends,
+  benchmarks and contribution workflows.
+
 ## [2.1.1] - 2026-07-14
 
 ### Changed

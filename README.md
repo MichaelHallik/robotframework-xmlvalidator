@@ -179,7 +179,7 @@ The `main` branch may contain unreleased changes ahead of the latest
 PyPI release.
 
 ```bash
-pip install git+https://github.com/MichaelHallik/robotframework-xmlvalidator.git@v2.1.1
+pip install git+https://github.com/MichaelHallik/robotframework-xmlvalidator.git@v3.0.0
 ```
 
 ### Install using poetry
