@@ -40,7 +40,9 @@ from .files import sanity_check_files
 from .results import ValidatorResultRecorder
 from .schema.manager import ValidatorSchemaManager
 
+# Define type and allowed values for user-provided validation backend.
 ValidationBackend = Literal["auto", "lxml", "xmlschema"]
+# Runtime counterpart used to validate user-provided backend values.
 VALIDATION_BACKENDS = {"auto", "lxml", "xmlschema"}
 
 

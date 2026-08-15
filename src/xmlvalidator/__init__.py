@@ -32,15 +32,20 @@ Features:
 # pylint: disable=C0103:invalid-name  # On account of the class name, which is not snake-cased (required by RF).
 
 
-# Expose the package version.
+# Re-export the resolved package version as xmlvalidator.__version__.
 from ._version import __version__
 
-# Expose XmlValidator class directly for cleaner imports.
+# Re-export the Robot Framework library class at package level.
 from .XmlValidator import XmlValidator
 
-# Alias (i.e. make available) 'XmlValidator' at the package level.
+# Provide the lowercase import alias expected by Robot library imports.
 xmlvalidator = XmlValidator
 
-# Define package metadata.
-__all__ = ["XmlValidator", "__version__"]
+# Declare package-level public API and distribution metadata.
+__all__ = [
+    # Names to export for wildcard ('*') imports from this package.
+    "XmlValidator",
+    "xmlvalidator",
+    "__version__",
+]
 __author__ = "Michael Hallik"
