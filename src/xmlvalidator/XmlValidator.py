@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-This module defines the `XmlValidator` class — a Robot Framework test
+This module defines the `XmlValidator` class: a Robot Framework test
 library for validating XML files against XSD schemas.
 
 The validator supports both individual and batch validation workflows,
@@ -82,8 +82,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     single-file and batch XML validation workflows.
 
     It provides structured and detailed reporting of XML parse errors
-    (malformed XML content) and XSD violations, dynamic schema resolution
-    and CSV exports of collected errors.
+    (malformed XML content) and XSD violations, dynamic schema
+    resolution and CSV exports of collected errors.
 
     Features are described in detail on the `project repo's landing page.
     <https://github.com/MichaelHallik/robotframework-xmlvalidator>`_.
@@ -231,7 +231,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     By default, facets whose value is ``None`` are included in the
     collected error dictionaries with the value ``Unavailable``. If you
     prefer to omit requested facets that have no value for a specific
-    error, pass ``skip_none_error_facets=True`` to ``Validate Xml Files``.
+    error, pass ``skip_none_error_facets=True`` to
+    ``Validate Xml Files``.
 
     Error facets passed during library initialization will be overruled
     by error facets that are passed at the test case level, when calling
@@ -255,8 +256,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     Enables resolution of schema imports/includes via a custom base URL,
     via the ``base_url`` arg.
 
-    Use ``base_url`` when your XSD uses ``<xs:include>`` or ``<xs:import>``
-    with relative paths.
+    Use ``base_url`` when your XSD uses ``<xs:include>`` or
+    ``<xs:import>`` with relative paths.
 
     You can pass ``base_url`` with the library import (together with
     passing ``xsd_path``) and/or when calling ``Validate Xml Files``
@@ -415,14 +416,35 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
     @property
     def schema(self) -> XMLSchema | None:
         """
-        Returns the currently loaded schema from the schema manager.
+        Return the currently loaded XSD schema.
+
+        The active schema is stored internally by the schema manager,
+        not directly on this facade class.
+
+        Accordingly, this property provides a convenient, managed
+        ``validator.schema`` access point, while still keeping schema
+        state centralized in ``ValidatorSchemaManager``.
+
+        I.e., the XmlValidator class delegates schema-state to its
+        ValidatorSchemaManager, but still exposes schema as an attribute
+        on the main library class.
+
+        So this property acts as a 'bridge':
+
+                XmlValidator.schema
+                        ↓
+            ValidatorSchemaManager.schema
         """
         return self.schema_manager.schema
 
     @schema.setter
     def schema(self, value: XMLSchema | None) -> None:
         """
-        Sets the currently loaded schema on the schema manager.
+        Update the currently loaded schema in the schema manager, by
+        either setting or clearing the loaded XSD schema:
+
+        - Assigning to ``validator.schema`` updates the schema manager.
+        - Assigning ``None`` resets the active schema.
         """
         if value is None:
             self.schema_manager.reset_schema()
@@ -611,11 +633,12 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         |               | system restrictions.                                         |
         +---------------+--------------------------------------------------------------+
         """
-        # Use composition for collaborators that keep validation state.
+        # Use composition for collaborators that keep state.
         self.schema_manager = ValidatorSchemaManager()
         self.schema_resolver = ValidatorSchemaResolver(self.schema_manager)
         self.validation_runner = XmlValidationRunner(self.schema_manager)
         self.validator_results = ValidatorResultRecorder()
+        # Set the backend to use for validation.
         self.validation_backend: ValidationBackend = (
             XmlValidationRunner.validate_validation_backend(validation_backend)
         )
@@ -665,7 +688,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         """
         Returns the currently configured default validation backend.
 
-        The returned value is one of ``auto``, ``lxml`` or ``xmlschema``.
+        The returned value is one of ``auto``, ``lxml`` or
+        ``xmlschema``.
 
         This value is used by ``Validate Xml Files`` unless that keyword
         call provides its own ``validation_backend`` argument.
@@ -792,8 +816,8 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         This keyword clears the cached schema reference by setting it to
         None. Future validation calls must provide a new schema.
 
-        A message confirming schema reset is logged to the Robot Framework
-        log.
+        A message confirming schema reset is logged to the Robot
+        Framework log.
         """
         self.schema = None
         logger.info("Schema attribute reset: no schema loaded.", also_console=True)
@@ -998,13 +1022,14 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
 
         If writing the CSV file fails due to filesystem restrictions.
         """
-        # Reset attributes, if requested.
+        # Reset the result recorder, if requested.
         if reset_errors:
             self.validator_results.reset()
-        # Determine the validation strictness.
+        # Determine validation strictness.
         fail_on_errors = (
             fail_on_errors if fail_on_errors is not None else self.fail_on_errors
         )
+        # Determine validation backend.
         effective_validation_backend = (
             XmlValidationRunner.validate_validation_backend(validation_backend)
             if validation_backend is not None
