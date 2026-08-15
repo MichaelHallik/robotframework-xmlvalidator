@@ -16,23 +16,48 @@ All notable changes to the project will be documented in this file.
 ### Added
 
 - Added selectable validation backends:
-  - ``auto`` uses the fast lxml-backed validation path when possible.
-  - ``lxml`` forces lxml-backed validation.
-  - ``xmlschema`` preserves the richer xmlschema-backed validation path.
-- Added a Robot Framework keyword for changing the default validation backend.
-- Added benchmark reports for scenario-level and backend-level performance
-  comparisons.
+  - `auto` uses the fast lxml-backed validation path when possible and falls
+    back to xmlschema where needed.
+  - `lxml` forces lxml-backed validation.
+  - `xmlschema` preserves the richer xmlschema-backed validation path.
+- Added validation backend selection at library import time, keyword-call time
+  and through a dedicated Robot Framework keyword.
+- Added convenience keywords for inspecting and changing the active validation
+  backend.
+- Added generated benchmark reports under `docs/benchmarks/`.
+- Added scenario-level benchmark comparison reports for both `lxml` and
+  `xmlschema`.
+- Added backend comparison reports for comparing `lxml` and `xmlschema`
+  validation behavior.
 
 ### Changed
 
 - Improved validation performance for large XML files and error-heavy
   scenarios by introducing the lxml-backed validation path.
+- Added caching for compiled lxml schemas in the schema manager.
 - Refactored validation orchestration into smaller, more focused source
   modules and classes.
-- Improved source documentation, comments, diagrams and generated test
-  documentation.
+- Split validation internals into focused modules for paths, files, namespaces,
+  schema management, schema resolution, validation execution and result
+  reporting.
+- Reorganized unit tests so test modules map directly to the source modules
+  they cover.
+- Extended unit and integration coverage for backend selection, validation
+  behavior and refactored internals.
+- Improved README structure and added guidance on when the library is useful.
 - Updated README guidance around project structure, validation backends,
-  benchmarks and contribution workflows.
+  benchmarks, benchmark reports and contribution workflows.
+- Updated validation-flow documentation, Mermaid diagrams and project-structure
+  documentation.
+- Moved diagram documentation from `docs/images/` to `docs/diagrams/`.
+- Regenerated Robot Framework keyword documentation.
+- Refreshed generated unit/integration test documentation.
+
+### Fixed
+
+- Fixed README links to published benchmark reports.
+- Removed duplicate benchmark HTML reports from ignored benchmark result
+  folders.
 
 ## [2.1.1] - 2026-07-14
 
