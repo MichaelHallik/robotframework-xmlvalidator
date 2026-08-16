@@ -649,14 +649,21 @@ class XmlValidator:  # pylint: disable=R0902:too-many-instance-attributes
         # Set the error facets to collect for failed XML validations.
         self.error_facets = error_facets if error_facets else ["path", "reason"]
         logger.info(f"Collecting error facets: {self.error_facets}.", also_console=True)
+        effective_backend = (
+            "auto (lxml)"
+            if self.validation_backend == "auto"
+            else self.validation_backend
+        )
         logger.info(
-            f"Using validation backend: {self.validation_backend}.", also_console=True
+            f"Using validation backend: {effective_backend}.", also_console=True
         )
         # Set the validation strictness.
         self.fail_on_errors = fail_on_errors
         logger.info(f"Fail on errors: {self.fail_on_errors}.", also_console=True)
         # Report readiness.
-        logger.info("XML Validator ready for use!", also_console=True)
+        logger.info(
+            f"XML Validator version {__version__} ready for use!", also_console=True
+        )
         self.nr_instances += 1
         logger.info(f"Number of library instances: {self.nr_instances}.")
 

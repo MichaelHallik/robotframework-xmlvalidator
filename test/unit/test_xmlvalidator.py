@@ -35,6 +35,9 @@ from xmlvalidator.validation import XmlValidationRunner
 
 xml_validator_module = importlib.import_module("xmlvalidator.XmlValidator")
 schema_manager_module = importlib.import_module("xmlvalidator.schema.manager")
+READY_LOG_MESSAGE = (
+    f"XML Validator version {xml_validator_module.__version__} ready for use!"
+)
 
 
 # __init__()
@@ -75,7 +78,7 @@ def test_init_loads_single_xsd_schema():
             also_console=True
             )
         mock_info.assert_any_call(
-            "XML Validator ready for use!",
+            READY_LOG_MESSAGE,
             also_console=True
             )
 
@@ -102,7 +105,7 @@ def test_init_allows_import_without_initial_schema():
             also_console=True
         )
         mock_info.assert_any_call(
-            "XML Validator ready for use!",
+            READY_LOG_MESSAGE,
             also_console=True
         )
 
@@ -236,7 +239,8 @@ def test_init_logs_custom_error_facets():
             also_console=True
             )
         mock_info.assert_any_call(
-            "XML Validator ready for use!", also_console=True
+            READY_LOG_MESSAGE,
+            also_console=True
             )
 
 def test_init_raises_system_error_when_initial_schema_loading_fails():

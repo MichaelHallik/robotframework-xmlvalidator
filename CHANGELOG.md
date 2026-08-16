@@ -69,17 +69,25 @@ All notable changes to the project will be documented in this file.
 
 - Updated `lxml`, `black`, and `pytest` to address Dependabot security alerts.
 
-## [1.0.0] - 2025-04-04
-- Implement Robot Framework test library for XML validation against XSD schemas.
-- Add unit tests using pytest.
-- Add integration tests using Robot Framework.
-- Add user and technical documentation.
-- Add Makefile for standard development tasks.
-- Add GitHub Actions for CI/CD.
-- Use Poetry for dependency and release management.
+## [2.1.0] - 2026-03-19
 
-## [1.0.1] - 2025-06-09
-- Refactor: simplify the __init_() method of class XmlValidator
+### Added
+
+- Error table in Robot Framework log output
+  - Provides a structured overview of validation errors.
+  - Improves readability and analysis of validation results.
+  - Enables easier filtering and inspection of errors within logs.
+
+### Changed
+
+- Updated the keyword documentation accordingly.
+- Integration test setup adjusted
+  - Added required directory placeholders (e.g. `.gitkeep`) to ensure test stability across environments.
+  - Ensures consistent execution of integration tests regardless of filesystem state.
+
+### Notes
+
+- Unit test execution remains unchanged.
 
 ## [2.0.0] - 2025-06-14
 
@@ -140,22 +148,14 @@ For example
 - Fixed unit tests that now failed due to aforementioned changes in the logging.
 - Changed documentation (README.md, keyword documentation, etc.) to reflect additions and changes in this version.
 
-## [2.1.0] - 2026-03-19
+## [1.0.1] - 2025-06-09
+- Refactor: simplify the __init_() method of class XmlValidator
 
-### Added
-
-- Error table in Robot Framework log output
-  - Provides a structured overview of validation errors.
-  - Improves readability and analysis of validation results.
-  - Enables easier filtering and inspection of errors within logs.
-
-### Changed
-
-- Updated the keyword documentation accordingly.
-- Integration test setup adjusted
-  - Added required directory placeholders (e.g. `.gitkeep`) to ensure test stability across environments.
-  - Ensures consistent execution of integration tests regardless of filesystem state.
-
-### Notes
-
-- Unit test execution remains unchanged.
+## [1.0.0] - 2025-04-04
+- Implement Robot Framework test library for XML validation against XSD schemas.
+- Add unit tests using pytest.
+- Add integration tests using Robot Framework.
+- Add user and technical documentation.
+- Add Makefile for standard development tasks.
+- Add GitHub Actions for CI/CD.
+- Use Poetry for dependency and release management.
